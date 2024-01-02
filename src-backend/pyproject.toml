@@ -1,0 +1,148 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "scan-steward"
+version = "0.1.0"
+description = ""
+authors = ["Trenton H <797416+stumpylog@users.noreply.github.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+# Main
+litestar = { version = "*", extras = ["pydantic", "cryptography", "jwt", "redis", "picologging", "sqlalchemy"] }
+# Plugins
+litestar-vite = "*"
+taskiq-litestar = "*"
+litestar-granian = "*"
+litestar-users = "*"
+# Task Queue
+taskiq-redis = "*"
+redis = { version = "*", extras = ["hiredis"] }
+# Security
+passlib = { version = "*", extras = ["argon2"] }
+# Settings
+pydantic-settings = "*"
+# Database
+asyncpg = "*"
+aiosqlite = "*"
+# Server
+granian = "*"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.4"
+pytest-asyncio = "*"
+pytest-mock = "*"
+pytest-env = "*"
+pytest-sugar = "*"
+pytest-cov = "*"
+
+[tool.poetry.group.lint.dependencies]
+black = "*"
+ruff = "~0.1.10"
+
+[tool.poetry.group.typing.dependencies]
+mypy = "*"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = {version = "*", extras = ["imaging"]}
+mkdocs-minify-plugin = "*"
+
+[tool.black]
+target-version = ["py310"]
+line-length = 110
+
+[tool.ruff]
+fix = true
+output-format = "grouped"
+target-version = "py310"
+line-length = 120
+# https://docs.astral.sh/ruff/rules/
+extend-select = [
+  "A",
+  "ARG",
+  "B",
+  "C",
+  "C4",
+  "COM",
+  "DTZ",
+  "E",
+  "EM",
+  "ERA",
+  "EXE",
+  "F",
+  "FBT",
+  "FLY",
+  "I",
+  "ICN",
+  "INP",
+  "INT",
+  "ISC",
+  "N",
+  "PERF",
+  "PIE",
+  "PGH",
+  "PTH",
+  "PL",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "PT",
+  "Q",
+  "RSE",
+  "RUF",
+  "S",
+  "SIM",
+  "SLF",
+  "T",
+  "T10",
+  "T20",
+  "TCH",
+  "TD",
+  "TID",
+  "TRY",
+  "UP",
+  "W",
+  "YTT",
+]
+ignore = [
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Allow boolean positional values in function calls, like `dict.get(... True)`
+  "FBT003",
+  # Ignore checks for possible passwords
+  "S105", "S106", "S107",
+  # Ignore complexity
+  "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+  # Ignore no author and missing issue link in TODO tags
+  "TD002", "TD003"
+]
+
+[tool.ruff.isort]
+force-single-line = true
+known-first-party = ["scansteward"]
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+"scan_steward/tests/**/*" = ["PLR2004", "S101", "TID252", "ARG001"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "--pythonwarnings=all"
+asyncio_mode = "auto"
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "scansteward.settings"
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true
