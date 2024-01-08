@@ -37,3 +37,64 @@ Installation is via Docker.
 ## Contributing
 
 ## Built On
+
+## Links
+
+- https://exiftool.org/struct.html
+- https://exiftool.org/TagNames/MWG.html
+
+## Code
+
+### Batched Updates with exiftool
+
+```python
+import shutil
+import subprocess
+import orjson as json
+from pathlib import Path
+import tempfile
+
+if __name__ == "__main__":
+    test_file1 = Path("test.jpg").resolve()
+    test_file2 = Path("another_test.jpg").resolve()
+    data = [
+        {
+            "SourceFile": str(test_file1),
+            "RegionInfo": {
+                "AppliedToDimensions": {"W": 4288, "H": 2847, "Unit": "pixel"},
+                "RegionList": [
+                    {
+                        "Area": {"H": 1, "W": 2, "X": 4, "Y": 4, "Unit": "normalized"},
+                        "Name": "This is Me",
+                        "Type": "Face",
+                    }
+                ],
+            },
+        },
+        {
+            "SourceFile": str(test_file2),
+            "RegionInfo": {
+                "AppliedToDimensions": {"W": 4288, "H": 2847, "Unit": "pixel"},
+                "RegionList": [
+                    {
+                        "Area": {"H": 1, "W": 2, "X": 4, "Y": 4, "Unit": "normalized"},
+                        "Name": "This is Another Me Batched",
+                        "Type": "Face",
+                    }
+                ],
+            },
+        },
+    ]
+
+    tool = shutil.which("exiftool")
+    assert tool is not None
+
+    with tempfile.TemporaryDirectory() as json_dir:
+        json_path = Path(json_dir)  / "temp.json"
+        json_path.write_bytes(json.dumps(data))
+        subprocess.run(
+            [tool, "-overwrite_original", "-XMP:MetadataDate=now", "-wm", "cg", f"-json={json_path}", test_file1, test_file2]
+        )
+
+
+```
