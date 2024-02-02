@@ -1,0 +1,43 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django-ninja = "*"
+django-ninja-crud = "*"
+django-treebeard = "*"
+# Task Queue
+taskiq = "*"
+taskiq-redis = "*"
+redis = { version = "*", extras = ["hiredis"] }
+# Other
+blake3 = "*"
+# Server
+granian = "*"
+# Investigate
+iso8601 = "*"
+aniso8601 = "*"
+
+[dev-packages]
+# Testing
+pytest = "*"
+pytest-asyncio = "*"
+pytest-sugar = "*"
+pytest-cov = "*"
+coverage = "*"
+faker = "*"
+# Linting
+black = "*"
+ruff = "*"
+# Typing
+mypy = "*"
+types-PyMySQL = "*"
+types-PyYAML = "*"
+types-Pygments = "*"
+types-psycopg2 = "*"
+types-passlib = "*"
+types-python-jose = "*"
+# Docs
+mkdocs-material = {version = "*", extras = ["imaging"]}
+mkdocs-minify-plugin = "*"

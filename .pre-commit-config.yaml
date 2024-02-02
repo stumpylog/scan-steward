@@ -39,10 +39,10 @@ repos:
         exclude: "(^Pipfile\\.lock$)|(^docs/roadmap.md)"
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.1.6'
+    rev: 'v0.2.0'
     hooks:
       - id: ruff
   - repo: https://github.com/psf/black
-    rev: 23.11.0
+    rev: 24.1.1
     hooks:
       - id: black

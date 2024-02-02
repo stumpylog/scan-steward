@@ -2,64 +2,6 @@
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
-name = "scan-steward"
-version = "0.1.0"
-description = ""
-authors = ["Trenton H <797416+stumpylog@users.noreply.github.com>"]
-
-[tool.poetry.dependencies]
-python = "^3.10"
-# Main
-litestar = { version = "*", extras = ["pydantic", "cryptography", "jwt", "redis", "picologging", "sqlalchemy"] }
-# Plugins
-taskiq-litestar = "*"
-litestar-granian = "*"
-litestar-users = "*"
-# Task Queue
-taskiq-redis = "*"
-redis = { version = "*", extras = ["hiredis"] }
-# Security
-passlib = { version = "*", extras = ["argon2"] }
-# Settings
-pydantic = { version = "*", extras = ["email"] }
-pydantic-settings = "*"
-# Database
-asyncpg = "*"
-aiosqlite = "*"
-# Server
-granian = "*"
-# Other
-orjson = "*"
-# Investigate
-iso8601 = "*"
-aniso8601 = "*"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.4.4"
-pytest-asyncio = "*"
-pytest-sugar = "*"
-pytest-cov = "*"
-coverage = "*"
-faker = "*"
-
-[tool.poetry.group.lint.dependencies]
-black = "*"
-ruff = "~0.1.10"
-
-[tool.poetry.group.typing.dependencies]
-mypy = "*"
-types-PyMySQL = "*"
-types-PyYAML = "*"
-types-Pygments = "*"
-types-psycopg2 = "*"
-types-passlib = "*"
-types-python-jose = "*"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs-material = {version = "*", extras = ["imaging"]}
-mkdocs-minify-plugin = "*"
-
 [tool.black]
 target-version = ["py310"]
 line-length = 110
@@ -69,6 +11,8 @@ fix = true
 output-format = "grouped"
 target-version = "py310"
 line-length = 120
+
+[tool.ruff.lint]
 # https://docs.astral.sh/ruff/rules/
 extend-select = [
   "A",
@@ -131,18 +75,18 @@ ignore = [
   "TD002", "TD003"
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 force-single-line = true
 known-first-party = ["scansteward"]
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
-"tests/**/*" = ["PLR2004", "S101", "TID252", "ARG001"]
-# Alembic revisions are allowed to be invalid module name
-"migrations/versions/*" = ["N999"]
+"**/tests/**/*" = ["PLR2004", "S101", "TID252", "ARG001"]
+# Migrations can use mutable class attributes
+"**/migrations/*" = ["RUF012"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
