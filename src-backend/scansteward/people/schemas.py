@@ -2,12 +2,16 @@ from typing import ClassVar
 
 from ninja import ModelSchema
 
-from image_metadata.models import Subject
+from scansteward.models import Person
 
 
-class SubjectIn(ModelSchema):
+class PersonCreate(ModelSchema):
+    """
+    Schema to create a Person
+    """
+
     class Meta:
-        model = Subject
+        model = Person
         fields: ClassVar[list[str]] = [
             "name",
             "description",
@@ -15,9 +19,13 @@ class SubjectIn(ModelSchema):
         fields_optional: ClassVar[list[str]] = ["description"]
 
 
-class SubjectOut(ModelSchema):
+class PersonRead(ModelSchema):
+    """
+    Schema when reading a person
+    """
+
     class Meta:
-        model = Subject
+        model = Person
         fields: ClassVar[list[str]] = [
             "id",
             "name",
@@ -25,9 +33,13 @@ class SubjectOut(ModelSchema):
         ]
 
 
-class SubjectUpdate(ModelSchema):
+class PersonUpdate(ModelSchema):
+    """
+    Schema to update a person
+    """
+
     class Meta:
-        model = Subject
+        model = Person
         fields: ClassVar[list[str]] = [
             "id",
             "name",

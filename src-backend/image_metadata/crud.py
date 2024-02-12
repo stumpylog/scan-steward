@@ -3,15 +3,11 @@
 from ninja_crud import views
 from ninja_crud import viewsets
 
-from image_metadata.models import Person
 from image_metadata.models import Subject
 from image_metadata.schemas import Location
 from image_metadata.schemas import LocationIn
 from image_metadata.schemas import LocationOut
 from image_metadata.schemas import LocationUpdate
-from image_metadata.schemas import PersonIn
-from image_metadata.schemas import PersonOut
-from image_metadata.schemas import PersonUpdate
 from image_metadata.schemas import SubjectIn
 from image_metadata.schemas import SubjectOut
 from image_metadata.schemas import SubjectUpdate
@@ -38,16 +34,4 @@ class LocationViewSet(viewsets.ModelViewSet):
     create_department = views.CreateModelView()
     retrieve_department = views.RetrieveModelView()
     update_department = views.UpdateModelView(input_schema=LocationUpdate)
-    delete_department = views.DeleteModelView()
-
-
-class PersonViewSet(viewsets.ModelViewSet):
-    model = Person
-    default_input_schema = PersonIn
-    default_output_schema = PersonOut
-
-    list_departments = views.ListModelView()
-    create_department = views.CreateModelView()
-    retrieve_department = views.RetrieveModelView()
-    update_department = views.UpdateModelView(input_schema=PersonUpdate)
     delete_department = views.DeleteModelView()

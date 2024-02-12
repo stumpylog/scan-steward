@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from PIL import Image
 
-from images.models import Image as ImageModel
+from scansteward.models import Image as ImageModel
 
 
 class Command(BaseCommand):
@@ -18,7 +18,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("paths", nargs="+", type=Path)
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options):  # noqa: ARG002
         for path in options["paths"]:
             if TYPE_CHECKING:
                 assert isinstance(path, Path)
@@ -37,14 +37,14 @@ class Command(BaseCommand):
                 existing_image = ImageModel.objects.filter(checksum=image_hash).first()
                 if existing_image is not None:
                     changed = False
-                    if existing_image.path != original_path:
-                        existing_image.path = original_path
+                    if existing_image.original_path != original_path:
+                        existing_image.original_path = original_path
                         changed = True
-                    if existing_image.thumbnail != thumbnail_path:
-                        existing_image.thumbnail = thumbnail_path
+                    if existing_image.thumbnail_path != thumbnail_path:
+                        existing_image.thumbnail_path = thumbnail_path
                         changed = True
-                    if existing_image.webp != webp_path:
-                        existing_image.webp = webp_path
+                    if existing_image.full_size_path != webp_path:
+                        existing_image.full_size_path = webp_path
                         changed = True
                     if changed:
                         existing_image.save()
