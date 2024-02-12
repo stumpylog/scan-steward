@@ -18,17 +18,51 @@ router = Router(tags=["locations"])
 @router.get("/", response=list[LocationTree])
 def get_locations(request: HttpRequest):
     items = []
-    for root_node in Location.objects.filter(parent__isnull=True).prefetch_related("children"):
+    for root_node in (
+        Location.objects.filter(parent__isnull=True).order_by("name").prefetch_related("children")
+    ):
         tree_root = LocationTree.from_orm(root_node)
         items.append(tree_root)
     return items
 
 
-@router.post("/", response=LocationRead)
+@router.get(
+    "/{location_id}",
+    response=LocationRead,
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+)
+async def get_single_location(request: HttpRequest, location_id: int):
+    instance: Location = await aget_object_or_404(Location, id=location_id)
+    return instance
+
+
+@router.post(
+    "/",
+    response=LocationRead,
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+            HTTPStatus.BAD_REQUEST: {
+                "description": "Location Already Exists",
+            },
+        },
+    },
+)
 async def create_location(request: HttpRequest, data: LocationCreate):
     location_name_exists = await Location.objects.filter(name=data.name).aexists()
     if location_name_exists:
-        raise HttpError(HTTPStatus.BAD_REQUEST, f"Location named {data.name} already exists")
+        raise HttpError(
+            HTTPStatus.BAD_REQUEST,
+            f"Location named {data.name} already exists",
+        )
     parent: Location | None = None
     if data.parent_id is not None:
         parent = await aget_object_or_404(Location, id=data.parent_id)
@@ -40,7 +74,17 @@ async def create_location(request: HttpRequest, data: LocationCreate):
     return instance
 
 
-@router.patch("/", response=LocationRead)
+@router.patch(
+    "/",
+    response=LocationRead,
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+)
 async def update_location(request: HttpRequest, data: LocationUpdate):
     instance: Location = await aget_object_or_404(Location, id=data.id)
     instance.name = data.name
@@ -55,7 +99,17 @@ async def update_location(request: HttpRequest, data: LocationUpdate):
     return instance
 
 
-@router.delete("/{location_id}", response={204: None})
+@router.delete(
+    "/{location_id}",
+    response={HTTPStatus.NO_CONTENT: None},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+)
 async def delete_location(request: HttpRequest, location_id: int):
     instance: Location = await aget_object_or_404(Location, id=location_id)
     await instance.adelete()

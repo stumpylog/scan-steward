@@ -24,7 +24,12 @@ class SimpleNamedModel(models.Model):
 
     name = models.CharField(max_length=100, unique=True, db_index=True)
 
-    description = models.CharField(max_length=1024, null=True, default=None, db_index=True)
+    description = models.CharField(
+        max_length=1024,
+        null=True,
+        default=None,
+        db_index=True,
+    )
 
     class Meta:
         abstract = True
@@ -35,7 +40,11 @@ class Tag(SimpleNamedModel, TimestampMixin, models.Model):
     Holds the information about a Tag, roughly a tag
     """
 
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, related_name="children")
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        related_name="children",
+    )
 
 
 class Location(SimpleNamedModel, TimestampMixin, models.Model):
@@ -43,7 +52,12 @@ class Location(SimpleNamedModel, TimestampMixin, models.Model):
     Holds the information about a Location, some rough idea of a location, not actual GPS
     """
 
-    parent = models.ForeignKey("self", on_delete=models.CASCADE, related_name="children", null=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        related_name="children",
+        null=True,
+    )
 
     @property
     def parent_id(self) -> int | None:
@@ -58,7 +72,7 @@ class Person(SimpleNamedModel, TimestampMixin, models.Model):
     """
 
 
-class PersonCreateImage(TimestampMixin, models.Model):
+class FaceInImage(TimestampMixin, models.Model):
     """
     Holds information for a face in an image, ideally tied to a Person
     """
@@ -73,7 +87,6 @@ class PersonCreateImage(TimestampMixin, models.Model):
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
-        related_name="faces",
         help_text="Person is in this Image at the given location",
     )
 
@@ -101,6 +114,33 @@ class PersonCreateImage(TimestampMixin, models.Model):
         return "Unknown"
 
 
+class Album(SimpleNamedModel, TimestampMixin, models.Model):
+    """
+    Holds multiple Images in an ordered form, with a name and optional description
+    """
+
+
+class ImageInAlbum(TimestampMixin, models.Model):
+    """
+    Through model to hold the ordering for an album
+    """
+
+    album = models.ForeignKey(
+        Album,
+        on_delete=models.SET_NULL,
+        related_name="images",
+        help_text="Image is in this album",
+        null=True,
+    )
+    image = models.ForeignKey(
+        "Image",
+        on_delete=models.CASCADE,
+        help_text="Image is in this album",
+    )
+
+    ordering = models.PositiveBigIntegerField(verbose_name="Order of this image in the album")
+
+
 class Image(TimestampMixin, models.Model):
     """
     Holds the information about an Image
@@ -112,15 +152,39 @@ class Image(TimestampMixin, models.Model):
         verbose_name="blake3 hex digest",
         help_text="The BLAKE3 checksum of the original file",
     )
-    original = models.CharField(max_length=1024, unique=True, verbose_name="Path to the original image")
+
+    file_size = models.PositiveBigIntegerField(
+        verbose_name="file size in bytes",
+        help_text="Size of the original file in bytes",
+    )
+
+    original = models.CharField(
+        max_length=1024,
+        unique=True,
+        verbose_name="Path to the original image",
+    )
     full_size = models.CharField(
         max_length=1024,
         unique=True,
         verbose_name="full size WebP of the original",
     )
-    thumbnail = models.CharField(max_length=1024, unique=True, verbose_name="thumbnail image in WebP")
+    thumbnail = models.CharField(
+        max_length=1024,
+        unique=True,
+        verbose_name="thumbnail image in WebP",
+    )
 
-    people = models.ManyToManyField(Person, through=PersonCreateImage, related_name="image")
+    people = models.ManyToManyField(
+        Person,
+        through=FaceInImage,
+        related_name="image",
+    )
+
+    albums = models.ManyToManyField(
+        Album,
+        through=ImageInAlbum,
+        related_name="image",
+    )
 
     @property
     def original_path(self) -> Path:

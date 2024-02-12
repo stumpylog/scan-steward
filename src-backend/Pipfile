@@ -33,6 +33,7 @@ ruff = "*"
 # Typing
 mypy = "*"
 django-stubs = {version = "*", extras = ["compatible-mypy"]}
+types-Pillow = "*"
 # Docs
 mkdocs-material = {version = "*", extras = ["imaging"]}
 mkdocs-minify-plugin = "*"

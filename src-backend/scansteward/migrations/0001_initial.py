@@ -38,7 +38,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "original",
-                    models.CharField(max_length=1024, unique=True, verbose_name="Path to the original image"),
+                    models.CharField(
+                        max_length=1024,
+                        unique=True,
+                        verbose_name="Path to the original image",
+                    ),
                 ),
                 (
                     "full_size",
@@ -50,7 +54,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "thumbnail",
-                    models.CharField(max_length=1024, unique=True, verbose_name="thumbnail image in WebP"),
+                    models.CharField(
+                        max_length=1024,
+                        unique=True,
+                        verbose_name="thumbnail image in WebP",
+                    ),
                 ),
             ],
             options={
@@ -72,7 +80,15 @@ class Migration(migrations.Migration):
                 ("created", models.DateTimeField(auto_now_add=True)),
                 ("modified", models.DateTimeField(auto_now=True)),
                 ("name", models.CharField(db_index=True, max_length=100, unique=True)),
-                ("description", models.CharField(db_index=True, default=None, max_length=1024, null=True)),
+                (
+                    "description",
+                    models.CharField(
+                        db_index=True,
+                        default=None,
+                        max_length=1024,
+                        null=True,
+                    ),
+                ),
             ],
             options={
                 "abstract": False,
@@ -93,7 +109,15 @@ class Migration(migrations.Migration):
                 ("created", models.DateTimeField(auto_now_add=True)),
                 ("modified", models.DateTimeField(auto_now=True)),
                 ("name", models.CharField(db_index=True, max_length=100, unique=True)),
-                ("description", models.CharField(db_index=True, default=None, max_length=1024, null=True)),
+                (
+                    "description",
+                    models.CharField(
+                        db_index=True,
+                        default=None,
+                        max_length=1024,
+                        null=True,
+                    ),
+                ),
                 (
                     "parent",
                     models.ForeignKey(
@@ -207,7 +231,15 @@ class Migration(migrations.Migration):
                 ("created", models.DateTimeField(auto_now_add=True)),
                 ("modified", models.DateTimeField(auto_now=True)),
                 ("name", models.CharField(db_index=True, max_length=100, unique=True)),
-                ("description", models.CharField(db_index=True, default=None, max_length=1024, null=True)),
+                (
+                    "description",
+                    models.CharField(
+                        db_index=True,
+                        default=None,
+                        max_length=1024,
+                        null=True,
+                    ),
+                ),
                 (
                     "parent",
                     models.ForeignKey(

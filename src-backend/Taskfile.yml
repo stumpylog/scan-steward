@@ -1,0 +1,18 @@
+version: '3'
+
+tasks:
+  dev-virtualenv:
+    cmds:
+      - pipenv sync --dev
+
+  typing:
+    deps:
+      - dev-virtualenv
+    cmds:
+      - pipenv run mypy .
+
+  run-server:
+    deps:
+      - dev-virtualenv
+    cmds:
+      - pipenv run python manage.py runserver

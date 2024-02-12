@@ -13,12 +13,19 @@ from scansteward.models import Image as ImageModel
 class Command(BaseCommand):
     help = "Indexes the given path(s) for new Images"
 
-    IMAGE_EXTENSIONS: Final[set[str]] = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".webp"}
+    IMAGE_EXTENSIONS: Final[set[str]] = {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".tiff",
+        ".tif",
+        ".webp",
+    }
 
     def add_arguments(self, parser):
         parser.add_argument("paths", nargs="+", type=Path)
 
-    def handle(self, *args, **options):  # noqa: ARG002
+    def handle(self, *args, **options) -> None:  # noqa: ARG002
         for path in options["paths"]:
             if TYPE_CHECKING:
                 assert isinstance(path, Path)
@@ -31,7 +38,10 @@ class Command(BaseCommand):
                 original_path: Path = original_image.resolve()
 
                 # Duplicate check
-                image_hash = blake3(original_image.read_bytes(), max_threads=2).hexdigest()
+                image_hash = blake3(
+                    original_image.read_bytes(),
+                    max_threads=2,
+                ).hexdigest()
 
                 # Update path(s)
                 existing_image = ImageModel.objects.filter(checksum=image_hash).first()
@@ -60,7 +70,7 @@ class Command(BaseCommand):
                 ImageModel.objects.create(
                     file_size=original_image.stat().st_size,
                     checksum=image_hash,
-                    original_path=str(original_image.resolve()),
-                    thumbnail_path=str(thumbnail_path.resolve()),
-                    webp_path=str(webp_path.resolve()),
+                    original=str(original_image.resolve()),
+                    thumbnail=str(thumbnail_path.resolve()),
+                    full_size=str(webp_path.resolve()),
                 )
