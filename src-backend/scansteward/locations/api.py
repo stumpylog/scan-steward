@@ -1,24 +1,27 @@
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Router
 from ninja.errors import HttpError
-from ninja.pagination import LimitOffsetPagination
-from ninja.pagination import paginate
 
 from scansteward.locations.schemas import LocationCreate
 from scansteward.locations.schemas import LocationRead
+from scansteward.locations.schemas import LocationTree
 from scansteward.locations.schemas import LocationUpdate
 from scansteward.models import Location
 
 router = Router(tags=["locations"])
 
 
-@router.get("/", response=list[LocationRead])
-@paginate(LimitOffsetPagination)
+@router.get("/", response=list[LocationTree])
 def get_locations(request: HttpRequest):
-    return Location.objects.all()
+    items = []
+    for root_node in Location.objects.filter(parent__isnull=True).prefetch_related("children"):
+        tree_root = LocationTree.from_orm(root_node)
+        items.append(tree_root)
+    return items
 
 
 @router.post("/", response=LocationRead)
@@ -45,6 +48,8 @@ async def update_location(request: HttpRequest, data: LocationUpdate):
     parent: Location | None = None
     if data.parent_id is not None:
         parent = await aget_object_or_404(Location, id=data.parent_id)
+        if TYPE_CHECKING:
+            assert isinstance(parent, Location)
     instance.parent = parent
     await instance.asave()
     return instance

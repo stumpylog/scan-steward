@@ -30,9 +30,9 @@ class SimpleNamedModel(models.Model):
         abstract = True
 
 
-class Subject(SimpleNamedModel, TimestampMixin, models.Model):
+class Tag(SimpleNamedModel, TimestampMixin, models.Model):
     """
-    Holds the information about a Subject, roughly a tag
+    Holds the information about a Tag, roughly a tag
     """
 
     parent = models.ForeignKey("self", on_delete=models.CASCADE, related_name="children")

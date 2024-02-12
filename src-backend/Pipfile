@@ -32,12 +32,7 @@ black = "*"
 ruff = "*"
 # Typing
 mypy = "*"
-types-PyMySQL = "*"
-types-PyYAML = "*"
-types-Pygments = "*"
-types-psycopg2 = "*"
-types-passlib = "*"
-types-python-jose = "*"
+django-stubs = {version = "*", extras = ["compatible-mypy"]}
 # Docs
 mkdocs-material = {version = "*", extras = ["imaging"]}
 mkdocs-minify-plugin = "*"

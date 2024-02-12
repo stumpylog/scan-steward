@@ -3,5 +3,9 @@
         "**/__pycache__": true,
         "**/.mypy_cache": true,
         "**/.ruff_cache": true
-    }
+    },
+    "python.analysis.extraPaths": [
+        "src-backend/scansteward"
+    ],
+    "python.defaultInterpreterPath": "src-backend/.venv/bin/python3.exe"
 }

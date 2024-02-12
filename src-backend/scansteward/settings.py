@@ -18,6 +18,10 @@ DATA_DIR = BASE_DIR / "data"
 MEDIA_ROOT = BASE_DIR / "media"
 THUMBNAIL_DIR = MEDIA_ROOT / "thumbnails"
 
+DATA_DIR.mkdir(exist_ok=True, parents=True)
+MEDIA_ROOT.mkdir(exist_ok=True, parents=True)
+THUMBNAIL_DIR.mkdir(exist_ok=True, parents=True)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 

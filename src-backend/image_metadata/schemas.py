@@ -2,12 +2,12 @@ from typing import ClassVar
 
 from ninja import ModelSchema
 
-from image_metadata.models import Subject
+from image_metadata.models import Tag
 
 
-class SubjectIn(ModelSchema):
+class TagIn(ModelSchema):
     class Meta:
-        model = Subject
+        model = Tag
         fields: ClassVar[list[str]] = [
             "name",
             "description",
@@ -15,9 +15,9 @@ class SubjectIn(ModelSchema):
         fields_optional: ClassVar[list[str]] = ["description"]
 
 
-class SubjectOut(ModelSchema):
+class TagOut(ModelSchema):
     class Meta:
-        model = Subject
+        model = Tag
         fields: ClassVar[list[str]] = [
             "id",
             "name",
@@ -25,9 +25,9 @@ class SubjectOut(ModelSchema):
         ]
 
 
-class SubjectUpdate(ModelSchema):
+class TagUpdate(ModelSchema):
     class Meta:
-        model = Subject
+        model = Tag
         fields: ClassVar[list[str]] = [
             "id",
             "name",

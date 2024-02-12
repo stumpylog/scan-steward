@@ -193,7 +193,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.CreateModel(
-            name="Subject",
+            name="Tag",
             fields=[
                 (
                     "id",
@@ -213,7 +213,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="children",
-                        to="scansteward.subject",
+                        to="scansteward.Tag",
                     ),
                 ),
             ],
