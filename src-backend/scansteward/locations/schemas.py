@@ -16,9 +16,6 @@ class LocationRead(Schema):
     parent_id: int | None = None
 
 
-LocationRead.model_rebuild()
-
-
 class LocationTree(Schema):
     id: int
     name: str
@@ -26,11 +23,11 @@ class LocationTree(Schema):
     children: list[LocationTree] | None = None
 
 
-LocationTree.model_rebuild()
-
-
 class LocationUpdate(Schema):
     id: int
     name: str
     description: str | None = None
     parent_id: int | None = None
+
+
+LocationTree.model_rebuild()

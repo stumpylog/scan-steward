@@ -90,9 +90,11 @@ ban-relative-imports = "all"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests"]
-addopts = "--pythonwarnings=all"
+testpaths = ["scansteward/tests"]
+addopts = "--pythonwarnings=all --cov"
 asyncio_mode = "auto"
+DJANGO_SETTINGS_MODULE = "scansteward.settings"
+
 
 [tool.mypy]
 plugins = [
@@ -125,10 +127,12 @@ warn_required_dynamic_aliases = true
 
 [tool.coverage.run]
 branch = true
-concurrency = ["greenlet"]
+#concurrency = ["greenlet"]
 
 [tool.coverage.html]
 directory = "coverage_html_report"
 
 [tool.django-stubs]
 django_settings_module = "scansteward.settings"
+
+[tool.pytest_env]

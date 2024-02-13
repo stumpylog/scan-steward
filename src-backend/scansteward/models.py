@@ -27,6 +27,7 @@ class SimpleNamedModel(models.Model):
     description = models.CharField(
         max_length=1024,
         null=True,
+        blank=True,
         default=None,
         db_index=True,
     )
@@ -156,6 +157,12 @@ class Image(TimestampMixin, models.Model):
     file_size = models.PositiveBigIntegerField(
         verbose_name="file size in bytes",
         help_text="Size of the original file in bytes",
+    )
+
+    source = models.CharField(
+        max_length=100,
+        verbose_name="Source of the image",
+        help_text="The string source of the image, example a box or carousel identifier",
     )
 
     original = models.CharField(

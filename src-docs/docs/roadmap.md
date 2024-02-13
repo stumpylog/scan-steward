@@ -2,50 +2,53 @@
 
 ## Near Term
 
-- [ ] Initial CRUD Support For:
-  - [ ] Image
-  - [ ] Person
-  - [ ] Location
-  - [ ] Subject
-  - [ ] Trip
-- [ ] Sync SQLite database working
+- [ ] Initial CRUD Support For
+    - [ ] Person
+    - [ ] Location (hierarchical)
+    - [ ] Tag (hierarchical)
+    - [ ] Album (hierarchical)
+- [ ] SQLite database support
 - [ ] Generation of thumbnails for each Image
+- [ ] Reading existing face boxes
+    - [ ] Creating or linking to existing Person
+- [ ] Reading existing tags
+    - [ ] Creating new tags or linking to existing tags as needed
 - [ ] Configuration defined for:
-  - [ ] Directories
-  - [ ] SQLite
+    - [ ] Directories
+    - [ ] SQLite
 - [ ] Docker image
-  - [ ] s6-overlay
-  - [ ] Python/poetry
-  - [ ] backend server
-  - [ ] Task queue
-- [ ] Task queue
-  - [ ] Task for consuming images
+    - [ ] s6-overlay
+    - [ ] Python/poetry
+    - [ ] backend server
 - [ ] Basic web UI
 - [ ] Basic filtering
-  - [ ] Containing person, location or subject (only 1 at a time)
-  - [ ] Not containing person, location or subject
-- [ ] Image ingestion via upload
+    - [ ] Containing person, location or subject (only 1 at a time)
+    - [ ] Not containing person, location or subject
 - [ ] Image indexing of existing folders
 - [ ] Exact duplicate detection
 
 ## Medium Term
 
-- [ ] Support for sync Postgres
-- [ ] Text based Memory support
+- [ ] Album support
+    - [ ] Independent sorting of images per album
+    - [ ] Download zip archive of images in album
+        - [ ] Maintain sorting order in file naming
+- [ ] Support for Postgres
 - [ ] User support
 - [ ] Combination filters
-  - [ ] Containing one or more people locations, subjects
+    - [ ] Containing one or more people locations, subjects
 - [ ] Basic Image operations
-  - [ ] Rotate
-  - [ ] Flip
-  - [ ] Mirror
+    - [ ] Rotate
+    - [ ] Flip
+    - [ ] Mirror
 
 ## Long Term
 
 - [ ] Audio Memory support
 - [ ] Document Memory support
 - [ ] Compressed static files
-- [ ] Face boxes for People present in Image
+- [ ] Draw new face boxes for People present in Image
+- [ ] Sync metadata back to image file using exiftool
 - [ ] Advanced security
 
 ## Far Out Term

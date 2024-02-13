@@ -13,7 +13,7 @@ class PersonViewSet(viewsets.ModelViewSet):
     default_output_schema = PersonRead
 
     list_people = views.ListModelView()
-    create_person = views.CreateModelView()
+    create_person = views.CreateModelView(input_schema=PersonCreate, output_schema=PersonRead)
     get_person = views.RetrieveModelView()
     update_person = views.UpdateModelView(input_schema=PersonUpdate)
     delete_person = views.DeleteModelView()

@@ -1,48 +1,28 @@
-from typing import ClassVar
-
-from ninja import ModelSchema
-
-from scansteward.models import Person
+from ninja import Schema
 
 
-class PersonCreate(ModelSchema):
+class PersonCreate(Schema):
     """
     Schema to create a Person
     """
 
-    class Meta:
-        model = Person
-        fields: ClassVar[list[str]] = [
-            "name",
-            "description",
-        ]
-        fields_optional: ClassVar[list[str]] = ["description"]
+    name: str
+    description: str | None = None
 
 
-class PersonRead(ModelSchema):
+class PersonRead(PersonCreate):
     """
     Schema when reading a person
     """
 
-    class Meta:
-        model = Person
-        fields: ClassVar[list[str]] = [
-            "id",
-            "name",
-            "description",
-        ]
+    id: int
 
 
-class PersonUpdate(ModelSchema):
+class PersonUpdate(Schema):
     """
     Schema to update a person
     """
 
-    class Meta:
-        model = Person
-        fields: ClassVar[list[str]] = [
-            "id",
-            "name",
-            "description",
-        ]
-        fields_optional: ClassVar[list[str]] = ["description"]
+    # TODO: Validate one or both fields provided
+    name: str | None = None
+    description: str | None = None

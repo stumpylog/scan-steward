@@ -25,6 +25,8 @@ pytest = "*"
 pytest-asyncio = "*"
 pytest-sugar = "*"
 pytest-cov = "*"
+pytest-django = "*"
+pytest-env = "*"
 coverage = "*"
 faker = "*"
 # Linting
@@ -34,6 +36,3 @@ ruff = "*"
 mypy = "*"
 django-stubs = {version = "*", extras = ["compatible-mypy"]}
 types-Pillow = "*"
-# Docs
-mkdocs-material = {version = "*", extras = ["imaging"]}
-mkdocs-minify-plugin = "*"

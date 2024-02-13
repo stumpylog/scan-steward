@@ -36,7 +36,7 @@ repos:
           - javascript
           - ts
           - markdown
-        exclude: "(^Pipfile\\.lock$)|(^docs/roadmap.md)"
+        exclude: "(^Pipfile\\.lock$)|(^src-docs/docs/roadmap.md)"
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: 'v0.2.0'
