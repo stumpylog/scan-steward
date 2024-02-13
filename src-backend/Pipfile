@@ -13,6 +13,7 @@ taskiq-redis = "*"
 redis = { version = "*", extras = ["hiredis"] }
 # Other
 blake3 = "*"
+orjson = "*"
 # Server
 granian = "*"
 # Investigate
