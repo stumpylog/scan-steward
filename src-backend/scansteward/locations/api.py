@@ -1,10 +1,11 @@
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Router
 from ninja.errors import HttpError
+from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import paginate
 
 from scansteward.locations.schemas import LocationCreate
 from scansteward.locations.schemas import LocationRead
@@ -15,8 +16,8 @@ from scansteward.models import Location
 router = Router(tags=["locations"])
 
 
-@router.get("/", response=list[LocationTree])
-def get_locations(request: HttpRequest):
+@router.get("/tree/", response=list[LocationTree])
+def get_location_tree(request: HttpRequest):
     items = []
     for root_node in (
         Location.objects.filter(parent__isnull=True).order_by("name").prefetch_related("children")
@@ -24,6 +25,12 @@ def get_locations(request: HttpRequest):
         tree_root = LocationTree.from_orm(root_node)
         items.append(tree_root)
     return items
+
+
+@router.get("/", response=list[LocationRead])
+@paginate(LimitOffsetPagination)
+def get_locations(request: HttpRequest):
+    return Location.objects.all()
 
 
 @router.get(
@@ -44,7 +51,7 @@ async def get_single_location(request: HttpRequest, location_id: int):
 
 @router.post(
     "/",
-    response=LocationRead,
+    response={HTTPStatus.CREATED: LocationRead},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -71,11 +78,11 @@ async def create_location(request: HttpRequest, data: LocationCreate):
         description=data.description,
         parent=parent,
     )
-    return instance
+    return HTTPStatus.CREATED, instance
 
 
 @router.patch(
-    "/",
+    "/{location_id}",
     response=LocationRead,
     openapi_extra={
         "responses": {
@@ -85,17 +92,17 @@ async def create_location(request: HttpRequest, data: LocationCreate):
         },
     },
 )
-async def update_location(request: HttpRequest, data: LocationUpdate):
-    instance: Location = await aget_object_or_404(Location, id=data.id)
-    instance.name = data.name
-    instance.description = data.description
-    parent: Location | None = None
+async def update_location(request: HttpRequest, location_id: int, data: LocationUpdate):
+    instance: Location = await aget_object_or_404(Location, id=location_id)
+    if data.name is not None:
+        instance.name = data.name
+    if data.description is not None:
+        instance.description = data.description
     if data.parent_id is not None:
         parent = await aget_object_or_404(Location, id=data.parent_id)
-        if TYPE_CHECKING:
-            assert isinstance(parent, Location)
-    instance.parent = parent
+        instance.parent = parent
     await instance.asave()
+    await instance.arefresh_from_db()
     return instance
 
 

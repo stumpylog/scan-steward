@@ -24,8 +24,7 @@ class LocationTree(Schema):
 
 
 class LocationUpdate(Schema):
-    id: int
-    name: str
+    name: str | None = None
     description: str | None = None
     parent_id: int | None = None
 

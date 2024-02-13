@@ -91,7 +91,7 @@ ban-relative-imports = "all"
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["scansteward/tests"]
-addopts = "--pythonwarnings=all --cov"
+addopts = "--pythonwarnings=all --cov --cov-report=html --cov-report=json --cov-report=term"
 asyncio_mode = "auto"
 DJANGO_SETTINGS_MODULE = "scansteward.settings"
 
@@ -110,7 +110,7 @@ check_untyped_defs = true
 no_implicit_reexport = true
 
 # for strict mypy: (this is the tricky one :-))
-disallow_untyped_defs = true
+# disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = [

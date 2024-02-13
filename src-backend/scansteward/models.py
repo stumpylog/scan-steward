@@ -60,12 +60,6 @@ class Location(SimpleNamedModel, TimestampMixin, models.Model):
         null=True,
     )
 
-    @property
-    def parent_id(self) -> int | None:
-        if self.parent:
-            return self.parent.id
-        return None
-
 
 class Person(SimpleNamedModel, TimestampMixin, models.Model):
     """
@@ -106,7 +100,10 @@ class FaceInImage(TimestampMixin, models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
 
-    exclude_from_training = models.BooleanField(default=False)
+    exclude_from_training = models.BooleanField(
+        default=False,
+        help_text="For future growth, do not use this box for facial recognition training",
+    )
 
     @property
     def name(self) -> str:

@@ -1,18 +1,70 @@
 from http import HTTPStatus
 
 from django.http import HttpResponse
-from django.test import TestCase
-from faker import Faker
 
 from scansteward.models import Person
+from scansteward.tests.api.utils import FakerTestCase
 
 
-class TestApiPeople(TestCase):
+class GeneratePeopleTestCase(FakerTestCase):
+    def generate_people(self, count: int, *, with_description: bool = False) -> None:
+        Person.objects.all().delete()
+        self.people = []
+        for _ in range(count):
+            name = self.faker.unique.name()
+            description = self.faker.sentence if with_description else None
+            self.people.append(Person.objects.create(name=name, description=description))
+        assert Person.objects.count() == count
 
+
+class TestApiPeopleRead(GeneratePeopleTestCase):
     def setUp(self) -> None:
-        self.faker = Faker()
         return super().setUp()
 
+    def test_get_people_with_no_people(self):
+        Person.objects.all().delete()
+        resp = self.client.get("/api/person/", headers={"accept": "application/json"})
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == 0
+        assert len(data["items"]) == 0
+
+    def test_list_people(self):
+        count = 5
+        self.generate_people(count)
+
+        resp = self.client.get("/api/person/", headers={"accept": "application/json"})
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == count
+        assert len(data["items"]) == count
+
+    def test_list_people_limit_offset(self):
+        count = 5
+        limit = 3
+        offset = 0
+        self.generate_people(count)
+
+        resp = self.client.get(
+            f"/api/person/?limit={limit}&offset={offset}",
+            headers={"accept": "application/json"},
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == count
+        assert len(data["items"]) == limit
+
+
+class TestApiPeopleCreate(FakerTestCase):
     def create_single_person(self, name: str, description: str | None = None) -> HttpResponse:
         data = {"name": name}
         if description is not None:
@@ -22,16 +74,6 @@ class TestApiPeople(TestCase):
             content_type="application/json",
             data=data,
         )
-
-    def test_get_people_with_no_people(self):
-        resp = self.client.get("/api/person/", headers={"accept": "application/json"})
-
-        assert resp.status_code == HTTPStatus.OK
-
-        data = resp.json()
-
-        assert data["count"] == 0
-        assert len(data["items"]) == 0
 
     def test_create_person(self):
         person_name = self.faker.name()
@@ -77,46 +119,17 @@ class TestApiPeople(TestCase):
 
         assert Person.objects.count() == count
 
-    def test_list_people(self):
-        count = 5
-        id_to_name = {}
 
-        for _ in range(count):
-            person_name = self.faker.name()
-            resp = self.create_single_person(person_name)
-
-            assert resp.status_code == HTTPStatus.CREATED
-
-            id_to_name[resp.json()["id"]] = person_name
-
-        assert Person.objects.count() == count
-
-        resp = self.client.get("/api/person/", headers={"accept": "application/json"})
-
-        assert resp.status_code == HTTPStatus.OK
-
-        data = resp.json()
-
-        assert data["count"] == count
-        assert len(data["items"]) == count
-
+class TestApiPeopleUpdate(GeneratePeopleTestCase):
     def test_update_person(self):
-        person_name = self.faker.name()
-        resp = self.create_single_person(person_name)
+        self.generate_people(1)
 
-        assert resp.status_code == HTTPStatus.CREATED
-        data = resp.json()
-        assert data["name"] == person_name
-        assert "id" in data
-        created_id = data["id"]
-
-        assert Person.objects.filter(id=created_id).exists()
-        assert Person.objects.get(id=created_id).name == person_name
+        instance: Person = self.people[0]
 
         new_name = self.faker.name()
 
         resp = self.client.put(
-            f"/api/person/{created_id}",
+            f"/api/person/{instance.pk}",
             content_type="application/json",
             data={"name": new_name},
         )
@@ -128,3 +141,14 @@ class TestApiPeople(TestCase):
         created_id = data["id"]
         assert Person.objects.filter(id=created_id).exists()
         assert Person.objects.get(id=created_id).name == new_name
+
+
+class TestApiPeopleDelete(GeneratePeopleTestCase):
+    def test_delete_person(self):
+        self.generate_people(1)
+
+        instance: Person = self.people[0]
+
+        resp = self.client.delete(f"/api/person/{instance.pk}")
+
+        assert resp.status_code == HTTPStatus.NO_CONTENT
