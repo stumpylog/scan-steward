@@ -6,17 +6,17 @@ from scansteward.common.schemas import TreeLikeSimpleNamedTree
 from scansteward.common.schemas import TreeLikeSimpleNamedUpdate
 
 
-class LocationCreate(TreeLikeSimpleNamedCreate):
+class TagCreate(TreeLikeSimpleNamedCreate):
     pass
 
 
-class LocationRead(TreeLikeSimpleNamedRead):
+class TagRead(TreeLikeSimpleNamedRead):
     pass
 
 
-class LocationTree(TreeLikeSimpleNamedTree):
+class TagTree(TreeLikeSimpleNamedTree):
     pass
 
 
-class LocationUpdate(TreeLikeSimpleNamedUpdate):
+class TagUpdate(TreeLikeSimpleNamedUpdate):
     pass

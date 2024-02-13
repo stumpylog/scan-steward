@@ -45,6 +45,7 @@ class Tag(SimpleNamedModel, TimestampMixin, models.Model):
         "self",
         on_delete=models.CASCADE,
         related_name="children",
+        null=True,
     )
 
 
