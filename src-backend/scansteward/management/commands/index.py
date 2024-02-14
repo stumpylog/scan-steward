@@ -45,14 +45,16 @@ class Command(BaseCommand):
         for path in options["paths"]:
             if TYPE_CHECKING:
                 assert isinstance(path, Path)
-            for original_image in path.glob("**/*"):
-                self.stdout.write(self.style.SUCCESS(f"Indexing {original_image.name}"))
-                if original_image.suffix not in self.IMAGE_EXTENSIONS:
+            for directory_item in path.glob("**/*"):
+                if directory_item.is_dir():
+                    continue
+                if directory_item.suffix not in self.IMAGE_EXTENSIONS:
                     if self.verbosity >= Verbosity.VERBOSE:
                         self.stdout.write(self.style.NOTICE("Skipping due to extension"))
                     continue
 
-                self.handle_single_image(original_image)
+                self.stdout.write(self.style.SUCCESS(f"Indexing {directory_item.name}"))
+                self.handle_single_image(directory_item)
 
     def handle_single_image(self, image_path: Path) -> None:
         # Duplicate check
