@@ -19,6 +19,9 @@ from django.contrib import admin
 from django.urls import path
 
 from scansteward.api import api
+from scansteward.common.handlers import custom404
+
+handler404 = custom404
 
 urlpatterns = [
     path("admin/", admin.site.urls),

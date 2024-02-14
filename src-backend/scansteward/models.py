@@ -161,6 +161,8 @@ class Image(TimestampMixin, models.Model):
         max_length=100,
         verbose_name="Source of the image",
         help_text="The string source of the image, example a box or carousel identifier",
+        blank=True,
+        null=True,
     )
 
     original = models.CharField(

@@ -14,6 +14,7 @@ redis = { version = "*", extras = ["hiredis"] }
 # Other
 blake3 = "*"
 orjson = "*"
+typing_extensions = { version = "*", markers="python_version < '3.11'"}
 # Server
 granian = "*"
 # Investigate
