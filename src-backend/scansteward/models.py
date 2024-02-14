@@ -1,5 +1,7 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -170,16 +172,6 @@ class Image(TimestampMixin, models.Model):
         unique=True,
         verbose_name="Path to the original image",
     )
-    full_size = models.CharField(
-        max_length=1024,
-        unique=True,
-        verbose_name="full size WebP of the original",
-    )
-    thumbnail = models.CharField(
-        max_length=1024,
-        unique=True,
-        verbose_name="thumbnail image in WebP",
-    )
 
     people = models.ManyToManyField(
         Person,
@@ -203,16 +195,12 @@ class Image(TimestampMixin, models.Model):
 
     @property
     def thumbnail_path(self) -> Path:
-        return Path(self.thumbnail).resolve()
-
-    @thumbnail_path.setter
-    def thumbnail_path(self, path: Path | str) -> None:
-        self.thumbnail = str(Path(path).resolve())
+        if TYPE_CHECKING:
+            assert isinstance(settings.THUMBNAIL_DIR, Path)
+        return (settings.THUMBNAIL_DIR / f"{self.pk:010}").with_suffix(".webp").resolve()
 
     @property
     def full_size_path(self) -> Path:
-        return Path(self.full_size).resolve()
-
-    @full_size_path.setter
-    def full_size_path(self, path: Path | str) -> None:
-        self.full_size = str(Path(path).resolve())
+        if TYPE_CHECKING:
+            assert isinstance(settings.FULL_SIZE_DIR, Path)
+        return (settings.FULL_SIZE_DIR / f"{self.pk:010}").with_suffix(".webp").resolve()

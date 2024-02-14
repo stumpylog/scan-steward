@@ -1,13 +1,21 @@
+from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Final
 
 from blake3 import blake3
-from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from PIL import Image
 
 from scansteward.models import Image as ImageModel
+
+
+class Verbosity(IntEnum):
+    MINIMAL = 0
+    NORMAL = 1
+    VERBOSE = 2
+    DEBUG = 3
 
 
 class Command(BaseCommand):
@@ -31,7 +39,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options) -> None:  # noqa: ARG002
         self.source: str | None = options["source"]
         self.clear_source: bool = options["clear_source"]
-        self.verbosity: int = options["verbosity"]
+        self.verbosity: Verbosity = Verbosity(options["verbosity"])
         self.threads: int = options["threads"]
 
         for path in options["paths"]:
@@ -40,7 +48,7 @@ class Command(BaseCommand):
             for original_image in path.glob("**/*"):
                 self.stdout.write(self.style.SUCCESS(f"Indexing {original_image.name}"))
                 if original_image.suffix not in self.IMAGE_EXTENSIONS:
-                    if self.verbosity > 2:
+                    if self.verbosity >= Verbosity.VERBOSE:
                         self.stdout.write(self.style.NOTICE("Skipping due to extension"))
                     continue
 
@@ -80,29 +88,28 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"  {image_path.name} indexing completed"))
 
     def handle_new_image(self, image_path: Path, image_hash: str) -> None:
-        thumbnail_path: Path = (settings.THUMBNAIL_DIR / image_path.name).with_suffix(".webp")
-        webp_path: Path = (settings.FULL_SIZE_DIR / image_path.name).with_suffix(".webp")
-        # New image then
-        self.stdout.write(self.style.SUCCESS("  Creating thumbnail"))
-        with Image.open(image_path) as im_file:
-            im_file.thumbnail((500, 500))
-            im_file.save(thumbnail_path)
-        self.stdout.write(self.style.SUCCESS("  Creating WebP version"))
-        with Image.open(image_path) as im_file:
-            im_file.save(webp_path, quality=90)
+        with transaction.atomic():
 
-        # Parse Faces
-        self.stdout.write(self.style.SUCCESS("  Parsing faces"))
+            new_img = ImageModel.objects.create(
+                file_size=image_path.stat().st_size,
+                checksum=image_hash,
+                original=str(image_path.resolve()),
+                source=self.source,
+            )
 
-        # Parse Keywords
-        self.stdout.write(self.style.SUCCESS("  Parsing keywords"))
+            self.stdout.write(self.style.SUCCESS("  Creating thumbnail"))
+            with Image.open(image_path) as im_file:
+                im_file.thumbnail((500, 500))
+                im_file.save(new_img.thumbnail_path)
+            self.stdout.write(self.style.SUCCESS("  Creating WebP version"))
+            with Image.open(image_path) as im_file:
+                im_file.save(new_img.full_size_path, quality=90)
 
-        ImageModel.objects.create(
-            file_size=image_path.stat().st_size,
-            checksum=image_hash,
-            original=str(image_path.resolve()),
-            thumbnail=str(thumbnail_path.resolve()),
-            full_size=str(webp_path.resolve()),
-            source=self.source,
-        )
-        self.stdout.write(self.style.SUCCESS(f"  {image_path.name} indexing completed"))
+            # Parse Faces
+            self.stdout.write(self.style.SUCCESS("  Parsing faces"))
+
+            # Parse Keywords
+            self.stdout.write(self.style.SUCCESS("  Parsing keywords"))
+
+            # And done
+            self.stdout.write(self.style.SUCCESS("  indexing completed"))
