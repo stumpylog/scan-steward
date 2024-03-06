@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -78,7 +80,7 @@ class FaceInImage(TimestampMixin, models.Model):
     person = models.ForeignKey(
         Person,
         on_delete=models.SET_NULL,
-        related_name="faces",
+        related_name="images",
         help_text="Person is in this Image at the given location",
         null=True,
     )
@@ -120,6 +122,12 @@ class Album(SimpleNamedModel, TimestampMixin, models.Model):
     Holds multiple Images in an ordered form, with a name and optional description
     """
 
+    images = models.ManyToManyField(
+        "Image",
+        through="ImageInAlbum",
+        related_name="albums",
+    )
+
 
 class ImageInAlbum(TimestampMixin, models.Model):
     """
@@ -128,18 +136,18 @@ class ImageInAlbum(TimestampMixin, models.Model):
 
     album = models.ForeignKey(
         Album,
-        on_delete=models.SET_NULL,
-        related_name="images",
-        help_text="Image is in this album",
+        on_delete=models.CASCADE,
         null=True,
     )
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
-        help_text="Image is in this album",
     )
 
-    ordering = models.PositiveBigIntegerField(verbose_name="Order of this image in the album")
+    sort_order = models.PositiveBigIntegerField(verbose_name="Order of this image in the album")
+
+    class Meta:
+        ordering = ["sort_order"]
 
 
 class Image(TimestampMixin, models.Model):
@@ -176,13 +184,16 @@ class Image(TimestampMixin, models.Model):
     people = models.ManyToManyField(
         Person,
         through=FaceInImage,
-        related_name="image",
     )
 
-    albums = models.ManyToManyField(
-        Album,
-        through=ImageInAlbum,
-        related_name="image",
+    tags = models.ManyToManyField(
+        Tag,
+        related_name="images",
+    )
+
+    locations = models.ManyToManyField(
+        Location,
+        related_name="images",
     )
 
     @property

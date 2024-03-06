@@ -1,103 +1,37 @@
 from __future__ import annotations
 
-import orjson as json
-import shutil
 import subprocess
 import tempfile
-from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Literal
 
-EXIF_TOOL_EXE = shutil.which("exiftool")
+import orjson as json
+
+from scansteward.imageops.constants import EXIF_TOOL_EXE
+from scansteward.imageops.types import RegionInfoStruct
+
 if TYPE_CHECKING:
-    assert EXIF_TOOL_EXE is not None
+    from scansteward.imageops.types import ImageMetadata
 
 
-@dataclass(frozen=True)
-class XmpAreaStruct:
-    """
-    https://exiftool.org/TagNames/XMP.html#Area
-    """
-
-    d: float
-    h: float
-    unit: Literal["normalized"]
-    w: float
-    x: float
-    y: float
-
-    def to_json(self) -> dict:
-        return {"H": self.h, "W": self.w, "X": self.x, "Y": self.y, "Unit": self.unit},
-
-
-@dataclass(frozen=True)
-class DimensionsStruct:
-    """
-    https://exiftool.org/TagNames/XMP.html#Dimensions
-    """
-
-    H: float
-    W: float
-    unit: Literal["pixel", "inch"]
-
-    def to_json(self) -> dict:
-        return {"W": self.W, "H": self.H, "Unit": self.unit}
-
-
-@dataclass(frozen=True)
-class RegionStruct:
-    """
-    https://exiftool.org/TagNames/MWG.html#RegionStruct
-    """
-
-    Area: XmpAreaStruct
-    Name: str
-    Type: Literal["BarCode", "Face", "Focus", "Pet"]
-    Description: str | None = None
-
-    def to_json(self) -> dict:
-        data = {
-            "Area": self.Area.to_json(),
-            "Name": self.Name,
-            "Type": self.Type,
-        }
-        if self.Description:
-            data["Description"] = self.Description
-        return data
-
-
-@dataclass(frozen=True)
-class RegionInfoStruct:
-    """
-    https://exiftool.org/TagNames/MWG.html#RegionInfo
-    """
-
-    AppliedToDimensions: DimensionsStruct
-    RegionList: list[RegionStruct]
-
-    @staticmethod
-    def from_json() -> RegionInfoStruct:
-        raise NotImplementedError
-
-    def to_json(self) -> dict:
-        return {
-            "AppliedToDimensions": self.AppliedToDimensions.to_json(),
-            "RegionList": [x.to_json() for x in self.RegionList],
-        }
-
-
-class ImageMetadata:
-    source_file: Path
-    region_info: RegionInfoStruct
-
-    def to_json(self) -> dict:
-        return ({"SourceFile": str(self.source_file.resolve()), "RegionInfo": self.region_info.to_json()},)
-
-
-def read_face_structs(image_path: Path) -> list[RegionInfoStruct]:
-    # exiftool -struct -json -xmp:all "2024-01-22-0006.jpg"
-    raise NotImplementedError
+def read_face_structs(image_path: Path) -> RegionInfoStruct | None:
+    # exiftool -struct -json -xmp:all -n "2024-01-22-0006.jpg"
+    proc = subprocess.run(
+        [  # noqa: S603
+            EXIF_TOOL_EXE,  # type: ignore
+            "-struct",
+            "-json",
+            "-xmp:all",
+            "-n",  # Disable print conversion, use machine readable
+            str(image_path.resolve()),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    data = json.loads(proc.stdout.decode("utf-8"))[0]
+    if "RegionInfo" not in data:
+        return None
+    return RegionInfoStruct.from_json(data["RegionInfo"])
 
 
 def write_face_structs(metadata: ImageMetadata) -> None:
@@ -105,12 +39,13 @@ def write_face_structs(metadata: ImageMetadata) -> None:
         json_path = Path(json_dir).resolve() / "temp.json"
         json_path.write_bytes(json.dumps(metadata.to_json()))
         subprocess.run(
-            [
-                EXIF_TOOL_EXE,
+            [  # noqa: S603
+                EXIF_TOOL_EXE,  # type: ignore
                 "-overwrite_original",
                 "-XMP:MetadataDate=now",
-                "-wm",
-                "cg",
+                "-n",  # Disable print conversion, use machine readable
+                "-writeMode",
+                "cg",  # Create new tags/groups as necessary
                 f"-json={json_path}",
                 str(metadata.source_file.resolve()),
             ],
@@ -125,13 +60,15 @@ def bulk_write_face_structs(metadata: list[ImageMetadata]) -> None:
         img_files = [str(x.source_file.resolve() for x in metadata)]
         json_path.write_bytes(json.dumps(data))
         subprocess.run(
-            [
-                EXIF_TOOL_EXE,
+            [  # noqa: S603
+                EXIF_TOOL_EXE,  # type: ignore
                 "-overwrite_original",
                 "-XMP:MetadataDate=now",
-                "-wm",
-                "cg",
+                "-n",  # Disable print conversion, use machine readable
+                "-writeMode",
+                "cg",  # Create new tags/groups as necessary
                 f"-json={json_path}",
-            ] + img_files,
+                *img_files,
+            ],
             check=False,
         )

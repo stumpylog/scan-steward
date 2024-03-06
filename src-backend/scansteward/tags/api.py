@@ -81,7 +81,7 @@ async def create_tag(request: HttpRequest, data: TagCreate):
 
 @router.patch(
     "/{tag_id}",
-    response=TagRead,
+    response={HTTPStatus.OK: TagRead},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {

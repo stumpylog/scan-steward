@@ -101,8 +101,9 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS("  Creating thumbnail"))
             with Image.open(image_path) as im_file:
-                im_file.thumbnail((500, 500))
-                im_file.save(new_img.thumbnail_path)
+                img_copy = im_file.copy()
+                img_copy.thumbnail((500, 500))
+                img_copy.save(new_img.thumbnail_path)
             self.stdout.write(self.style.SUCCESS("  Creating WebP version"))
             with Image.open(image_path) as im_file:
                 im_file.save(new_img.full_size_path, quality=90)
