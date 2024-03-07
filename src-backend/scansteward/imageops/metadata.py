@@ -69,7 +69,9 @@ def bulk_read_image_metadata(
     if read_orientation:
         cmd.append("-Orientation")
     if read_tags:
-        cmd.extend(["-HierarchicalKeywords", "-LastKeywordXMP", "-TagsList", "-HierarchicalSubject"])
+        cmd.extend(
+            ["-HierarchicalKeywords", "-LastKeywordXMP", "-TagsList", "-HierarchicalSubject", "-CatalogSets"],
+        )
     # Add the actual images
     cmd.extend(actual_images)
 
