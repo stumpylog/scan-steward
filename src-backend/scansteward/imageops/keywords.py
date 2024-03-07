@@ -3,14 +3,14 @@ import tempfile
 from pathlib import Path
 
 import orjson as json
+from imageops.models import HierarchicalSubject
 
 from scansteward.imageops.constants import EXIF_TOOL_EXE
-from scansteward.imageops.types import HierarchicalSubject
 
 
 def read_keywords(image_path: Path) -> list[HierarchicalSubject]:
     proc = subprocess.run(
-        [  # noqa: S603
+        [
             EXIF_TOOL_EXE,  # type: ignore
             "-struct",
             "-json",
@@ -63,7 +63,7 @@ def set_keywords(image_path: Path, keywords: list[HierarchicalSubject]) -> None:
             json.dumps([{"SourceFile": str(image_path.resolve()), "HierarchicalSubject": keywords_list}]),
         )
         subprocess.run(
-            [  # noqa: S603
+            [
                 EXIF_TOOL_EXE,  # type: ignore
                 "-overwrite_original",
                 "-XMP:MetadataDate=now",

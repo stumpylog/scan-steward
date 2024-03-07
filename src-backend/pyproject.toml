@@ -72,7 +72,9 @@ ignore = [
   # Ignore complexity
   "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
   # Ignore no author and missing issue link in TODO tags
-  "TD002", "TD003"
+  "TD002", "TD003",
+  # Ignore subprocess.run calls
+  "S603"
 ]
 
 [tool.ruff.lint.isort]

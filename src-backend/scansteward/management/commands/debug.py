@@ -2,9 +2,10 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 
-from scansteward.imageops.keywords import read_keywords
-from scansteward.imageops.keywords import set_keywords
-from scansteward.imageops.faces import read_face_structs, write_face_structs
+from scansteward.imageops.models import ImageMetadata
+from scansteward.imageops.models import RotationEnum
+from scansteward.imageops.orientation import bulk_write_image_rotation
+from scansteward.imageops.orientation import read_image_rotation
 
 
 class Command(BaseCommand):
@@ -12,8 +13,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         image = Path(r"deck5-0011.jpg")
-        faces = read_face_structs(image)
+        rotation = read_image_rotation(image)
 
-        from pprint import pprint
-
-        pprint(faces)
+        bulk_write_image_rotation([ImageMetadata(SourceFile=image, Orientation=RotationEnum.ROTATE_180)])
