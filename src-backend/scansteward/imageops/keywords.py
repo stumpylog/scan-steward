@@ -1,77 +1,123 @@
-import subprocess
-import tempfile
+import logging
 from pathlib import Path
 
-import orjson as json
-from imageops.models import HierarchicalSubject
+from scansteward.imageops.metadata import bulk_read_image_metadata
+from scansteward.imageops.metadata import bulk_write_image_metadata
+from scansteward.imageops.metadata import write_image_metadata
+from scansteward.imageops.models import ImageMetadata
+from scansteward.imageops.models import KeywordInfoModel
+from scansteward.imageops.models import KeywordStruct
 
-from scansteward.imageops.constants import EXIF_TOOL_EXE
-
-
-def read_keywords(image_path: Path) -> list[HierarchicalSubject]:
-    proc = subprocess.run(
-        [
-            EXIF_TOOL_EXE,  # type: ignore
-            "-struct",
-            "-json",
-            "-xmp:all",
-            "-n",  # Disable print conversion, use machine readable
-            str(image_path.resolve()),
-        ],
-        check=True,
-        capture_output=True,
-    )
-    data = json.loads(proc.stdout.decode("utf-8"))[0]
-    if "HierarchicalSubject" not in data:
-        return []
-
-    def process(parent: HierarchicalSubject, remaining: list[str]):
-        if not remaining:
-            return
-        new_parent = HierarchicalSubject(remaining[0], parent=parent)
-        parent.children.append(new_parent)
-        process(new_parent, remaining[1:])
-
-    roots: dict[str, HierarchicalSubject] = {}
-    for line in data["HierarchicalSubject"]:
-        values_list = line.split("|")
-        root_value = values_list[0]
-        if root_value not in roots:
-            roots[root_value] = HierarchicalSubject(values_list[0])
-        root = roots[root_value]
-        process(root, values_list[1:])
-
-    return list(roots.values())
+logger = logging.getLogger(__name__)
 
 
-def set_keywords(image_path: Path, keywords: list[HierarchicalSubject]) -> None:
+def process_separated_list(parent: KeywordStruct, remaining: list[str]):
+    """
+    Given a list of strings, build a tree structure from them, rooted at the given parent
+    """
+    if not remaining:
+        return
+    new_parent = KeywordStruct(Keyword=remaining[0])
+    parent.Children.append(new_parent)
+    process_separated_list(new_parent, remaining[1:])
 
-    keywords_list = []
 
-    def listbuilder(sub_tree: HierarchicalSubject, current_list: list[str]):
-        if not sub_tree.children:
-            keywords_list.append([*current_list, sub_tree.value])
-        for child in sub_tree.children:
-            listbuilder(child, [*current_list, sub_tree.value])
+def remove_duplicate_children(root: KeywordStruct):
+    """
+    Removes duplicated children, which may exist as multiple fields above contain the same data
+    """
+    if not root.Children:
+        return
+    for child in root.Children:
+        remove_duplicate_children(child)
+    root.Children = list(set(root.Children))
 
-    for root_keyword in keywords:
-        listbuilder(root_keyword, [])
 
-    with tempfile.TemporaryDirectory() as json_dir:
-        json_path = Path(json_dir).resolve() / "temp.json"
-        json_path.write_bytes(
-            json.dumps([{"SourceFile": str(image_path.resolve()), "HierarchicalSubject": keywords_list}]),
-        )
-        subprocess.run(
-            [
-                EXIF_TOOL_EXE,  # type: ignore
-                "-overwrite_original",
-                "-XMP:MetadataDate=now",
-                "-n",  # Disable print conversion, use machine readable
-                "-writeMode",
-                "wcg",  # Create new tags/groups as necessary
-                f"-json={json_path}",
-                str(image_path.resolve()),
-            ],
-            check=False,
-        )
+def combine_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
+    keywords: list[KeywordStruct] = []
+
+    if metadata.KeywordInfo and metadata.KeywordInfo.Hierarchy:
+        keywords.extend(metadata.KeywordInfo.Hierarchy)
+
+    # Check for other keywords which might get set as a flat structure
+    # Parse them into KeywordStruct trees
+    roots: dict[str, KeywordStruct] = {}
+    for key, separation in [
+        (metadata.HierarchicalSubject, "|"),
+        (metadata.CatalogSets, "|"),
+        (metadata.TagsList, "/"),
+        (metadata.LastKeywordXMP, "/"),
+    ]:
+        if not key:
+            continue
+        for line in key:
+            values_list = line.split(separation)
+            root_value = values_list[0]
+            if root_value not in roots:
+                roots[root_value] = KeywordStruct(Keyword=values_list[0])
+            root = roots[root_value]
+            process_separated_list(root, values_list[1:])
+
+    keywords.extend(list(roots.values()))
+
+    for keyword in keywords:
+        remove_duplicate_children(keyword)
+
+    # Assign the parsed flat keywords in as well
+    if not metadata.KeywordInfo:
+        metadata.KeywordInfo = KeywordInfoModel(Hierarchy=keywords)
+    else:
+        metadata.KeywordInfo.Hierarchy = keywords
+    return metadata
+
+
+def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
+    """
+    Expands the KeywordInfo.Hierarchy to also set the HierarchicalSubject, CatalogSets, TagsList and LastKeywordXMP
+    """
+    if any([metadata.HierarchicalSubject, metadata.TagsList, metadata.LastKeywordXMP]):
+        logger.warn(f"{metadata.SourceFile.name}: One of the flat tags is set, but will be cleared")
+    list_of_lists: list[list[str]] = []
+
+    if not metadata.KeywordInfo:
+        return metadata
+
+    def flatten_children(root: KeywordStruct, current_words: list) -> list[str]:
+        if not root.Children:
+            return current_words
+        for child in root.Children:
+            current_words.append(child.Keyword)
+            flatten_children(child, current_words)
+        return current_words
+
+    for root in metadata.KeywordInfo.Hierarchy:
+        this_branch_words = [root.Keyword]
+        flatten_children(root, this_branch_words)
+        list_of_lists.append(this_branch_words)
+
+    # Directly overwrite everything
+    metadata.HierarchicalSubject = ["|".join(x) for x in list_of_lists]
+    metadata.CatalogSets = metadata.HierarchicalSubject
+    metadata.TagsList = ["/".join(x) for x in list_of_lists]
+    metadata.LastKeywordXMP = metadata.TagsList
+
+    for keyword in metadata.KeywordInfo.Hierarchy:
+        remove_duplicate_children(keyword)
+
+    return metadata
+
+
+def read_keywords(image_path: Path) -> ImageMetadata:
+    return bulk_read_keywords([image_path])[0]
+
+
+def bulk_read_keywords(images: list[Path]) -> list[ImageMetadata]:
+    return [combine_keyword_structures(x) for x in bulk_read_image_metadata(images, read_tags=True)]
+
+
+def write_keywords(metadata: ImageMetadata) -> None:
+    return write_image_metadata(expand_keyword_structures(metadata))
+
+
+def bulk_write_image_keywords(metadata: list[ImageMetadata]) -> None:
+    return bulk_write_image_metadata(metadata)

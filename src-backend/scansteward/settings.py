@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 
+# from concurrent_log_handler.queue import setup_logging_queues
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -19,10 +21,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 THUMBNAIL_DIR = MEDIA_ROOT / "thumbnails"
 FULL_SIZE_DIR = MEDIA_ROOT / "fullsize"
 
+LOGGING_DIR = DATA_DIR / "log"
+
 DATA_DIR.mkdir(exist_ok=True, parents=True)
 MEDIA_ROOT.mkdir(exist_ok=True, parents=True)
 THUMBNAIL_DIR.mkdir(exist_ok=True, parents=True)
 FULL_SIZE_DIR.mkdir(exist_ok=True, parents=True)
+LOGGING_DIR.mkdir(exist_ok=True, parents=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -131,3 +136,35 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] [{levelname}] [{name}] {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG" if DEBUG else "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "formatter": "verbose",
+            "filename": LOGGING_DIR / "scansteward.log",
+        },
+    },
+    "root": {"handlers": ["console"]},
+    "loggers": {
+        "scansteward": {"handlers": ["file"], "level": "DEBUG"},
+    },
+}

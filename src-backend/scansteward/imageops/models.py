@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import dataclasses
 import enum
 from typing import Literal
 
 from pydantic import BaseModel
+from pydantic import Field
 from pydantic import FilePath
+from pydantic import field_serializer
 
 
 @enum.unique
@@ -67,25 +68,40 @@ class RegionInfoStruct(BaseModel):
     RegionList: list[RegionStruct]
 
 
-class HierarchicalSubject(BaseModel):
-    value: str
-    parent: HierarchicalSubject | None = None
-    children: list[HierarchicalSubject] = dataclasses.field(default_factory=list)
+class KeywordStruct(BaseModel):
+    """
+    https://exiftool.org/TagNames/MWG.html#KeywordStruct
+    """
 
-    @property
-    def is_root(self) -> bool:
-        return self.parent is None
+    Keyword: str
+    Applied: bool | None = None
+    Children: list[KeywordStruct] = Field(default_factory=list)
+
+    def __hash__(self) -> int:
+        return hash(self.Keyword) + hash(self.Applied)
 
 
-HierarchicalSubject.model_rebuild()
+KeywordStruct.model_rebuild()
+
+
+class KeywordInfoModel(BaseModel):
+    """
+    https://exiftool.org/TagNames/MWG.html#KeywordInfo
+    """
+
+    Hierarchy: list[KeywordStruct]
 
 
 class ImageMetadata(BaseModel):
     SourceFile: FilePath
     RegionInfo: RegionInfoStruct | None = None
     Orientation: RotationEnum | None = None
+    LastKeywordXMP: list[str] | None = None
+    TagsList: list[str] | None = None
+    CatalogSets: list[str] | None = None
+    HierarchicalSubject: list[str] | None = None
+    KeywordInfo: KeywordInfoModel | None = None
 
-    def model_dump(self, *args, **kwargs):
-        result = super().model_dump(*args, **kwargs)
-        result["SourceFile"] = str(self.SourceFile.resolve())
-        return result
+    @field_serializer("SourceFile")
+    def serialize_source_file(self, source_file: FilePath, _info) -> str:
+        return str(source_file.resolve())
