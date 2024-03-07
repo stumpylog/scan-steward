@@ -16,6 +16,7 @@ def get_image_rotation(image_path: Path) -> RotationEnum:
             "-struct",
             "-json",
             "-n",  # Disable print conversion, use machine readable
+            "-use MWG",
             "-Orientation",
             str(image_path.resolve()),
         ],

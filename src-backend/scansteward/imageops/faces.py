@@ -21,8 +21,9 @@ def read_face_structs(image_path: Path) -> RegionInfoStruct | None:
             EXIF_TOOL_EXE,  # type: ignore
             "-struct",
             "-json",
-            "-xmp:all",
             "-n",  # Disable print conversion, use machine readable
+            "-use MWG",
+            "-RegionInfo",
             str(image_path.resolve()),
         ],
         check=True,
@@ -45,7 +46,7 @@ def write_face_structs(metadata: ImageMetadata) -> None:
                 "-XMP:MetadataDate=now",
                 "-n",  # Disable print conversion, use machine readable
                 "-writeMode",
-                "cg",  # Create new tags/groups as necessary
+                "wcg",  # Create new tags/groups as necessary
                 f"-json={json_path}",
                 str(metadata.source_file.resolve()),
             ],
@@ -62,11 +63,12 @@ def bulk_write_face_structs(metadata: list[ImageMetadata]) -> None:
         subprocess.run(
             [  # noqa: S603
                 EXIF_TOOL_EXE,  # type: ignore
+                "-use MWG",
                 "-overwrite_original",
-                "-XMP:MetadataDate=now",
+                "-ModifyDate=now",
                 "-n",  # Disable print conversion, use machine readable
                 "-writeMode",
-                "cg",  # Create new tags/groups as necessary
+                "wcg",  # Create new tags/groups as necessary, overwrite existing
                 f"-json={json_path}",
                 *img_files,
             ],
