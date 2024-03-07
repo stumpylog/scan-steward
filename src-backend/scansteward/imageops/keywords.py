@@ -84,18 +84,21 @@ def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
     if not metadata.KeywordInfo:
         return metadata
 
-    def flatten_children(root: KeywordStruct, current_words: list) -> list[str]:
-        if not root.Children:
-            return current_words
-        for child in root.Children:
-            current_words.append(child.Keyword)
-            flatten_children(child, current_words)
-        return current_words
+    def flatten_children(internal_root: KeywordStruct, current_words: list):
+        if not internal_root.Children:
+            current_words.append(internal_root.Keyword)
+        this_child_words = [internal_root.Keyword]
+        for internal_child in internal_root.Children:
+            flatten_children(internal_child, this_child_words)
+            current_words.extend(this_child_words)
+            this_child_words = [internal_root.Keyword]
 
     for root in metadata.KeywordInfo.Hierarchy:
-        this_branch_words = [root.Keyword]
-        flatten_children(root, this_branch_words)
-        list_of_lists.append(this_branch_words)
+        current_child_words = [root.Keyword]
+        for child in root.Children:
+            flatten_children(child, current_child_words)
+            list_of_lists.append(current_child_words)
+            current_child_words = [root.Keyword]
 
     # Directly overwrite everything
     metadata.HierarchicalSubject = ["|".join(x) for x in list_of_lists]
@@ -130,7 +133,7 @@ def bulk_clear_existing_keywords(images: list[Path]) -> None:
         "-CatalogSets=",
     ]
     for image in images:
-        cmd.append(str(image.resolve()))
+        cmd.append(str(image.resolve()))  # noqa: PERF401
     proc = subprocess.run(cmd, check=False, capture_output=True)
     if proc.returncode != 0:
         for line in proc.stderr.decode("utf-8").splitlines():
