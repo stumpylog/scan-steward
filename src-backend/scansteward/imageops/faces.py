@@ -16,17 +16,17 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def read_face_structs(image_path: Path) -> ImageMetadata:
+def read_faces(image_path: Path) -> ImageMetadata:
     return read_image_metadata(image_path, read_regions=True)
 
 
-def bulk_read_face_structs(images: list[Path]) -> list[ImageMetadata]:
+def bulk_read_faces(images: list[Path]) -> list[ImageMetadata]:
     return bulk_read_image_metadata(images, read_regions=True)
 
 
-def write_face_structs(metadata: ImageMetadata) -> None:
+def write_faces(metadata: ImageMetadata) -> None:
     return write_image_metadata(metadata)
 
 
-def bulk_write_face_structs(metadata: list[ImageMetadata]) -> None:
+def bulk_write_faces(metadata: list[ImageMetadata]) -> None:
     return bulk_write_image_metadata(metadata)
