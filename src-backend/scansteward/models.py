@@ -40,10 +40,21 @@ class SimpleNamedModel(models.Model):
         abstract = True
 
 
-class Tag(SimpleNamedModel, TimestampMixin, models.Model):
+class Tag(TimestampMixin, models.Model):
     """
-    Holds the information about a Tag, roughly a tag
+    Holds the information about a Tag, roughly a tag, in a tree structure,
+    whose structure makes sense to the user
     """
+
+    name = models.CharField(max_length=100, db_index=True)
+
+    description = models.CharField(
+        max_length=1024,
+        null=True,
+        blank=True,
+        default=None,
+        db_index=True,
+    )
 
     parent = models.ForeignKey(
         "self",
@@ -52,18 +63,10 @@ class Tag(SimpleNamedModel, TimestampMixin, models.Model):
         null=True,
     )
 
-
-class Location(SimpleNamedModel, TimestampMixin, models.Model):
-    """
-    Holds the information about a Location, some rough idea of a location, not actual GPS
-    """
-
-    parent = models.ForeignKey(
-        "self",
-        on_delete=models.CASCADE,
-        related_name="children",
-        null=True,
-    )
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["name", "parent"], name="name-to-parent"),
+        ]
 
 
 class Person(SimpleNamedModel, TimestampMixin, models.Model):
@@ -128,6 +131,9 @@ class Album(SimpleNamedModel, TimestampMixin, models.Model):
         related_name="albums",
     )
 
+    def image_ids(self) -> list[int]:
+        return self.images.order_by("imageinalbum__sort_order").values_list("id", flat=True)
+
 
 class ImageInAlbum(TimestampMixin, models.Model):
     """
@@ -147,7 +153,10 @@ class ImageInAlbum(TimestampMixin, models.Model):
     sort_order = models.PositiveBigIntegerField(verbose_name="Order of this image in the album")
 
     class Meta:
-        ordering = ["sort_order"]
+        ordering = ["sort_order"]  # noqa: RUF012
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(fields=["sort_order", "album"], name="sorting-to-album"),
+        ]
 
 
 class Image(TimestampMixin, models.Model):
@@ -191,11 +200,6 @@ class Image(TimestampMixin, models.Model):
         related_name="images",
     )
 
-    locations = models.ManyToManyField(
-        Location,
-        related_name="images",
-    )
-
     @property
     def original_path(self) -> Path:
         return Path(self.original).resolve()
@@ -207,6 +211,7 @@ class Image(TimestampMixin, models.Model):
     @property
     def thumbnail_path(self) -> Path:
         if TYPE_CHECKING:
+            assert hasattr(settings, "THUMBNAIL_DIR")
             assert isinstance(settings.THUMBNAIL_DIR, Path)
         return (settings.THUMBNAIL_DIR / f"{self.pk:010}").with_suffix(".webp").resolve()
 

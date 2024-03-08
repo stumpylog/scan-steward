@@ -11,15 +11,22 @@ class AlbumBasicReadSchema(AlbumCreateSchema):
 
 
 class AlbumWithImagesReadSchema(AlbumBasicReadSchema):
-    images: list[int]
+    image_ids: list[int]
 
 
 class AlbumUpdateSchema(Schema):
-    id: int
     name: str | None = None
     description: str | None = None
 
 
+class ImageSortSettingSchema(Schema):
+    image_id: int
+    sort_order: int
+
+
 class AlbumSortUpdate(Schema):
-    id: int
-    sorting: dict[int, int]
+    sorting: list[ImageSortSettingSchema]
+
+
+class AlbumAddImageSchema(Schema):
+    image_id: int

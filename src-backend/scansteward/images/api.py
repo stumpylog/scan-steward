@@ -77,7 +77,6 @@ async def get_image_details(request: HttpRequest, image_id: int):
             await Image.objects.prefetch_related("people")
             .prefetch_related("albums")
             .prefetch_related("tags")
-            .prefetch_related("locations")
             .aget(id=image_id)
         )
     except Image.DoesNotExist:

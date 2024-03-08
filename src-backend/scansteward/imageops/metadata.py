@@ -2,14 +2,123 @@ import logging
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import orjson as json
 
 from scansteward.imageops.constants import EXIF_TOOL_EXE
 from scansteward.imageops.models import ImageMetadata
+from scansteward.imageops.models import KeywordInfoModel
+from scansteward.imageops.models import KeywordStruct
 from scansteward.imageops.utils import now_string
 
 logger = logging.getLogger(__name__)
+
+
+def process_separated_list(parent: KeywordStruct, remaining: list[str]):
+    """
+    Given a list of strings, build a tree structure from them, rooted at the given parent
+    """
+    if not remaining:
+        return
+    new_parent = KeywordStruct(Keyword=remaining[0])
+
+    parent.Children.append(new_parent)
+    process_separated_list(new_parent, remaining[1:])
+
+
+def remove_duplicate_children(root: KeywordStruct):
+    """
+    Removes duplicated children, which may exist as multiple fields above contain the same data
+    """
+    if not root.Children:
+        return
+    for child in root.Children:
+        remove_duplicate_children(child)
+    root.Children = list(set(root.Children))
+
+
+def combine_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
+    """
+    Reads the various other possible keyword values, and generates a tree from them,
+    then combines with anything existing and removes duplicates
+    """
+    keywords: list[KeywordStruct] = []
+
+    if metadata.KeywordInfo and metadata.KeywordInfo.Hierarchy:
+        keywords.extend(metadata.KeywordInfo.Hierarchy)
+
+    # Check for other keywords which might get set as a flat structure
+    # Parse them into KeywordStruct trees
+    roots: dict[str, KeywordStruct] = {}
+    for key, separation in [
+        (metadata.HierarchicalSubject, "|"),
+        (metadata.CatalogSets, "|"),
+        (metadata.TagsList, "/"),
+        (metadata.LastKeywordXMP, "/"),
+    ]:
+        if not key:
+            continue
+        for line in key:
+            if TYPE_CHECKING:
+                assert isinstance(line, str)
+            values_list = line.split(separation)
+            root_value = values_list[0]
+            if root_value not in roots:
+                roots[root_value] = KeywordStruct(Keyword=values_list[0])
+            root = roots[root_value]
+            process_separated_list(root, values_list[1:])
+
+    keywords.extend(list(roots.values()))
+
+    for keyword in keywords:
+        remove_duplicate_children(keyword)
+
+    # Assign the parsed flat keywords in as well
+    if not metadata.KeywordInfo:
+        metadata.KeywordInfo = KeywordInfoModel(Hierarchy=keywords)
+    else:
+        metadata.KeywordInfo.Hierarchy = keywords
+    return metadata
+
+
+def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
+    """
+    Expands the KeywordInfo.Hierarchy to also set the HierarchicalSubject, CatalogSets, TagsList and LastKeywordXMP
+    """
+    if any([metadata.HierarchicalSubject, metadata.TagsList, metadata.LastKeywordXMP]):
+        logger.warn(f"{metadata.SourceFile.name}: One of the flat tags is set, but will be cleared")
+    list_of_lists: list[list[str]] = []
+
+    if not metadata.KeywordInfo:
+        return metadata
+
+    def flatten_children(internal_root: KeywordStruct, current_words: list):
+        if not internal_root.Children:
+            current_words.append(internal_root.Keyword)
+        this_child_words = [internal_root.Keyword]
+        for internal_child in internal_root.Children:
+            flatten_children(internal_child, this_child_words)
+            current_words.extend(this_child_words)
+            this_child_words = [internal_root.Keyword]
+
+    for root in metadata.KeywordInfo.Hierarchy:
+        current_child_words = [root.Keyword]
+        for child in root.Children:
+            flatten_children(child, current_child_words)
+            list_of_lists.append(current_child_words)
+            current_child_words = [root.Keyword]
+
+    # Directly overwrite everything
+    metadata.HierarchicalSubject = ["|".join(x) for x in list_of_lists]
+    metadata.CatalogSets = metadata.HierarchicalSubject
+    metadata.TagsList = ["/".join(x) for x in list_of_lists]
+    metadata.LastKeywordXMP = metadata.TagsList
+
+    for keyword in metadata.KeywordInfo.Hierarchy:
+        remove_duplicate_children(keyword)
+
+    return metadata
 
 
 def read_image_metadata(
@@ -93,16 +202,20 @@ def bulk_read_image_metadata(
     cmd.extend(actual_images)
 
     # And run the command
+    logger.debug(f"Running commend '{cmd}'")
     proc = subprocess.run(cmd, check=False, capture_output=True)
     if proc.returncode != 0:
         for line in proc.stderr.decode("utf-8").splitlines():
             logger.error(f"exiftool: {line}")
-    for line in proc.stdout.decode("utf-8").splitlines():
-        logger.info(f"exiftool : {line}")
+        for line in proc.stdout.decode("utf-8").splitlines():
+            logger.info(f"exiftool : {line}")
 
     # Do this after logging anything
     proc.check_returncode()
-    return [ImageMetadata.model_validate(x) for x in json.loads(proc.stdout.decode("utf-8"))]
+    all_metadata = [ImageMetadata.model_validate(x) for x in json.loads(proc.stdout.decode("utf-8"))]
+    if read_tags:
+        return [combine_keyword_structures(x) for x in all_metadata]
+    return all_metadata
 
 
 def write_image_metadata(metadata: ImageMetadata) -> None:
@@ -121,7 +234,9 @@ def bulk_write_image_metadata(metadata: list[ImageMetadata]) -> None:
     """
     with tempfile.TemporaryDirectory() as json_dir:
         json_path = Path(json_dir).resolve() / "temp.json"
-        data = [x.model_dump(exclude_none=True, exclude_unset=True) for x in metadata]
+        data = [
+            expand_keyword_structures(x).model_dump(exclude_none=True, exclude_unset=True) for x in metadata
+        ]
         json_path.write_bytes(json.dumps(data))
         cmd = [
             EXIF_TOOL_EXE,
@@ -141,7 +256,7 @@ def bulk_write_image_metadata(metadata: list[ImageMetadata]) -> None:
         if proc.returncode != 0:
             for line in proc.stderr.decode("utf-8").splitlines():
                 logger.error(f"exiftool: {line}")
-        for line in proc.stdout.decode("utf-8").splitlines():
-            logger.info(f"exiftool : {line}")
+            for line in proc.stdout.decode("utf-8").splitlines():
+                logger.info(f"exiftool : {line}")
 
         proc.check_returncode()

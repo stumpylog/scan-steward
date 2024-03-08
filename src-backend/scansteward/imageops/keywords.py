@@ -7,109 +7,8 @@ from scansteward.imageops.metadata import bulk_read_image_metadata
 from scansteward.imageops.metadata import bulk_write_image_metadata
 from scansteward.imageops.metadata import write_image_metadata
 from scansteward.imageops.models import ImageMetadata
-from scansteward.imageops.models import KeywordInfoModel
-from scansteward.imageops.models import KeywordStruct
 
 logger = logging.getLogger(__name__)
-
-
-def process_separated_list(parent: KeywordStruct, remaining: list[str]):
-    """
-    Given a list of strings, build a tree structure from them, rooted at the given parent
-    """
-    if not remaining:
-        return
-    new_parent = KeywordStruct(Keyword=remaining[0])
-    parent.Children.append(new_parent)
-    process_separated_list(new_parent, remaining[1:])
-
-
-def remove_duplicate_children(root: KeywordStruct):
-    """
-    Removes duplicated children, which may exist as multiple fields above contain the same data
-    """
-    if not root.Children:
-        return
-    for child in root.Children:
-        remove_duplicate_children(child)
-    root.Children = list(set(root.Children))
-
-
-def combine_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
-    keywords: list[KeywordStruct] = []
-
-    if metadata.KeywordInfo and metadata.KeywordInfo.Hierarchy:
-        keywords.extend(metadata.KeywordInfo.Hierarchy)
-
-    # Check for other keywords which might get set as a flat structure
-    # Parse them into KeywordStruct trees
-    roots: dict[str, KeywordStruct] = {}
-    for key, separation in [
-        (metadata.HierarchicalSubject, "|"),
-        (metadata.CatalogSets, "|"),
-        (metadata.TagsList, "/"),
-        (metadata.LastKeywordXMP, "/"),
-    ]:
-        if not key:
-            continue
-        for line in key:
-            values_list = line.split(separation)
-            root_value = values_list[0]
-            if root_value not in roots:
-                roots[root_value] = KeywordStruct(Keyword=values_list[0])
-            root = roots[root_value]
-            process_separated_list(root, values_list[1:])
-
-    keywords.extend(list(roots.values()))
-
-    for keyword in keywords:
-        remove_duplicate_children(keyword)
-
-    # Assign the parsed flat keywords in as well
-    if not metadata.KeywordInfo:
-        metadata.KeywordInfo = KeywordInfoModel(Hierarchy=keywords)
-    else:
-        metadata.KeywordInfo.Hierarchy = keywords
-    return metadata
-
-
-def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
-    """
-    Expands the KeywordInfo.Hierarchy to also set the HierarchicalSubject, CatalogSets, TagsList and LastKeywordXMP
-    """
-    if any([metadata.HierarchicalSubject, metadata.TagsList, metadata.LastKeywordXMP]):
-        logger.warn(f"{metadata.SourceFile.name}: One of the flat tags is set, but will be cleared")
-    list_of_lists: list[list[str]] = []
-
-    if not metadata.KeywordInfo:
-        return metadata
-
-    def flatten_children(internal_root: KeywordStruct, current_words: list):
-        if not internal_root.Children:
-            current_words.append(internal_root.Keyword)
-        this_child_words = [internal_root.Keyword]
-        for internal_child in internal_root.Children:
-            flatten_children(internal_child, this_child_words)
-            current_words.extend(this_child_words)
-            this_child_words = [internal_root.Keyword]
-
-    for root in metadata.KeywordInfo.Hierarchy:
-        current_child_words = [root.Keyword]
-        for child in root.Children:
-            flatten_children(child, current_child_words)
-            list_of_lists.append(current_child_words)
-            current_child_words = [root.Keyword]
-
-    # Directly overwrite everything
-    metadata.HierarchicalSubject = ["|".join(x) for x in list_of_lists]
-    metadata.CatalogSets = metadata.HierarchicalSubject
-    metadata.TagsList = ["/".join(x) for x in list_of_lists]
-    metadata.LastKeywordXMP = metadata.TagsList
-
-    for keyword in metadata.KeywordInfo.Hierarchy:
-        remove_duplicate_children(keyword)
-
-    return metadata
 
 
 def read_keywords(image_path: Path) -> ImageMetadata:
@@ -117,7 +16,7 @@ def read_keywords(image_path: Path) -> ImageMetadata:
 
 
 def bulk_read_keywords(images: list[Path]) -> list[ImageMetadata]:
-    return [combine_keyword_structures(x) for x in bulk_read_image_metadata(images, read_tags=True)]
+    return bulk_read_image_metadata(images, read_tags=True)
 
 
 def bulk_clear_existing_keywords(images: list[Path]) -> None:
@@ -138,8 +37,8 @@ def bulk_clear_existing_keywords(images: list[Path]) -> None:
     if proc.returncode != 0:
         for line in proc.stderr.decode("utf-8").splitlines():
             logger.error(f"exiftool: {line}")
-    for line in proc.stdout.decode("utf-8").splitlines():
-        logger.info(f"exiftool : {line}")
+        for line in proc.stdout.decode("utf-8").splitlines():
+            logger.info(f"exiftool : {line}")
 
     # Do this after logging anything
     proc.check_returncode()
@@ -148,7 +47,7 @@ def bulk_clear_existing_keywords(images: list[Path]) -> None:
 def write_keywords(metadata: ImageMetadata, *, clear_existing: bool = False) -> None:
     if clear_existing:
         bulk_clear_existing_keywords([metadata.SourceFile])
-    return write_image_metadata(expand_keyword_structures(metadata))
+    return write_image_metadata(metadata)
 
 
 def bulk_write_image_keywords(metadata: list[ImageMetadata], *, clear_existing: bool = False) -> None:

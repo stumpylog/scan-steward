@@ -153,11 +153,12 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": "DEBUG" if DEBUG else "INFO",
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
         "file": {
+            "level": "DEBUG",
             "class": "logging.FileHandler",
             "formatter": "verbose",
             "filename": LOGGING_DIR / "scansteward.log",

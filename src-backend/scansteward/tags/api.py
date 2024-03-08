@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
+from ninja import Query
 from ninja import Router
 from ninja.errors import HttpError
 from ninja.pagination import LimitOffsetPagination
@@ -9,6 +10,7 @@ from ninja.pagination import paginate
 
 from scansteward.models import Tag
 from scansteward.tags.schemas import TagCreate
+from scansteward.tags.schemas import TagNameFilter
 from scansteward.tags.schemas import TagRead
 from scansteward.tags.schemas import TagTree
 from scansteward.tags.schemas import TagUpdate
@@ -17,9 +19,14 @@ router = Router(tags=["tags"])
 
 
 @router.get("/tree/", response=list[TagTree])
-def get_tag_tree(request: HttpRequest):
+def get_tag_tree(request: HttpRequest, filter_name_query: Query[TagNameFilter]):
     items = []
-    for root_node in Tag.objects.filter(parent__isnull=True).order_by("name").prefetch_related("children"):
+    for root_node in (
+        Tag.objects.filter(parent__isnull=True)
+        .filter(filter_name_query.get_filter_expression())
+        .order_by("name")
+        .prefetch_related("children")
+    ):
         tree_root = TagTree.from_orm(root_node)
         items.append(tree_root)
     return items
@@ -27,7 +34,9 @@ def get_tag_tree(request: HttpRequest):
 
 @router.get("/", response=list[TagRead])
 @paginate(LimitOffsetPagination)
-def get_tags(request: HttpRequest):
+def get_tags(
+    request: HttpRequest,
+):
     return Tag.objects.all()
 
 

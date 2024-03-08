@@ -23,6 +23,9 @@ coverage.json
 env/
 venv/
 
+# IDEs
+.idea/
+
 # mypy
 .mypy_cache/
 
