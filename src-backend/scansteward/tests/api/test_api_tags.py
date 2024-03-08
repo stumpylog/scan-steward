@@ -2,27 +2,7 @@ from http import HTTPStatus
 
 from scansteward.models import Tag
 from scansteward.tests.api.utils import FakerTestCase
-
-
-class GenerateTagsTestCase(FakerTestCase):
-    def setUp(self) -> None:
-        self.roots = []
-        self.children = []
-        return super().setUp()
-
-    def generate_root_tags(self, count: int, *, with_description: bool = False) -> None:
-        Tag.objects.all().delete()
-        for _ in range(count):
-            name = self.faker.unique.word()
-            description = self.faker.sentence if with_description else None
-            self.roots.append(Tag.objects.create(name=name, description=description))
-
-    def generate_child_tags(self, count: int, parent_id: int, *, with_description: bool = False):
-        parent = Tag.objects.get(id=parent_id)
-        for _ in range(count):
-            name = self.faker.unique.word()
-            description = self.faker.sentence if with_description else None
-            self.children.append(Tag.objects.create(name=name, description=description, parent=parent))
+from scansteward.tests.api.utils import GenerateTagsTestCase
 
 
 class TestApiTagRead(GenerateTagsTestCase):
@@ -49,6 +29,17 @@ class TestApiTagRead(GenerateTagsTestCase):
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["count"] == count
         assert len(resp.json()["items"]) == count
+
+    def test_tag_paginate(self):
+        count = 100
+        limit = 5
+        self.generate_root_tags(count)
+
+        resp = self.client.get(f"/api/tag/?limit={limit}")
+
+        assert resp.status_code == HTTPStatus.OK
+        assert resp.json()["count"] == count
+        assert len(resp.json()["items"]) == limit
 
     def test_tag_tree(self):
         root_count = 3

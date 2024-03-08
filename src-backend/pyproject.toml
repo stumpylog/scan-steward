@@ -93,7 +93,7 @@ ban-relative-imports = "all"
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["scansteward/tests"]
-addopts = "--pythonwarnings=all --cov --cov-report=html --cov-report=json --cov-report=term"
+addopts = "--pythonwarnings=all --cov --cov-report=html --cov-report=json --cov-report=term -n 4"
 asyncio_mode = "auto"
 DJANGO_SETTINGS_MODULE = "scansteward.settings"
 
@@ -129,7 +129,15 @@ warn_required_dynamic_aliases = true
 
 [tool.coverage.run]
 branch = true
-#concurrency = ["greenlet"]
+omit = [
+  "*/tests/*"
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    ]
 
 [tool.coverage.html]
 directory = "coverage_html_report"

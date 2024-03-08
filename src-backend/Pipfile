@@ -29,6 +29,7 @@ pytest-sugar = "*"
 pytest-cov = "*"
 pytest-django = "*"
 pytest-env = "*"
+pytest-xdist = "*"
 coverage = "*"
 faker = "*"
 # Linting
