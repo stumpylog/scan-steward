@@ -23,7 +23,7 @@ def create_image_object(faker: Faker):
     )
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")  # noqa: PT003
 def temporary_directory() -> Generator[Path, None, None]:
     import tempfile
 
@@ -31,11 +31,11 @@ def temporary_directory() -> Generator[Path, None, None]:
         yield Path(tmp_dir).resolve()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def sample_dir() -> Path:
     return Path(__file__).parent / "samples"
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def image_sample_dir(sample_dir: Path) -> Path:
     return sample_dir / "images"

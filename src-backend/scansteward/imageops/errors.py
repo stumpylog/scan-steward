@@ -4,3 +4,11 @@ class ImageOperationError(Exception):
 
 class ImageOperationMissingRequiredDataError(ImageOperationError):
     pass
+
+
+class NoImagePathsError(ImageOperationError):
+    pass
+
+
+class ImagePathNotFileError(ImageOperationError):
+    pass

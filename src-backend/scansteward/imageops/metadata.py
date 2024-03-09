@@ -1,18 +1,25 @@
 import logging
 import subprocess
 import tempfile
+from datetime import datetime
+from datetime import timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import orjson as json
 
 from scansteward.imageops.constants import EXIF_TOOL_EXE
+from scansteward.imageops.errors import ImagePathNotFileError
+from scansteward.imageops.errors import NoImagePathsError
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
 from scansteward.imageops.models import KeywordStruct
-from scansteward.imageops.utils import now_string
 
 logger = logging.getLogger(__name__)
+
+
+def now_string() -> str:
+    return datetime.now(tz=timezone.utc).strftime("%Y:%m:%d %H:%M:%S.%f%z")
 
 
 def process_separated_list(parent: KeywordStruct, remaining: list[str]):
@@ -123,83 +130,55 @@ def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
 
 def read_image_metadata(
     image_path: Path,
-    *,
-    read_regions: bool = False,
-    read_orientation: bool = False,
-    read_tags: bool = False,
-    read_title: bool = False,
-    read_description: bool = False,
 ) -> ImageMetadata:
     """
     Reads the requested metadata for a single image file
     """
-    return bulk_read_image_metadata(
-        [image_path],
-        read_regions=read_regions,
-        read_orientation=read_orientation,
-        read_tags=read_tags,
-        read_title=read_title,
-        read_description=read_description,
-    )[0]
+    return bulk_read_image_metadata([image_path])[0]
 
 
 def bulk_read_image_metadata(
     images: list[Path],
-    *,
-    read_regions: bool = False,
-    read_orientation: bool = False,
-    read_tags: bool = False,
-    read_title: bool = False,
-    read_description: bool = False,
 ) -> list[ImageMetadata]:
     """
     Reads the requested metadata for the given list of files.  This does a single subprocess call for
     all images at once, resulting in a more efficient method than looping through
     """
 
-    # Something must be asked for
-    if not any([read_regions, read_orientation, read_tags, read_title, read_description]):
-        msg = "One of read_* is required but not provided"
-        logger.error(msg)
-        raise ValueError(msg)
     if not images:
         msg = "No image paths were provided"
         logger.error(msg)
-        raise ValueError(msg)
-
-    actual_images = []
-    for image_path in images:
-        if not image_path.exists():
-            msg = f"{image_path} does not exist"
-            logger.error(msg)
-            raise FileExistsError(image_path)
-        elif not image_path.is_file():
-            msg = f"{image_path} is not a file"
-            logger.error(msg)
-            raise ValueError(msg)
-        actual_images.append(image_path.resolve())
+        raise NoImagePathsError(msg)
 
     cmd = [
         EXIF_TOOL_EXE,
         "-struct",
         "-json",
         "-n",  # Disable print conversion, use machine readable
+        # Face regions
+        "-RegionInfo",
+        "-Orientation",
+        # Tags
+        "-HierarchicalKeywords",
+        "-LastKeywordXMP",
+        "-TagsList",
+        "-HierarchicalSubject",
+        "-CatalogSets",
+        "-Title",
+        "-Description",
     ]
-    # Add the request for the requested flags
-    if read_regions:
-        cmd.append("-RegionInfo")
-    if read_orientation:
-        cmd.append("-Orientation")
-    if read_tags:
-        cmd.extend(
-            ["-HierarchicalKeywords", "-LastKeywordXMP", "-TagsList", "-HierarchicalSubject", "-CatalogSets"],
-        )
-    if read_title:
-        cmd.append("-Title")
-    if read_description:
-        cmd.append("-Description")
+
     # Add the actual images
-    cmd.extend(actual_images)
+    for image_path in images:
+        if not image_path.exists():
+            msg = f"{image_path} does not exist"
+            logger.error(msg)
+            raise FileNotFoundError(image_path)
+        elif not image_path.is_file():
+            msg = f"{image_path} is not a file"
+            logger.error(msg)
+            raise ImagePathNotFileError(msg)
+        cmd.append(str(image_path.resolve()))
 
     # And run the command
     logger.debug(f"Running commend '{cmd}'")
@@ -212,26 +191,33 @@ def bulk_read_image_metadata(
 
     # Do this after logging anything
     proc.check_returncode()
-    all_metadata = [ImageMetadata.model_validate(x) for x in json.loads(proc.stdout.decode("utf-8"))]
-    if read_tags:
-        return [combine_keyword_structures(x) for x in all_metadata]
-    return all_metadata
+    return [
+        combine_keyword_structures(y)
+        for y in [ImageMetadata.model_validate(x) for x in json.loads(proc.stdout.decode("utf-8"))]
+    ]
 
 
-def write_image_metadata(metadata: ImageMetadata) -> None:
+def write_image_metadata(metadata: ImageMetadata, *, clear_existing_metadata: bool = False) -> None:
     """
     Updates the given SourceFile with the given metadata.  If a field has not been set,
     there will be no change to it.
     """
-    return bulk_write_image_metadata([metadata])
+    return bulk_write_image_metadata([metadata], clear_existing_metadata=clear_existing_metadata)
 
 
-def bulk_write_image_metadata(metadata: list[ImageMetadata]) -> None:
+def bulk_write_image_metadata(
+    metadata: list[ImageMetadata],
+    *,
+    clear_existing_metadata: bool = False,
+) -> None:
     """
     Updates the given SourceFiles with the given metadata.  If a field has not been set,
     there will be no change to it.
     This does a single subprocess call, resulting is faster execution than looping
     """
+    if clear_existing_metadata:
+        bulk_clear_existing_metadata([x.SourceFile for x in metadata])
+
     with tempfile.TemporaryDirectory() as json_dir:
         json_path = Path(json_dir).resolve() / "temp.json"
         data = [
@@ -260,3 +246,38 @@ def bulk_write_image_metadata(metadata: list[ImageMetadata]) -> None:
                 logger.info(f"exiftool : {line}")
 
         proc.check_returncode()
+
+
+def clear_existing_metadata(image: Path) -> None:
+    return bulk_clear_existing_metadata([image])
+
+
+def bulk_clear_existing_metadata(images: list[Path]) -> None:
+    cmd = [
+        EXIF_TOOL_EXE,
+        "-struct",
+        "-json",
+        "-n",  # Disable print conversion, use machine readable
+        # Face regions
+        "-RegionInfo=",
+        "-Orientation=",
+        # Tags
+        "-HierarchicalKeywords=",
+        "-LastKeywordXMP=",
+        "-TagsList=",
+        "-HierarchicalSubject=",
+        "-CatalogSets=",
+        "-Title=",
+        "-Description=",
+    ]
+    for image in images:
+        cmd.append(str(image.resolve()))  # noqa: PERF401
+    proc = subprocess.run(cmd, check=False, capture_output=True)
+    if proc.returncode != 0:
+        for line in proc.stderr.decode("utf-8").splitlines():
+            logger.error(f"exiftool: {line}")
+        for line in proc.stdout.decode("utf-8").splitlines():
+            logger.info(f"exiftool : {line}")
+
+    # Do this after logging anything
+    proc.check_returncode()
