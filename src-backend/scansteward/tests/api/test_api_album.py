@@ -1,4 +1,3 @@
-import random
 from http import HTTPStatus
 
 from django.http import HttpResponse
@@ -8,6 +7,7 @@ from django.test.client import Client
 from scansteward.models import Album
 from scansteward.models import Image
 from scansteward.tests.api.utils import FakerMixin
+from scansteward.tests.api.utils import GenerateImagesMixin
 
 
 def create_single_album(client: Client, name: str, description: str | None = None) -> HttpResponse:
@@ -172,7 +172,7 @@ class TestApiAlbumDelete(FakerMixin, TestCase):
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
-class TestApiAlbumImages(FakerMixin, TestCase):
+class TestApiAlbumImages(GenerateImagesMixin, TestCase):
     def test_add_single_image(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
@@ -180,11 +180,8 @@ class TestApiAlbumImages(FakerMixin, TestCase):
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
 
-        img = Image.objects.create(
-            file_size=random.randint(1, 1_000_000),  # noqa: S311
-            checksum=self.faker.sha1()[:64],
-            original=self.faker.file_path(category="image"),
-        )
+        self.generate_image_objects(1)
+        img = self.images[0]
 
         resp = self.client.patch(
             f"/api/album/{album_id}/add/",
@@ -207,16 +204,10 @@ class TestApiAlbumImages(FakerMixin, TestCase):
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
 
-        img_one = Image.objects.create(
-            file_size=random.randint(1, 1_000_000),  # noqa: S311
-            checksum=self.faker.sha1()[:64],
-            original=self.faker.file_path(category="image"),
-        )
-        img_two = Image.objects.create(
-            file_size=random.randint(1, 1_000_000),  # noqa: S311
-            checksum=self.faker.sha1()[:64],
-            original=self.faker.file_path(category="image"),
-        )
+        self.generate_image_objects(2)
+
+        img_one = self.images[0]
+        img_two = self.images[1]
 
         resp = self.client.patch(
             f"/api/album/{album_id}/add/",
@@ -249,6 +240,107 @@ class TestApiAlbumImages(FakerMixin, TestCase):
         album = Album.objects.get(pk=album_id)
 
         assert album.images.count() == 2
+
+    def test_remove_image(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+        for img in self.images:
+            resp = self.client.patch(
+                f"/api/album/{album_id}/add/",
+                content_type="application/json",
+                data={"image_id": img.pk},
+            )
+            assert resp.status_code == HTTPStatus.OK
+
+        test_img = self.images[0]
+        resp = self.client.patch(
+            f"/api/album/{album_id}/remove/",
+            content_type="application/json",
+            data={"image_id": test_img.pk},
+        )
+        assert resp.status_code == HTTPStatus.OK
+        assert {
+            "name": album_name,
+            "description": None,
+            "id": album_id,
+            "image_ids": [x.pk for x in self.images[1:]],
+        } == resp.json()
+
+    def test_remove_image_not_in_album(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+        dont_add = 4
+        for img in self.images:
+            if img.pk == dont_add:
+                continue
+            resp = self.client.patch(
+                f"/api/album/{album_id}/add/",
+                content_type="application/json",
+                data={"image_id": img.pk},
+            )
+            assert resp.status_code == HTTPStatus.OK
+
+        img = Image.objects.get(pk=dont_add)
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/remove/",
+            content_type="application/json",
+            data={"image_id": dont_add},
+        )
+        assert resp.status_code == HTTPStatus.NOT_FOUND
+
+        resp = self.client.get(f"/api/album/{album_id}/")
+        assert resp.status_code == HTTPStatus.OK
+        assert {
+            "name": album_name,
+            "description": None,
+            "id": album_id,
+            "image_ids": [x.pk for x in self.images if x.pk != dont_add],
+        } == resp.json()
+
+    def test_remove_last_album_image(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+
+        for img in self.images:
+            resp = self.client.patch(
+                f"/api/album/{album_id}/add/",
+                content_type="application/json",
+                data={"image_id": img.pk},
+            )
+            assert resp.status_code == HTTPStatus.OK
+
+        test_img = self.images[-1]
+        resp = self.client.patch(
+            f"/api/album/{album_id}/remove/",
+            content_type="application/json",
+            data={"image_id": test_img.pk},
+        )
+        assert resp.status_code == HTTPStatus.OK
+        assert {
+            "name": album_name,
+            "description": None,
+            "id": album_id,
+            "image_ids": [x.pk for x in self.images[0:-1]],
+        } == resp.json()
 
 
 class TestApiAlbumSorting(TestCase):

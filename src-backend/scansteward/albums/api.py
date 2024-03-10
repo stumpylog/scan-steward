@@ -3,6 +3,7 @@ from http import HTTPStatus
 
 from django.db import transaction
 from django.db.models import Max
+from django.http import Http404
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
@@ -24,6 +25,10 @@ from scansteward.models import ImageInAlbum
 router = Router(tags=["albums"])
 
 logger = logging.getLogger(__name__)
+
+
+class Http400Error(Exception):
+    pass
 
 
 @router.get("/", response=list[AlbumBasicReadSchema])
@@ -125,6 +130,11 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageS
 def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
     image_instance: Image = get_object_or_404(Image, id=data.image_id)
+
+    if not album_instance.images.filter(pk=data.image_id).exists():
+        msg = f"Image {data.image_id} not in album"
+        logger.error(msg)
+        raise Http404(msg)
 
     album_instance.images.remove(image_instance)
 

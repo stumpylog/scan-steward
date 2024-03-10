@@ -1,3 +1,4 @@
+import random
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
@@ -8,7 +9,12 @@ from faker import Faker
 
 @pytest.fixture(scope="session", autouse=True)
 def faker_seed():
-    return 12345
+    return 0
+
+
+@pytest.fixture(scope="session", autouse=True)
+def seed_random():
+    random.seed(0)
 
 
 @pytest.fixture()
