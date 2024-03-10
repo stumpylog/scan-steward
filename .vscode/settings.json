@@ -1,8 +1,10 @@
 {
     "files.exclude": {
-        "**/__pycache__": true,
-        "**/.mypy_cache": true,
-        "**/.ruff_cache": true
+			"**/__pycache__": true,
+			"**/.mypy_cache": true,
+			"**/.ruff_cache": true,
+			"**/.pytest_cache": true,
+			"**/.idea": true
     },
     "python.analysis.extraPaths": [
         "src-backend/scansteward"

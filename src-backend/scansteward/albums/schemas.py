@@ -30,3 +30,7 @@ class AlbumSortUpdate(Schema):
 
 class AlbumAddImageSchema(Schema):
     image_id: int
+
+
+class AlbumRemoveImageSchema(AlbumAddImageSchema):
+    pass

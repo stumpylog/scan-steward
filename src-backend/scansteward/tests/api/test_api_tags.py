@@ -71,7 +71,6 @@ class TestApiTagCreate(FakerTestCase):
         tag_name = self.faker.country()
         resp = self.client.post(
             "/api/tag/",
-            headers={"accept": "application/json"},
             content_type="application/json",
             data={"name": tag_name},
         )
@@ -94,7 +93,6 @@ class TestApiTagCreate(FakerTestCase):
 
         resp = self.client.post(
             "/api/tag/",
-            headers={"accept": "application/json"},
             content_type="application/json",
             data={"name": tag_name, "parent_id": parent.pk},
         )
@@ -119,7 +117,6 @@ class TestApiTagCreate(FakerTestCase):
 
         resp = self.client.post(
             "/api/tag/",
-            headers={"accept": "application/json"},
             content_type="application/json",
             data={"name": existing_name},
         )
@@ -137,7 +134,6 @@ class TestApiTagUpdate(GenerateTagsTestCase):
 
         resp = self.client.patch(
             f"/api/tag/{instance.pk}",
-            headers={"accept": "application/json"},
             content_type="application/json",
             data={"name": new_name},
         )
@@ -160,7 +156,6 @@ class TestApiTagUpdate(GenerateTagsTestCase):
 
         resp = self.client.patch(
             f"/api/tag/{child_1.pk}",
-            headers={"accept": "application/json"},
             content_type="application/json",
             data={"parent_id": child_2.pk},
         )
@@ -178,7 +173,6 @@ class TestApiTagUpdate(GenerateTagsTestCase):
 
         resp = self.client.patch(
             f"/api/tag/{root.pk}",
-            headers={"accept": "application/json"},
             content_type="application/json",
             data={"description": self.faker.sentence()},
         )
@@ -192,11 +186,15 @@ class TestApiTagDelete(GenerateTagsTestCase):
     def test_delete_single_tag(self):
         self.generate_root_tags(1)
         root: Tag = self.roots[0]
-        resp = self.client.delete(f"/api/tag/{root.pk}", headers={"accept": "application/json"})
+        resp = self.client.delete(
+            f"/api/tag/{root.pk}",
+        )
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
 
     def test_delete_single_tag_not_found(self):
-        resp = self.client.delete("/api/tag/1", headers={"accept": "application/json"})
+        resp = self.client.delete(
+            "/api/tag/1",
+        )
 
         assert resp.status_code == HTTPStatus.NOT_FOUND

@@ -23,7 +23,9 @@ class TestApiPeopleRead(GeneratePeopleTestCase):
 
     def test_get_people_with_no_people(self):
         Person.objects.all().delete()
-        resp = self.client.get("/api/person/", headers={"accept": "application/json"})
+        resp = self.client.get(
+            "/api/person/",
+        )
 
         assert resp.status_code == HTTPStatus.OK
 
@@ -36,7 +38,9 @@ class TestApiPeopleRead(GeneratePeopleTestCase):
         count = 5
         self.generate_people(count)
 
-        resp = self.client.get("/api/person/", headers={"accept": "application/json"})
+        resp = self.client.get(
+            "/api/person/",
+        )
 
         assert resp.status_code == HTTPStatus.OK
 
@@ -53,7 +57,6 @@ class TestApiPeopleRead(GeneratePeopleTestCase):
 
         resp = self.client.get(
             f"/api/person/?limit={limit}&offset={offset}",
-            headers={"accept": "application/json"},
         )
 
         assert resp.status_code == HTTPStatus.OK

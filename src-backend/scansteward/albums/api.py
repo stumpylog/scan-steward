@@ -13,6 +13,7 @@ from ninja.pagination import paginate
 from scansteward.albums.schemas import AlbumAddImageSchema
 from scansteward.albums.schemas import AlbumBasicReadSchema
 from scansteward.albums.schemas import AlbumCreateSchema
+from scansteward.albums.schemas import AlbumRemoveImageSchema
 from scansteward.albums.schemas import AlbumSortUpdate
 from scansteward.albums.schemas import AlbumUpdateSchema
 from scansteward.albums.schemas import AlbumWithImagesReadSchema
@@ -32,7 +33,7 @@ def get_albums(request: HttpRequest):
 
 
 @router.get(
-    "/{album_id}",
+    "/{album_id}/",
     response=AlbumWithImagesReadSchema,
     openapi_extra={
         "responses": {
@@ -58,7 +59,7 @@ async def create_album(request: HttpRequest, data: AlbumCreateSchema):
 
 
 @router.patch(
-    "/{album_id}",
+    "/{album_id}/",
     response=AlbumBasicReadSchema,
     openapi_extra={
         "responses": {
@@ -72,15 +73,14 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSch
     instance: Album = await aget_object_or_404(Album, id=album_id)
     if data.name is not None:
         instance.name = data.name
-    if data.description is not None:
-        instance.description = data.description
+    instance.description = data.description
     await instance.asave()
     await instance.arefresh_from_db()
     return instance
 
 
 @router.patch(
-    "/{album_id}/add",
+    "/{album_id}/add/",
     response=AlbumWithImagesReadSchema,
     openapi_extra={
         "responses": {
@@ -90,7 +90,7 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSch
         },
     },
 )
-def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
+def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
     image_instance: Image = get_object_or_404(Image, id=data.image_id)
 
@@ -100,7 +100,6 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageS
         ]
         + 1
     )
-    logger.info(sort_order)
 
     _ = ImageInAlbum.objects.get_or_create(
         album=album_instance,
@@ -113,7 +112,29 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageS
 
 
 @router.patch(
-    "/{album_id}/sort",
+    "/{album_id}/remove/",
+    response=AlbumWithImagesReadSchema,
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+)
+def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
+    album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
+    image_instance: Image = get_object_or_404(Image, id=data.image_id)
+
+    album_instance.images.remove(image_instance)
+
+    album_instance.refresh_from_db()
+
+    return album_instance
+
+
+@router.patch(
+    "/{album_id}/sort/",
     response=AlbumWithImagesReadSchema,
     openapi_extra={
         "responses": {
@@ -153,3 +174,20 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
     album_instance.refresh_from_db()
 
     return album_instance
+
+
+@router.delete(
+    "/{album_id}/",
+    response={HTTPStatus.NO_CONTENT: None},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+)
+async def delete_tag(request: HttpRequest, album_id: int):
+    instance: Album = await aget_object_or_404(Album, id=album_id)
+    await instance.adelete()
+    return HTTPStatus.NO_CONTENT, None
