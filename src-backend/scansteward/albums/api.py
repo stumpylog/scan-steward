@@ -90,7 +90,7 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSch
         },
     },
 )
-def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
+def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
     image_instance: Image = get_object_or_404(Image, id=data.image_id)
 
@@ -122,7 +122,7 @@ def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumAddI
         },
     },
 )
-def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
+def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
     image_instance: Image = get_object_or_404(Image, id=data.image_id)
 
@@ -161,14 +161,14 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
             image_in_album_instance.save()
             temp_sort_order += 1
 
-        for sort_setting in data.sorting:
-            image_instance = get_object_or_404(Image, id=sort_setting.image_id)
+        for index, image_id in enumerate(data.sorting):
+            image_instance = get_object_or_404(Image, id=image_id)
             image_in_album_instance = get_object_or_404(
                 ImageInAlbum,
                 album=album_instance,
                 image=image_instance,
             )
-            image_in_album_instance.sort_order = sort_setting.sort_order
+            image_in_album_instance.sort_order = index
             image_in_album_instance.save()
 
     album_instance.refresh_from_db()
@@ -187,7 +187,7 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
         },
     },
 )
-async def delete_tag(request: HttpRequest, album_id: int):
+async def delete_album(request: HttpRequest, album_id: int):
     instance: Album = await aget_object_or_404(Album, id=album_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None

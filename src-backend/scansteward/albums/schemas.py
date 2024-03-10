@@ -19,13 +19,8 @@ class AlbumUpdateSchema(Schema):
     description: str | None = None
 
 
-class ImageSortSettingSchema(Schema):
-    image_id: int
-    sort_order: int
-
-
 class AlbumSortUpdate(Schema):
-    sorting: list[ImageSortSettingSchema]
+    sorting: list[int]
 
 
 class AlbumAddImageSchema(Schema):
