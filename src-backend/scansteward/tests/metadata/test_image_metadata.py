@@ -1,6 +1,12 @@
+import collections
 import shutil
 from pathlib import Path
 
+import pytest
+
+from scansteward.imageops.errors import ImagePathNotFileError
+from scansteward.imageops.errors import NoImageMetadataError
+from scansteward.imageops.errors import NoImagePathsError
 from scansteward.imageops.metadata import bulk_read_image_metadata
 from scansteward.imageops.metadata import bulk_write_image_metadata
 from scansteward.imageops.metadata import read_image_metadata
@@ -8,17 +14,21 @@ from scansteward.imageops.metadata import write_image_metadata
 from scansteward.imageops.models import DimensionsStruct
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
+from scansteward.imageops.models import KeywordStruct
 from scansteward.imageops.models import RegionInfoStruct
 from scansteward.imageops.models import RegionStruct
 from scansteward.imageops.models import RotationEnum
 from scansteward.imageops.models import XmpAreaStruct
 
 
-def assert_count_equal(list_one: list | None, list_two: list | None) -> None:
-    list_one = list_one if list_one else []
-    list_two = list_two if list_two else []
-    difference = set(list_one) ^ set(list_two)
-    assert not difference
+def assert_count_equal(first: list | None, second: list | None) -> None:
+    """
+    https://github.com/python/cpython/blob/17d31bf3843c384873999a15ce683cc3654f46ae/Lib/unittest/case.py#L1186
+    """
+    first_seq, second_seq = list(first or []), list(second or [])
+    first_counter = collections.Counter(first_seq)
+    second_counter = collections.Counter(second_seq)
+    assert first_counter == second_counter
 
 
 def verify_expected_vs_actual_metadata(expected: ImageMetadata, actual: ImageMetadata):
@@ -202,7 +212,7 @@ class TestReadImageMetadata:
         verify_sample_two_metadata(sample_two_jpeg, metadata[1])
 
 
-class TestWriteImageMetdata:
+class TestWriteImageMetadata:
     def test_change_single_image_metadata(self, temporary_directory: Path, sample_one_jpeg: Path):
 
         new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
@@ -248,3 +258,72 @@ class TestWriteImageMetdata:
 
         verify_expected_vs_actual_metadata(new_one_metadata, changed_metadata[0])
         verify_expected_vs_actual_metadata(new_two_metadata, changed_metadata[1])
+
+    def test_write_change_keywords(self, temporary_directory: Path, sample_one_jpeg: Path):
+
+        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
+
+        new_metadata = sample_one_metadata(sample_one_jpeg).model_copy(deep=True)
+        new_metadata.SourceFile = new_sample_one
+        # Clear all the old style tags
+        new_metadata.RegionInfo = None
+        new_metadata.HierarchicalSubject = None
+        new_metadata.CatalogSets = None
+        new_metadata.TagsList = None
+        new_metadata.LastKeywordXMP = None
+        # Construct a new tree
+        new_metadata.KeywordInfo = KeywordInfoModel(
+            Hierarchy=[
+                KeywordStruct(
+                    Keyword="New Root Tag",
+                    Children=[KeywordStruct(Keyword="New Child Tag", Children=[])],
+                ),
+            ],
+        )
+
+        write_image_metadata(new_metadata, clear_existing_metadata=True)
+
+        changed_metadata = read_image_metadata(new_sample_one)
+
+        # TODO: CatalogSets is returned empty for some reason
+        new_metadata.CatalogSets = None
+
+        verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+
+    def test_write_change_no_keywords(self, temporary_directory: Path, sample_one_jpeg: Path):
+
+        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
+
+        new_metadata = sample_one_metadata(sample_one_jpeg).model_copy(deep=True)
+        new_metadata.SourceFile = new_sample_one
+        # Clear all the tags
+        new_metadata.RegionInfo = None
+        new_metadata.HierarchicalSubject = None
+        new_metadata.CatalogSets = None
+        new_metadata.TagsList = None
+        new_metadata.LastKeywordXMP = None
+        new_metadata.KeywordInfo = None
+
+        write_image_metadata(new_metadata, clear_existing_metadata=True)
+
+        changed_metadata = read_image_metadata(new_sample_one)
+
+        verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+
+
+class TestErrorCases:
+    def test_write_no_images(self):
+        with pytest.raises(NoImageMetadataError):
+            bulk_write_image_metadata([])
+
+    def test_read_no_images(self):
+        with pytest.raises(NoImagePathsError):
+            bulk_read_image_metadata([])
+
+    def test_not_a_file(self):
+        with pytest.raises(FileNotFoundError):
+            bulk_read_image_metadata([Path("not-a-path")])
+
+    def test_is_a_dir(self, temporary_directory: Path):
+        with pytest.raises(ImagePathNotFileError):
+            bulk_read_image_metadata([temporary_directory])

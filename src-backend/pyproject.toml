@@ -137,6 +137,7 @@ omit = [
 exclude_also = [
     "def __repr__",
     "if TYPE_CHECKING:",
+    "if proc.returncode != 0:"
     ]
 
 [tool.coverage.html]

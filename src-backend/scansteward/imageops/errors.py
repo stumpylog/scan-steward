@@ -10,5 +10,9 @@ class NoImagePathsError(ImageOperationError):
     pass
 
 
+class NoImageMetadataError(ImageOperationError):
+    pass
+
+
 class ImagePathNotFileError(ImageOperationError):
     pass

@@ -10,6 +10,7 @@ import orjson as json
 
 from scansteward.imageops.constants import EXIF_TOOL_EXE
 from scansteward.imageops.errors import ImagePathNotFileError
+from scansteward.imageops.errors import NoImageMetadataError
 from scansteward.imageops.errors import NoImagePathsError
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
@@ -82,7 +83,9 @@ def combine_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
         remove_duplicate_children(keyword)
 
     # Assign the parsed flat keywords in as well
-    if not metadata.KeywordInfo:
+    if not keywords:
+        return metadata
+    elif not metadata.KeywordInfo:
         metadata.KeywordInfo = KeywordInfoModel(Hierarchy=keywords)
     else:
         metadata.KeywordInfo.Hierarchy = keywords
@@ -93,12 +96,14 @@ def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
     """
     Expands the KeywordInfo.Hierarchy to also set the HierarchicalSubject, CatalogSets, TagsList and LastKeywordXMP
     """
-    if any([metadata.HierarchicalSubject, metadata.TagsList, metadata.LastKeywordXMP]):
-        logger.warn(f"{metadata.SourceFile.name}: One of the flat tags is set, but will be cleared")
-    list_of_lists: list[list[str]] = []
+    if any([metadata.HierarchicalSubject, metadata.CatalogSets, metadata.TagsList, metadata.LastKeywordXMP]):
+        logger.warning(f"{metadata.SourceFile.name}: One of the flat tags is set, but will be cleared")
 
     if not metadata.KeywordInfo:
         return metadata
+
+    for keyword in metadata.KeywordInfo.Hierarchy:
+        remove_duplicate_children(keyword)
 
     def flatten_children(internal_root: KeywordStruct, current_words: list):
         if not internal_root.Children:
@@ -109,6 +114,8 @@ def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
             current_words.extend(this_child_words)
             this_child_words = [internal_root.Keyword]
 
+    list_of_lists: list[list[str]] = []
+
     for root in metadata.KeywordInfo.Hierarchy:
         current_child_words = [root.Keyword]
         for child in root.Children:
@@ -118,12 +125,10 @@ def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
 
     # Directly overwrite everything
     metadata.HierarchicalSubject = ["|".join(x) for x in list_of_lists]
-    metadata.CatalogSets = metadata.HierarchicalSubject
-    metadata.TagsList = ["/".join(x) for x in list_of_lists]
-    metadata.LastKeywordXMP = metadata.TagsList
+    metadata.CatalogSets = ["|".join(x) for x in list_of_lists]
 
-    for keyword in metadata.KeywordInfo.Hierarchy:
-        remove_duplicate_children(keyword)
+    metadata.TagsList = ["/".join(x) for x in list_of_lists]
+    metadata.LastKeywordXMP = ["/".join(x) for x in list_of_lists]
 
     return metadata
 
@@ -163,7 +168,7 @@ def bulk_read_image_metadata(
         "-LastKeywordXMP",
         "-TagsList",
         "-HierarchicalSubject",
-        "-CatalogSets",
+        "-XMP:CatalogSets",
         "-Title",
         "-Description",
     ]
@@ -181,7 +186,7 @@ def bulk_read_image_metadata(
         cmd.append(str(image_path.resolve()))
 
     # And run the command
-    logger.debug(f"Running commend '{cmd}'")
+    logger.debug(f"Running command '{' '.join(cmd)}'")
     proc = subprocess.run(cmd, check=False, capture_output=True)
     if proc.returncode != 0:
         for line in proc.stderr.decode("utf-8").splitlines():
@@ -215,6 +220,11 @@ def bulk_write_image_metadata(
     there will be no change to it.
     This does a single subprocess call, resulting is faster execution than looping
     """
+    if not metadata:
+        msg = "No image paths were provided"
+        logger.error(msg)
+        raise NoImageMetadataError(msg)
+
     if clear_existing_metadata:
         bulk_clear_existing_metadata([x.SourceFile for x in metadata])
 
@@ -237,6 +247,7 @@ def bulk_write_image_metadata(
         # * unpacking doesn't resolve for the command
         for x in metadata:
             cmd.append(x.SourceFile.resolve())  # noqa: PERF401
+        logger.debug(f"Running command '{cmd}'")
         proc = subprocess.run(cmd, check=False, capture_output=True)
 
         if proc.returncode != 0:
@@ -258,10 +269,13 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
         "-struct",
         "-json",
         "-n",  # Disable print conversion, use machine readable
+        "-overwrite_original",
         # Face regions
         "-RegionInfo=",
         "-Orientation=",
         # Tags
+        "-KeywordInfo=",
+        "-Categories=",
         "-HierarchicalKeywords=",
         "-LastKeywordXMP=",
         "-TagsList=",
@@ -272,6 +286,7 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
     ]
     for image in images:
         cmd.append(str(image.resolve()))  # noqa: PERF401
+    logger.debug(f"Running command '{cmd}'")
     proc = subprocess.run(cmd, check=False, capture_output=True)
     if proc.returncode != 0:
         for line in proc.stderr.decode("utf-8").splitlines():
