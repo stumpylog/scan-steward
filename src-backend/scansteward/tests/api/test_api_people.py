@@ -1,23 +1,12 @@
 from http import HTTPStatus
 
-from django.http import HttpResponse
+from django.test import TestCase
 
 from scansteward.models import Person
-from scansteward.tests.api.utils import FakerTestCase
+from scansteward.tests.api.utils import GeneratePeopleMixin
 
 
-class GeneratePeopleTestCase(FakerTestCase):
-    def generate_people(self, count: int, *, with_description: bool = False) -> None:
-        Person.objects.all().delete()
-        self.people = []
-        for _ in range(count):
-            name = self.faker.unique.name()
-            description = self.faker.sentence if with_description else None
-            self.people.append(Person.objects.create(name=name, description=description))
-        assert Person.objects.count() == count
-
-
-class TestApiPeopleRead(GeneratePeopleTestCase):
+class TestApiPeopleRead(GeneratePeopleMixin, TestCase):
     def setUp(self) -> None:
         return super().setUp()
 
@@ -34,9 +23,17 @@ class TestApiPeopleRead(GeneratePeopleTestCase):
         assert data["count"] == 0
         assert len(data["items"]) == 0
 
+    def test_get_person_does_not_exist(self):
+        Person.objects.all().delete()
+        resp = self.client.get(
+            "/api/person/1/",
+        )
+
+        assert resp.status_code == HTTPStatus.NOT_FOUND
+
     def test_list_people(self):
         count = 5
-        self.generate_people(count)
+        self.generate_people_objects(count)
 
         resp = self.client.get(
             "/api/person/",
@@ -53,7 +50,7 @@ class TestApiPeopleRead(GeneratePeopleTestCase):
         count = 5
         limit = 3
         offset = 0
-        self.generate_people(count)
+        self.generate_people_objects(count)
 
         resp = self.client.get(
             f"/api/person/?limit={limit}&offset={offset}",
@@ -67,20 +64,11 @@ class TestApiPeopleRead(GeneratePeopleTestCase):
         assert len(data["items"]) == limit
 
 
-class TestApiPeopleCreate(FakerTestCase):
-    def create_single_person(self, name: str, description: str | None = None) -> HttpResponse:
-        data = {"name": name}
-        if description is not None:
-            data.update({"description": description})
-        return self.client.post(
-            "/api/person/",
-            content_type="application/json",
-            data=data,
-        )
+class TestApiPeopleCreate(GeneratePeopleMixin, TestCase):
 
     def test_create_person(self):
         person_name = self.faker.name()
-        resp = self.create_single_person(person_name)
+        resp = self.create_single_person_via_api(person_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -93,7 +81,7 @@ class TestApiPeopleCreate(FakerTestCase):
     def test_create_person_with_description(self):
         person_name = self.faker.name()
         description = self.faker.sentence()
-        resp = self.create_single_person(person_name, description)
+        resp = self.create_single_person_via_api(person_name, description)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -110,7 +98,7 @@ class TestApiPeopleCreate(FakerTestCase):
 
         for _ in range(count):
             person_name = self.faker.name()
-            resp = self.create_single_person(person_name)
+            resp = self.create_single_person_via_api(person_name)
 
             assert resp.status_code == HTTPStatus.CREATED
             data = resp.json()
@@ -123,9 +111,9 @@ class TestApiPeopleCreate(FakerTestCase):
         assert Person.objects.count() == count
 
 
-class TestApiPeopleUpdate(GeneratePeopleTestCase):
+class TestApiPeopleUpdate(GeneratePeopleMixin, TestCase):
     def test_update_person(self):
-        self.generate_people(1)
+        self.generate_people_objects(1)
 
         instance: Person = self.people[0]
 
@@ -146,9 +134,9 @@ class TestApiPeopleUpdate(GeneratePeopleTestCase):
         assert Person.objects.get(id=created_id).name == new_name
 
 
-class TestApiPeopleDelete(GeneratePeopleTestCase):
+class TestApiPeopleDelete(GeneratePeopleMixin, TestCase):
     def test_delete_person(self):
-        self.generate_people(1)
+        self.generate_people_objects(1)
 
         instance: Person = self.people[0]
 

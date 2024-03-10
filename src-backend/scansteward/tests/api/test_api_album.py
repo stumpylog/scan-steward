@@ -7,7 +7,7 @@ from django.test.client import Client
 
 from scansteward.models import Album
 from scansteward.models import Image
-from scansteward.tests.api.utils import FakerTestCase
+from scansteward.tests.api.utils import FakerMixin
 
 
 def create_single_album(client: Client, name: str, description: str | None = None) -> HttpResponse:
@@ -21,7 +21,7 @@ def create_single_album(client: Client, name: str, description: str | None = Non
     )
 
 
-class TestApiAlbumRead(FakerTestCase, TestCase):
+class TestApiAlbumRead(FakerMixin, TestCase):
     def test_read_no_albums(self):
         Album.objects.all().delete()
         resp = self.client.get(
@@ -63,7 +63,7 @@ class TestApiAlbumRead(FakerTestCase, TestCase):
         assert resp.json()["name"] == instance.name
 
 
-class TestApiAlbumCreate(FakerTestCase, TestCase):
+class TestApiAlbumCreate(FakerMixin, TestCase):
 
     def test_create_album(self):
         album_name = self.faker.unique.name()
@@ -92,7 +92,7 @@ class TestApiAlbumCreate(FakerTestCase, TestCase):
         assert Album.objects.get(id=data["id"]).images.count() == 0
 
 
-class TestApiAlbumUpdate(FakerTestCase, TestCase):
+class TestApiAlbumUpdate(FakerMixin, TestCase):
 
     def test_update_album(self):
         album_name = self.faker.unique.name()
@@ -151,7 +151,7 @@ class TestApiAlbumUpdate(FakerTestCase, TestCase):
         assert Album.objects.get(id=album_id).description == desc
 
 
-class TestApiAlbumDelete(FakerTestCase, TestCase):
+class TestApiAlbumDelete(FakerMixin, TestCase):
     def test_delete_album(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
@@ -172,7 +172,7 @@ class TestApiAlbumDelete(FakerTestCase, TestCase):
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
-class TestApiAlbumImages(FakerTestCase, TestCase):
+class TestApiAlbumImages(FakerMixin, TestCase):
     def test_add_single_image(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)

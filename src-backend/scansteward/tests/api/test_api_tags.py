@@ -1,18 +1,20 @@
 from http import HTTPStatus
 
+from django.test import TestCase
+
 from scansteward.models import Tag
-from scansteward.tests.api.utils import FakerTestCase
-from scansteward.tests.api.utils import GenerateTagsTestCase
+from scansteward.tests.api.utils import FakerMixin
+from scansteward.tests.api.utils import GenerateTagsMixin
 
 
-class TestApiTagRead(GenerateTagsTestCase):
+class TestApiTagRead(GenerateTagsMixin, TestCase):
     def test_get_single_tag_not_found(self):
         resp = self.client.get("/api/tag/1")
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
     def test_get_single_tag(self):
-        self.generate_root_tags(1)
+        self.generate_root_tag_objects(1)
         instance: Tag = self.roots[0]
 
         resp = self.client.get(f"/api/tag/{instance.pk}")
@@ -22,7 +24,7 @@ class TestApiTagRead(GenerateTagsTestCase):
 
     def test_list_tags(self):
         count = 10
-        self.generate_root_tags(count)
+        self.generate_root_tag_objects(count)
 
         resp = self.client.get("/api/tag/")
 
@@ -33,7 +35,7 @@ class TestApiTagRead(GenerateTagsTestCase):
     def test_tag_paginate(self):
         count = 100
         limit = 5
-        self.generate_root_tags(count)
+        self.generate_root_tag_objects(count)
 
         resp = self.client.get(f"/api/tag/?limit={limit}")
 
@@ -44,12 +46,12 @@ class TestApiTagRead(GenerateTagsTestCase):
     def test_tag_tree(self):
         root_count = 3
         child_count = 2
-        self.generate_root_tags(root_count)
+        self.generate_root_tag_objects(root_count)
         for root in self.roots:
-            self.generate_child_tags(child_count, root.pk)
+            self.generate_child_tag_object(child_count, root.pk)
 
         single_child = self.children[0]
-        self.generate_child_tags(1, single_child.pk)
+        self.generate_child_tag_object(1, single_child.pk)
 
         resp = self.client.get("/api/tag/tree/")
         assert resp.status_code == HTTPStatus.OK
@@ -65,7 +67,7 @@ class TestApiTagRead(GenerateTagsTestCase):
                     assert len(child["children"]) == 1
 
 
-class TestApiTagCreate(FakerTestCase):
+class TestApiTagCreate(FakerMixin, TestCase):
 
     def test_create_tag_no_parent(self):
         tag_name = self.faker.country()
@@ -124,9 +126,9 @@ class TestApiTagCreate(FakerTestCase):
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
 
-class TestApiTagUpdate(GenerateTagsTestCase):
+class TestApiTagUpdate(GenerateTagsMixin, TestCase):
     def test_update_tag_name(self):
-        self.generate_root_tags(1)
+        self.generate_root_tag_objects(1)
 
         instance: Tag = self.roots[0]
 
@@ -143,11 +145,11 @@ class TestApiTagUpdate(GenerateTagsTestCase):
         assert instance.name == new_name
 
     def test_update_tag_parent(self):
-        self.generate_root_tags(2)
+        self.generate_root_tag_objects(2)
         root_1: Tag = self.roots[0]
         root_2: Tag = self.roots[1]
-        self.generate_child_tags(1, root_1.pk)
-        self.generate_child_tags(1, root_2.pk)
+        self.generate_child_tag_object(1, root_1.pk)
+        self.generate_child_tag_object(1, root_2.pk)
         child_1: Tag = self.children[0]
         child_2: Tag = self.children[1]
 
@@ -166,7 +168,7 @@ class TestApiTagUpdate(GenerateTagsTestCase):
         assert child_1.parent.pk == child_2.pk
 
     def test_update_tag_add_description(self):
-        self.generate_root_tags(1)
+        self.generate_root_tag_objects(1)
         root: Tag = self.roots[0]
 
         assert root.description is None
@@ -182,9 +184,9 @@ class TestApiTagUpdate(GenerateTagsTestCase):
         assert root.description is not None
 
 
-class TestApiTagDelete(GenerateTagsTestCase):
+class TestApiTagDelete(GenerateTagsMixin, TestCase):
     def test_delete_single_tag(self):
-        self.generate_root_tags(1)
+        self.generate_root_tag_objects(1)
         root: Tag = self.roots[0]
         resp = self.client.delete(
             f"/api/tag/{root.pk}",

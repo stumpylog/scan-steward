@@ -1,3 +1,4 @@
+import tempfile
 from collections.abc import Generator
 from pathlib import Path
 
@@ -25,7 +26,6 @@ def create_image_object(faker: Faker):
 
 @pytest.fixture(scope="function")  # noqa: PT003
 def temporary_directory() -> Generator[Path, None, None]:
-    import tempfile
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield Path(tmp_dir).resolve()
