@@ -343,5 +343,100 @@ class TestApiAlbumImages(GenerateImagesMixin, TestCase):
         } == resp.json()
 
 
-class TestApiAlbumSorting(TestCase):
-    pass
+class TestApiAlbumSorting(GenerateImagesMixin, TestCase):
+    def test_update_sorting_reversed(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+        for img in self.images:
+            resp = self.client.patch(
+                f"/api/album/{album_id}/add/",
+                content_type="application/json",
+                data={"image_id": img.pk},
+            )
+            assert resp.status_code == HTTPStatus.OK
+
+        resp = self.client.get(f"/api/album/{album_id}/")
+        assert resp.status_code == HTTPStatus.OK
+        assert (
+            resp.json()
+            == {
+                "name": album_name,
+                "description": None,
+                "id": album_id,
+                "image_ids": [x.pk for x in self.images],
+            }
+            == resp.json()
+        )
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/sort/",
+            content_type="application/json",
+            data={"sorting": [x.pk for x in reversed(self.images)]},
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+        assert (
+            resp.json()
+            == {
+                "name": album_name,
+                "description": None,
+                "id": album_id,
+                "image_ids": [x.pk for x in reversed(self.images)],
+            }
+            == resp.json()
+        )
+
+    def test_custom_sorting(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+        for img in self.images:
+            resp = self.client.patch(
+                f"/api/album/{album_id}/add/",
+                content_type="application/json",
+                data={"image_id": img.pk},
+            )
+            assert resp.status_code == HTTPStatus.OK
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/sort/",
+            content_type="application/json",
+            data={
+                "sorting": [
+                    self.images[1].pk,
+                    self.images[0].pk,
+                    self.images[2].pk,
+                    self.images[4].pk,
+                    self.images[3].pk,
+                ],
+            },
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+        assert (
+            resp.json()
+            == {
+                "name": album_name,
+                "description": None,
+                "id": album_id,
+                "image_ids": [
+                    self.images[1].pk,
+                    self.images[0].pk,
+                    self.images[2].pk,
+                    self.images[4].pk,
+                    self.images[3].pk,
+                ],
+            }
+            == resp.json()
+        )

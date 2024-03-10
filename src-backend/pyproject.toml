@@ -93,7 +93,7 @@ ban-relative-imports = "all"
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["scansteward/tests"]
-addopts = "--pythonwarnings=all --cov --cov-report=html --cov-report=json --cov-report=term"
+addopts = "--pythonwarnings=all --cov --cov-report=html --cov-report=json --cov-report=term -n auto --maxprocesses=8"
 asyncio_mode = "auto"
 DJANGO_SETTINGS_MODULE = "scansteward.settings"
 

@@ -15,7 +15,7 @@ class OrjsonParser(Parser):
     def parse_querydict(self, data: MultiValueDict, list_fields: list[str], _: HttpRequest) -> DictStrAny:
         result: DictStrAny = {}
         for key in data:
-            if key in list_fields:
+            if key in list_fields:  # pragma: no cover
                 result[key] = data.getlist(key)
             else:
                 result[key] = data[key]
