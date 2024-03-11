@@ -21,7 +21,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 THUMBNAIL_DIR = MEDIA_ROOT / "thumbnails"
 FULL_SIZE_DIR = MEDIA_ROOT / "fullsize"
 
-LOGGING_DIR = DATA_DIR / "log"
+LOGGING_DIR = DATA_DIR / "logs"
 
 DATA_DIR.mkdir(exist_ok=True, parents=True)
 MEDIA_ROOT.mkdir(exist_ok=True, parents=True)

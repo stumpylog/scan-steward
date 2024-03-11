@@ -6,6 +6,7 @@ from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
+from scansteward.common.constants import WEBP_CONTENT_TYPE
 from scansteward.images.schemas import ImageDetailsRead
 from scansteward.models import Image
 
@@ -25,7 +26,7 @@ router = Router(tags=["images"])
 def get_image_thumbnail(request: HttpRequest, image_id: int):
     img: Image = get_object_or_404(Image, id=image_id)
 
-    return FileResponse(img.thumbnail_path.open(mode="rb"), content_type="image/webp")
+    return FileResponse(img.thumbnail_path.open(mode="rb"), content_type=WEBP_CONTENT_TYPE)
 
 
 @router.get(

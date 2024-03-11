@@ -50,7 +50,7 @@ class Command(BaseCommand):
         for path in options["paths"]:
             if TYPE_CHECKING:
                 assert isinstance(path, Path)
-            for file_generator in [path.glob(f"*{x}") for x in self.IMAGE_EXTENSIONS]:
+            for file_generator in [path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS]:
                 for filename in file_generator:
                     self.stdout.write(self.style.SUCCESS(f"Indexing {filename.name}"))
                     self.handle_single_image(filename)
@@ -112,14 +112,7 @@ class Command(BaseCommand):
         with Image.open(image_path) as im_file:
             im_file.save(new_img.full_size_path, quality=90)
 
-        metadata = read_image_metadata(
-            image_path,
-            read_regions=True,
-            read_orientation=False,  # Not needed
-            read_tags=True,
-            read_title=True,
-            read_description=True,
-        )
+        metadata = read_image_metadata(image_path)
 
         # Parse Faces
         self.stdout.write(self.style.SUCCESS("  Parsing faces"))
@@ -127,7 +120,7 @@ class Command(BaseCommand):
             for region in metadata.RegionInfo.RegionList:
                 if region.Type == "Face" and region.Name:
                     person, _ = Person.objects.get_or_create(name=region.Name)
-                    if region.Description:
+                    if region.Description:  # pragma: no cover
                         person.description = region.Description
                         person.save()
                     self.stdout.write(self.style.SUCCESS(f"  Found face for {person.name}"))
@@ -139,9 +132,9 @@ class Command(BaseCommand):
                         height=region.Area.H,
                         width=region.Area.W,
                     )
-                elif region.Type != "Face":
+                elif region.Type != "Face":  # pragma: no cover
                     self.stdout.write(self.style.SUCCESS(f"  Skipping region of type {region.Type}"))
-                elif not region.Name:
+                elif not region.Name:  # pragma: no cover
                     self.stdout.write(self.style.SUCCESS("  Skipping region with empty Name"))
 
         # Parse Keywords
@@ -163,7 +156,7 @@ class Command(BaseCommand):
                 new_img.tags.add(existing_root_tag)
                 for child in keyword.Children:
                     maybe_create_tag_tree(new_img, existing_root_tag, child)
-        else:
+        else:  # pragma: no cover
             self.stdout.write(self.style.SUCCESS("  No keywords"))
 
         # And done

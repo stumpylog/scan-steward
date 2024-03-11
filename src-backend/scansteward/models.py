@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
@@ -64,7 +67,7 @@ class Tag(TimestampMixin, models.Model):
     )
 
     class Meta:
-        constraints = [
+        constraints: Sequence = [
             models.UniqueConstraint(fields=["name", "parent"], name="name-to-parent"),
         ]
 
