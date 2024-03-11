@@ -142,7 +142,11 @@ class Command(BaseCommand):
         if metadata.KeywordInfo:
 
             def maybe_create_tag_tree(image_instance: ImageModel, parent: Tag, tree_node: KeywordStruct):
-                existing_node, _ = Tag.objects.get_or_create(name=tree_node.Keyword, parent=parent)
+                existing_node, _ = Tag.objects.get_or_create(
+                    name=tree_node.Keyword,
+                    parent=parent,
+                    applied=False if tree_node.Applied is None else tree_node.Applied,
+                )
                 image_instance.tags.add(existing_node)
                 for node_child in tree_node.Children:
                     maybe_create_tag_tree(image_instance, existing_node, node_child)
@@ -152,7 +156,11 @@ class Command(BaseCommand):
                 # But that is already in the face regions
                 if keyword.Keyword == "People":
                     continue
-                existing_root_tag, _ = Tag.objects.get_or_create(name=keyword.Keyword, parent=None)
+                existing_root_tag, _ = Tag.objects.get_or_create(
+                    name=keyword.Keyword,
+                    parent=None,
+                    applied=False if keyword.Applied is None else keyword.Applied,
+                )
                 new_img.tags.add(existing_root_tag)
                 for child in keyword.Children:
                     maybe_create_tag_tree(new_img, existing_root_tag, child)

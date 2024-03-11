@@ -13,7 +13,7 @@ class TagCreate(TreeLikeSimpleNamedCreate):
 
 
 class TagRead(TreeLikeSimpleNamedRead):
-    pass
+    applied: bool
 
 
 class TagTree(TreeLikeSimpleNamedTree):

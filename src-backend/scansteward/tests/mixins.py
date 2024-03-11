@@ -92,6 +92,13 @@ class FileSystemAssertsMixin:
 
         assert hash1 == hash2, "File SHA256 mismatch"
 
+    def assertFileContents(self, file: PathLike | str, content: bytes | bytearray):  # noqa: N802
+        file = Path(file)
+        self.assertIsFile(file)
+
+        actual_content = file.read_bytes()
+        assert actual_content == content
+
 
 class SampleDirMixin:
     SAMPLE_DIR = Path(__file__).parent / "samples"

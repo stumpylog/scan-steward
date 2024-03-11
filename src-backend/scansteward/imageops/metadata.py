@@ -28,6 +28,7 @@ def process_separated_list(parent: KeywordStruct, remaining: list[str]):
     Given a list of strings, build a tree structure from them, rooted at the given parent
     """
     if not remaining:
+        # TODO: Should this set Applied?  Leaf nodes are assumed to be applied
         return
     new_parent = KeywordStruct(Keyword=remaining[0])
 

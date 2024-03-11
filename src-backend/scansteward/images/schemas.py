@@ -9,7 +9,19 @@ class Album(SimpleNamedWithIdSchema):
     pass
 
 
+class BoundingBox(Schema):
+    center_x: float
+    center_y: float
+    height: float
+    width: float
+
+
+class PersonWithBox(Schema):
+    person: PersonRead
+    box: BoundingBox
+
+
 class ImageDetailsRead(Schema):
-    people: list[PersonRead] | None = None
+    face_boxes: list[PersonWithBox] | None = None
     tags: list[TagRead] | None = None
     albums: list[Album] | None = None

@@ -19,6 +19,9 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
     def test_call_command_single_file(self):
         tmp_dir = self.get_new_temporary_dir()
 
+        assert tmp_dir.exists()
+        assert tmp_dir.is_dir()
+
         result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
 
         call_command("index", str(tmp_dir))

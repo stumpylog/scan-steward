@@ -11,6 +11,10 @@ from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from scansteward.images.schemas import BoundingBox
+from scansteward.images.schemas import PersonWithBox
+from scansteward.people.schemas import PersonRead
+
 
 class TimestampMixin(models.Model):
     """
@@ -58,6 +62,8 @@ class Tag(TimestampMixin, models.Model):
         default=None,
         db_index=True,
     )
+
+    applied = models.BooleanField(default=False)
 
     parent = models.ForeignKey(
         "self",
@@ -223,3 +229,23 @@ class Image(TimestampMixin, models.Model):
         if TYPE_CHECKING:
             assert isinstance(settings.FULL_SIZE_DIR, Path)
         return (settings.FULL_SIZE_DIR / f"{self.pk:010}").with_suffix(".webp").resolve()
+
+    @property
+    def face_boxes(self) -> list[PersonWithBox]:
+        boxes = []
+        for person in self.people.all():
+            bounding_box = FaceInImage.objects.filter(image=self, person=person).first()
+            if TYPE_CHECKING:
+                assert bounding_box is not None
+            boxes.append(
+                PersonWithBox(
+                    person=PersonRead.from_orm(person),
+                    box=BoundingBox(
+                        center_x=bounding_box.center_x,
+                        center_y=bounding_box.center_y,
+                        height=bounding_box.height,
+                        width=bounding_box.width,
+                    ),
+                ),
+            )
+        return boxes
