@@ -98,10 +98,10 @@ class AbstractBoxInImage(TimestampMixin, models.Model):
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
-        help_text="Person is in this Image at the given location",
+        help_text="A Thing is in this Image at the given location",
     )
 
-    # bounding box around face
+    # bounding box around a region
     # These are stored as relative values, with 1.0 being the most
     center_x = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],

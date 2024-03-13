@@ -4,9 +4,14 @@ import pytest
 from django.core.management import call_command
 from django.test import TestCase
 
-from scansteward.models import FaceInImage
+from scansteward.imageops.metadata import read_image_metadata
+from scansteward.imageops.metadata import write_image_metadata
+from scansteward.imageops.models import RegionStruct
+from scansteward.imageops.models import XmpAreaStruct
 from scansteward.models import Image
 from scansteward.models import Person
+from scansteward.models import PersonInImage
+from scansteward.models import Pet
 from scansteward.models import Tag
 from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import SampleDirMixin
@@ -18,9 +23,6 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
 
     def test_call_command_single_file(self):
         tmp_dir = self.get_new_temporary_dir()
-
-        assert tmp_dir.exists()
-        assert tmp_dir.is_dir()
 
         result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
 
@@ -51,7 +53,7 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         assert person.description is None
 
         # Check the region box was read
-        face_box = FaceInImage.objects.filter(person=person).first()
+        face_box = PersonInImage.objects.filter(person=person).first()
         assert face_box is not None
         assert face_box.center_x == pytest.approx(0.317383)
         assert face_box.center_y == pytest.approx(0.303075)
@@ -115,8 +117,6 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         # 4 images expected
         assert Image.objects.count() == len(self.ALL_SAMPLE_IMAGES)
         # No duplicated people
-        for person in Person.objects.all():
-            print(person.name)
         assert Person.objects.count() == 4
         assert Person.objects.filter(name="Barack Obama").exists()
         assert Person.objects.filter(name="Joseph R Biden").exists()
@@ -126,3 +126,61 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         assert Person.objects.filter(name="Barack Obama").first().images.count() == 4
         # Only in 1 image
         assert Person.objects.filter(name="Hillary Clinton").first().images.count() == 1
+
+    def test_index_command_with_region_description(self):
+        tmp_dir = self.get_new_temporary_dir()
+
+        result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
+
+        metdata = read_image_metadata(result)
+
+        metdata.RegionInfo.RegionList[0].Description = "This is a description of a region"
+
+        write_image_metadata(metdata)
+
+        call_command("index", str(tmp_dir))
+
+        assert Image.objects.count() == 1
+        img = Image.objects.first()
+        assert img is not None
+
+        # Check the person was read correctly
+        assert img.people.count() == 1
+        assert Image.objects.count() == 1
+        person = img.people.first()
+        assert person is not None
+        assert person.name == "Barack Obama"
+        assert person.description == "This is a description of a region"
+
+    def test_index_command_with_pets(self):
+        tmp_dir = self.get_new_temporary_dir()
+
+        result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
+
+        metdata = read_image_metadata(result)
+
+        metdata.RegionInfo.RegionList.append(
+            RegionStruct(
+                Area=XmpAreaStruct(
+                    H=0.0585652,
+                    W=0.0292969,
+                    X=0.317383,
+                    Y=0.303075,
+                    Unit="normalized",
+                    D=None,
+                ),
+                Name="Some Pet",
+                Type="Pet",
+                Description="This was a pet",
+            ),
+        )
+
+        write_image_metadata(metdata)
+
+        call_command("index", str(tmp_dir))
+
+        assert Pet.objects.count() == 1
+        instance = Pet.objects.filter(name="Some Pet").first()
+        assert instance is not None
+        assert instance.name == "Some Pet"
+        assert instance.description == "This was a pet"

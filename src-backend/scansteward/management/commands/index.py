@@ -10,9 +10,11 @@ from PIL import Image
 
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.models import KeywordStruct
-from scansteward.models import FaceInImage
 from scansteward.models import Image as ImageModel
 from scansteward.models import Person
+from scansteward.models import PersonInImage
+from scansteward.models import Pet
+from scansteward.models import PetInImage
 from scansteward.models import Tag
 
 
@@ -120,11 +122,11 @@ class Command(BaseCommand):
             for region in metadata.RegionInfo.RegionList:
                 if region.Type == "Face" and region.Name:
                     person, _ = Person.objects.get_or_create(name=region.Name)
-                    if region.Description:  # pragma: no cover
+                    if region.Description:
                         person.description = region.Description
                         person.save()
-                    self.stdout.write(self.style.SUCCESS(f"  Found face for {person.name}"))
-                    _ = FaceInImage.objects.create(
+                    self.stdout.write(self.style.SUCCESS(f"  Found face for person {person.name}"))
+                    _ = PersonInImage.objects.create(
                         person=person,
                         image=new_img,
                         center_x=region.Area.X,
@@ -132,10 +134,24 @@ class Command(BaseCommand):
                         height=region.Area.H,
                         width=region.Area.W,
                     )
-                elif region.Type != "Face":  # pragma: no cover
-                    self.stdout.write(self.style.SUCCESS(f"  Skipping region of type {region.Type}"))
+                elif region.Type == "Pet" and region.Name:
+                    pet, _ = Pet.objects.get_or_create(name=region.Name)
+                    if region.Description:
+                        pet.description = region.Description
+                        pet.save()
+                    self.stdout.write(self.style.SUCCESS(f"  Found box for pet {pet.name}"))
+                    _ = PetInImage.objects.create(
+                        pet=pet,
+                        image=new_img,
+                        center_x=region.Area.X,
+                        center_y=region.Area.Y,
+                        height=region.Area.H,
+                        width=region.Area.W,
+                    )
                 elif not region.Name:  # pragma: no cover
                     self.stdout.write(self.style.SUCCESS("  Skipping region with empty Name"))
+                elif region.Type not in {"Face", "Pet"}:  # pragma: no cover
+                    self.stdout.write(self.style.SUCCESS(f"  Skipping region of type {region.Type}"))
 
         # Parse Keywords
         self.stdout.write(self.style.SUCCESS("  Parsing keywords"))
