@@ -1,13 +1,20 @@
 import logging
+import tempfile
+import zipfile
 from http import HTTPStatus
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 from django.db import transaction
 from django.db.models import Max
+from django.http import FileResponse
 from django.http import Http404
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
+from django.utils.text import slugify
 from ninja import Router
+from ninja.errors import HttpError
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
@@ -201,3 +208,43 @@ async def delete_album(request: HttpRequest, album_id: int):
     instance: Album = await aget_object_or_404(Album, id=album_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None
+
+
+@router.get(
+    "/{album_id}/download/",
+    response=AlbumWithImagesReadSchema,
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+            HTTPStatus.BAD_REQUEST: {
+                "description": "No images in album",
+            },
+        },
+    },
+)
+def download_album(request: HttpRequest, album_id: int, originals: bool = False):  # noqa: FBT001, FBT002
+    album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
+
+    if album_instance.images.count() == 0:
+        raise HttpError(
+            HTTPStatus.BAD_REQUEST,
+            f"Album {album_instance.name} has no images",
+        )
+
+    zip_name = slugify(album_instance.name)
+    zip_path = Path(tempfile.NamedTemporaryFile(prefix=f"{zip_name}", suffix=".zip").name)
+    with zipfile.ZipFile(zip_path, mode="w") as output_zip:
+        for index, image in enumerate(album_instance.images.order_by("imageinalbum__sort_order").all()):
+            if TYPE_CHECKING:
+                assert isinstance(image, Image)
+            if originals:
+                output_zip.write(image.original_path, arcname=f"{index + 1:010}{image.original_path.suffix}")
+            else:
+                output_zip.write(
+                    image.full_size_path,
+                    arcname=f"{index + 1:010}{image.full_size_path.suffix}",
+                )
+
+    return FileResponse(zip_path.open(mode="rb"), content_type="application/zip", as_attachment=True)

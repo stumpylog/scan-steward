@@ -1,5 +1,9 @@
+import shutil
+import zipfile
 from http import HTTPStatus
 
+import pytest
+from django.core.management import call_command
 from django.http import HttpResponse
 from django.test import TestCase
 from django.test.client import Client
@@ -8,6 +12,8 @@ from scansteward.models import Album
 from scansteward.models import Image
 from scansteward.tests.api.utils import FakerMixin
 from scansteward.tests.api.utils import GenerateImagesMixin
+from scansteward.tests.mixins import SampleDirMixin
+from scansteward.tests.mixins import TemporaryDirectoryMixin
 
 
 def create_single_album(client: Client, name: str, description: str | None = None) -> HttpResponse:
@@ -440,3 +446,60 @@ class TestApiAlbumSorting(GenerateImagesMixin, TestCase):
             }
             == resp.json()
         )
+
+
+class TestApiAlbumDownload(SampleDirMixin, TemporaryDirectoryMixin, FakerMixin, TestCase):
+
+    def download_test_common(self, *, use_original_download=False):
+        # Create album with images
+        tmp_dir = self.get_new_temporary_dir()
+
+        for file in self.ALL_SAMPLE_IMAGES:
+            shutil.copy(file, tmp_dir / file.name)
+
+        call_command("index", str(tmp_dir))
+
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        for image in Image.objects.all():
+            resp = self.client.patch(
+                f"/api/album/{album_id}/add/",
+                content_type="application/json",
+                data={"image_id": image.pk},
+            )
+            assert resp.status_code == HTTPStatus.OK
+
+        # Download album
+        if not use_original_download:
+            resp = self.client.get(f"/api/album/{album_id}/download/")
+        else:
+            resp = self.client.get(f"/api/album/{album_id}/download/?originals=True")
+        assert resp.status_code == HTTPStatus.OK
+
+        zipped_album = tmp_dir / "test.zip"
+        zipped_album.write_bytes(b"".join(resp.streaming_content))
+
+        with zipfile.ZipFile(zipped_album) as downloaded_zip:
+            info = downloaded_zip.infolist()
+            assert len(info) == 4
+            for index, image in enumerate(
+                Album.objects.get(id=album_id).images.order_by("imageinalbum__sort_order").all(),
+            ):
+                if not use_original_download:
+                    arcname = f"{index + 1:010}{image.full_size_path.suffix}"
+                else:
+                    arcname = f"{index + 1:010}{image.original_path.suffix}"
+                try:
+                    downloaded_zip.getinfo(arcname)
+                except KeyError:
+                    pytest.fail(f"{arcname} not present in zipfile")
+
+    def test_album_download_full_size(self):
+        self.download_test_common(use_original_download=False)
+
+    def test_album_download_original(self):
+        self.download_test_common(use_original_download=True)
