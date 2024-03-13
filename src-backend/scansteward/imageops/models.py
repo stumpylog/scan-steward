@@ -95,7 +95,7 @@ class KeywordInfoModel(BaseModel):
 class ImageMetadata(BaseModel):
     SourceFile: FilePath
     Title: str | None = None
-    Description: str | None = None
+    Description: str | None = Field(default=None, serialization_alias="MWG:Description")
     RegionInfo: RegionInfoStruct | None = None
     Orientation: RotationEnum | None = None
     LastKeywordXMP: list[str] | None = None

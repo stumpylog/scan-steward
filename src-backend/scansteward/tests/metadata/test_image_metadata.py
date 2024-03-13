@@ -107,11 +107,7 @@ class TestReadImageMetadata(
             ],
         )
 
-        shutil.copy(new_sample_one, self.SAMPLE_ONE.parent / "before.jpeg")
-
         write_image_metadata(new_metadata, clear_existing_metadata=True)
-
-        shutil.copy(new_sample_one, self.SAMPLE_ONE.parent / "after.jpeg")
 
         changed_metadata = read_image_metadata(new_sample_one)
 
@@ -146,10 +142,6 @@ class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):
 
         new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
-        clear_existing_metadata(new_sample_one)
-
-        changed_metadata = read_image_metadata(new_sample_one)
-
         # Everything should be cleared
         expected = self.sample_one_metadata(new_sample_one).model_copy(deep=True)
         expected.RegionInfo = None
@@ -159,6 +151,10 @@ class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):
         expected.HierarchicalSubject = None
         expected.KeywordInfo = None
         expected.Description = None
+
+        clear_existing_metadata(new_sample_one)
+
+        changed_metadata = read_image_metadata(new_sample_one)
 
         self.verify_expected_vs_actual_metadata(expected, changed_metadata)
 

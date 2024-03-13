@@ -155,12 +155,9 @@ class SampleMetadataMixin:
             SourceFile=sample_one_jpeg,
             Title=None,
             Description=(
-                "President Barack Obama throws a ball for Bo, the family dog, in the Rose Garden"
-                " of the White House, Sept. 9, 2010.  (Official White House Photo by Pete Souza)\n\nThis official White"
-                " House photograph is being made available only for publication by news organizations and/or for personal"
-                " use printing by the subject(s) of the photograph. The photograph may not be manipulated in any way and"
-                " may not be used in commercial or political materials, advertisements, emails, products, promotions that"
-                " in any way suggests approval or endorsement of the President, the First Family, or the White House. "
+                "President Barack Obama throws a ball for Bo, the family dog,"
+                " in the Rose Garden of the White House, Sept. 9, 2010. "
+                " (Official White House Photo by Pete Souza)"
             ),
             RegionInfo=RegionInfoStruct(
                 AppliedToDimensions=DimensionsStruct(H=683.0, W=1024.0, Unit="pixel"),

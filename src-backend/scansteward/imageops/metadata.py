@@ -169,6 +169,8 @@ def bulk_read_image_metadata(
 
     cmd = [
         EXIF_TOOL_EXE,
+        "-use",
+        "MWG",
         "-struct",
         "-json",
         "-n",  # Disable print conversion, use machine readable
@@ -176,13 +178,13 @@ def bulk_read_image_metadata(
         "-RegionInfo",
         "-Orientation",
         # Tags
-        "-HierarchicalKeywords",
-        "-LastKeywordXMP",
-        "-TagsList",
-        "-HierarchicalSubject",
-        "-XMP:CatalogSets",
-        "-Title",
-        "-Description",
+        "-MWG:HierarchicalKeywords",
+        "-XMP-microsoft:LastKeywordXMP",
+        "-XMP-digiKam:TagsList",
+        "-XMP-lr:HierarchicalSubject",
+        "-XMP-mediapro:CatalogSets",
+        "-MWG:Title",
+        "-MWG:Description",
     ]
 
     # Add the actual images
@@ -248,6 +250,8 @@ def bulk_write_image_metadata(
         json_path.write_bytes(json.dumps(data))
         cmd = [
             EXIF_TOOL_EXE,
+            "-use",
+            "MWG",
             "-struct",
             "-n",  # Disable print conversion, use machine readable
             "-overwrite_original",
@@ -286,14 +290,15 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
         "-Orientation=",
         # Tags
         "-KeywordInfo=",
-        "-Categories=",
-        "-HierarchicalKeywords=",
-        "-LastKeywordXMP=",
-        "-TagsList=",
-        "-HierarchicalSubject=",
-        "-CatalogSets=",
-        "-Title=",
-        "-Description=",
+        "-XMP-acdsee=Categories=",
+        "-MWG:HierarchicalKeywords=",
+        "-XMP-microsoft:LastKeywordXMP=",
+        "-XMP-digiKam:TagsList=",
+        "-XMP-lr:HierarchicalSubject=",
+        "-XMP-mediapro:CatalogSets=",
+        "-MWG:Title=",
+        "-MWG:Description=",
+        "-XMP-dc:Description=",
     ]
     for image in images:
         cmd.append(str(image.resolve()))  # noqa: PERF401
