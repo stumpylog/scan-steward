@@ -6,6 +6,7 @@ from faker import Faker
 
 from scansteward.models import Image
 from scansteward.models import Person
+from scansteward.models import Pet
 from scansteward.models import Tag
 
 if TYPE_CHECKING:
@@ -79,6 +80,39 @@ class GeneratePeopleMixin(FakerMixin):
             description = self.faker.sentence if with_description else None
             self.people.append(Person.objects.create(name=name, description=description))
         assert Person.objects.count() == count
+
+
+class GeneratePetsMixin(FakerMixin):
+    def setUp(self) -> None:
+        self.pets: list[Pet] = []
+        return super().setUp()
+
+    def create_single_pet_via_api(self, name: str, description: str | None = None) -> HttpResponse:
+        """
+        Creates a Person via the API
+        """
+        data = {"name": name}
+        if description is not None:
+            data.update({"description": description})
+        if TYPE_CHECKING:
+            assert hasattr(self, "client")
+            assert isinstance(self.client, Client)
+        return self.client.post(
+            "/api/pet/",
+            content_type="application/json",
+            data=data,
+        )
+
+    def generate_pet_objects(self, count: int, *, with_description: bool = False) -> None:
+        """
+        Directly generate Pet objects into the database
+        """
+        Pet.objects.all().delete()
+        for _ in range(count):
+            name = self.faker.unique.name()
+            description = self.faker.sentence if with_description else None
+            self.pets.append(Pet.objects.create(name=name, description=description))
+        assert Pet.objects.count() == count
 
 
 class GenerateImagesMixin(FakerMixin):
