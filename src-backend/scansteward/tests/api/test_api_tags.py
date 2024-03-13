@@ -9,7 +9,7 @@ from scansteward.tests.api.utils import GenerateTagsMixin
 
 class TestApiTagRead(GenerateTagsMixin, TestCase):
     def test_get_single_tag_not_found(self):
-        resp = self.client.get("/api/tag/1")
+        resp = self.client.get("/api/tag/1/")
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
@@ -17,7 +17,7 @@ class TestApiTagRead(GenerateTagsMixin, TestCase):
         self.generate_root_tag_objects(1)
         instance: Tag = self.roots[0]
 
-        resp = self.client.get(f"/api/tag/{instance.pk}")
+        resp = self.client.get(f"/api/tag/{instance.pk}/")
 
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["name"] == instance.name
@@ -135,7 +135,7 @@ class TestApiTagUpdate(GenerateTagsMixin, TestCase):
         new_name = self.faker.unique.country()
 
         resp = self.client.patch(
-            f"/api/tag/{instance.pk}",
+            f"/api/tag/{instance.pk}/",
             content_type="application/json",
             data={"name": new_name},
         )
@@ -157,7 +157,7 @@ class TestApiTagUpdate(GenerateTagsMixin, TestCase):
         assert child_1.parent.pk == root_1.pk
 
         resp = self.client.patch(
-            f"/api/tag/{child_1.pk}",
+            f"/api/tag/{child_1.pk}/",
             content_type="application/json",
             data={"parent_id": child_2.pk},
         )
@@ -174,7 +174,7 @@ class TestApiTagUpdate(GenerateTagsMixin, TestCase):
         assert root.description is None
 
         resp = self.client.patch(
-            f"/api/tag/{root.pk}",
+            f"/api/tag/{root.pk}/",
             content_type="application/json",
             data={"description": self.faker.sentence()},
         )
@@ -189,14 +189,14 @@ class TestApiTagDelete(GenerateTagsMixin, TestCase):
         self.generate_root_tag_objects(1)
         root: Tag = self.roots[0]
         resp = self.client.delete(
-            f"/api/tag/{root.pk}",
+            f"/api/tag/{root.pk}/",
         )
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
 
     def test_delete_single_tag_not_found(self):
         resp = self.client.delete(
-            "/api/tag/1",
+            "/api/tag/1/",
         )
 
         assert resp.status_code == HTTPStatus.NOT_FOUND

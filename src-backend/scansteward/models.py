@@ -13,7 +13,7 @@ from django.db import models
 
 from scansteward.images.schemas import BoundingBox
 from scansteward.images.schemas import PersonWithBox
-from scansteward.people.schemas import PersonRead
+from scansteward.people.schemas import PersonReadSchema
 
 
 class TimestampMixin(models.Model):
@@ -239,7 +239,7 @@ class Image(TimestampMixin, models.Model):
                 assert bounding_box is not None
             boxes.append(
                 PersonWithBox(
-                    person=PersonRead.from_orm(person),
+                    person=PersonReadSchema.from_orm(person),
                     box=BoundingBox(
                         center_x=bounding_box.center_x,
                         center_y=bounding_box.center_y,

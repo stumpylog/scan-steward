@@ -41,7 +41,7 @@ def get_tags(
 
 
 @router.get(
-    "/{tag_id}",
+    "/{tag_id}/",
     response=TagRead,
     openapi_extra={
         "responses": {
@@ -89,7 +89,7 @@ async def create_tag(request: HttpRequest, data: TagCreate):
 
 
 @router.patch(
-    "/{tag_id}",
+    "/{tag_id}/",
     response={HTTPStatus.OK: TagRead},
     openapi_extra={
         "responses": {
@@ -114,7 +114,7 @@ async def update_tag(request: HttpRequest, tag_id: int, data: TagUpdate):
 
 
 @router.delete(
-    "/{tag_id}",
+    "/{tag_id}/",
     response={HTTPStatus.NO_CONTENT: None},
     openapi_extra={
         "responses": {

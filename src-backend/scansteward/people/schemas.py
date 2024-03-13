@@ -1,7 +1,7 @@
 from ninja import Schema
 
 
-class PersonCreate(Schema):
+class PersonCreateSchema(Schema):
     """
     Schema to create a Person
     """
@@ -10,7 +10,7 @@ class PersonCreate(Schema):
     description: str | None = None
 
 
-class PersonRead(PersonCreate):
+class PersonReadSchema(PersonCreateSchema):
     """
     Schema when reading a person
     """
@@ -18,7 +18,7 @@ class PersonRead(PersonCreate):
     id: int
 
 
-class PersonUpdate(Schema):
+class PersonUpdateSchema(Schema):
     """
     Schema to update a person
     """

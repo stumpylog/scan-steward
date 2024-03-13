@@ -24,12 +24,25 @@ class TestApiPeopleRead(GeneratePeopleMixin, TestCase):
         assert len(data["items"]) == 0
 
     def test_get_person_does_not_exist(self):
-        Person.objects.all().delete()
         resp = self.client.get(
             "/api/person/1/",
         )
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
+
+    def test_get_person_does_exist(self):
+        self.generate_people_objects(1)
+        resp = self.client.get(
+            "/api/person/1/",
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+        instance: Person = self.people[0]
+        data = resp.json()
+        assert "id" in data
+        assert data["id"] == instance.pk
+        assert "name" in data
+        assert data["name"] == instance.name
 
     def test_list_people(self):
         count = 5
@@ -110,17 +123,27 @@ class TestApiPeopleCreate(GeneratePeopleMixin, TestCase):
 
         assert Person.objects.count() == count
 
+    def test_create_person_existing_name(self):
+        person_name = self.faker.name()
+        resp = self.create_single_person_via_api(person_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+
+        resp = self.create_single_person_via_api(person_name)
+        assert resp.status_code == HTTPStatus.BAD_REQUEST
+        assert Person.objects.count() == 1
+
 
 class TestApiPeopleUpdate(GeneratePeopleMixin, TestCase):
-    def test_update_person(self):
+    def test_update_person_name(self):
         self.generate_people_objects(1)
 
         instance: Person = self.people[0]
 
         new_name = self.faker.name()
 
-        resp = self.client.put(
-            f"/api/person/{instance.pk}",
+        resp = self.client.patch(
+            f"/api/person/{instance.pk}/",
             content_type="application/json",
             data={"name": new_name},
         )
@@ -133,6 +156,24 @@ class TestApiPeopleUpdate(GeneratePeopleMixin, TestCase):
         assert Person.objects.filter(id=created_id).exists()
         assert Person.objects.get(id=created_id).name == new_name
 
+    def test_update_person_description(self):
+        self.generate_people_objects(1)
+
+        instance: Person = self.people[0]
+
+        new_desc = self.faker.sentence()
+
+        resp = self.client.patch(
+            f"/api/person/{instance.pk}/",
+            content_type="application/json",
+            data={"description": new_desc},
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+        data = resp.json()
+        assert data["name"] == instance.name
+        assert data["description"] == new_desc
+
 
 class TestApiPeopleDelete(GeneratePeopleMixin, TestCase):
     def test_delete_person(self):
@@ -140,6 +181,6 @@ class TestApiPeopleDelete(GeneratePeopleMixin, TestCase):
 
         instance: Person = self.people[0]
 
-        resp = self.client.delete(f"/api/person/{instance.pk}")
+        resp = self.client.delete(f"/api/person/{instance.pk}/")
 
         assert resp.status_code == HTTPStatus.NO_CONTENT

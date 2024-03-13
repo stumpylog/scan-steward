@@ -9,8 +9,9 @@ from scansteward.imageops.errors import NoImageMetadataError
 from scansteward.imageops.errors import NoImagePathsError
 from scansteward.imageops.metadata import bulk_read_image_metadata
 from scansteward.imageops.metadata import bulk_write_image_metadata
+from scansteward.imageops.metadata import clear_existing_metadata
 from scansteward.imageops.metadata import read_image_metadata
-from scansteward.imageops.metadata import write_image_metadata, clear_existing_metadata
+from scansteward.imageops.metadata import write_image_metadata
 from scansteward.imageops.models import DimensionsStruct
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel

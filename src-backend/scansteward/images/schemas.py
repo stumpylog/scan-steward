@@ -1,7 +1,7 @@
 from ninja import Schema
 
 from scansteward.common.schemas import SimpleNamedWithIdSchema
-from scansteward.people.schemas import PersonRead
+from scansteward.people.schemas import PersonReadSchema
 from scansteward.tags.schemas import TagRead
 
 
@@ -17,7 +17,7 @@ class BoundingBox(Schema):
 
 
 class PersonWithBox(Schema):
-    person: PersonRead
+    person: PersonReadSchema
     box: BoundingBox
 
 
