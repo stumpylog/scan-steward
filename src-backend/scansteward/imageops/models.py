@@ -95,7 +95,7 @@ class KeywordInfoModel(BaseModel):
 class ImageMetadata(BaseModel):
     SourceFile: FilePath
     Title: str | None = None
-    Description: str | None = Field(default=None, serialization_alias="MWG:Description")
+    Description: str | None = None
     RegionInfo: RegionInfoStruct | None = None
     Orientation: RotationEnum | None = None
     LastKeywordXMP: list[str] | None = None
@@ -106,4 +106,7 @@ class ImageMetadata(BaseModel):
 
     @field_serializer("SourceFile")
     def serialize_source_file(self, source_file: FilePath, _info) -> str:
+        """
+        Somethings fails to understand Path
+        """
         return str(source_file.resolve())

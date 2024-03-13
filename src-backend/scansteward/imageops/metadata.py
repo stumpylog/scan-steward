@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def now_string() -> str:
-    return datetime.now(tz=timezone.utc).strftime("%Y:%m:%d %H:%M:%S.%f%z")
+    return datetime.now(tz=timezone.utc).strftime("%Y:%m:%d %H:%M:%S.%fZ")
 
 
 def process_separated_list(parent: KeywordStruct, remaining: list[str]):
@@ -176,7 +176,7 @@ def bulk_read_image_metadata(
         "-n",  # Disable print conversion, use machine readable
         # Face regions
         "-RegionInfo",
-        "-Orientation",
+        "-MWG:Orientation",
         # Tags
         "-MWG:HierarchicalKeywords",
         "-XMP-microsoft:LastKeywordXMP",
@@ -255,7 +255,7 @@ def bulk_write_image_metadata(
             "-struct",
             "-n",  # Disable print conversion, use machine readable
             "-overwrite_original",
-            f"-ModifyDate={now_string()}",
+            f"-MWG:ModifyDate={now_string()}",
             "-writeMode",
             "wcg",  # Create new tags/groups as necessary, overwrite existing
             f"-json={json_path}",
@@ -266,11 +266,10 @@ def bulk_write_image_metadata(
         logger.debug(f"Running command '{' '.join(cmd)}'")
         proc = subprocess.run(cmd, check=False, capture_output=True)
 
-        if proc.returncode != 0:
-            for line in proc.stderr.decode("utf-8").splitlines():
-                logger.error(f"exiftool: {line}")
-            for line in proc.stdout.decode("utf-8").splitlines():
-                logger.info(f"exiftool : {line}")
+    for line in proc.stderr.decode("utf-8").splitlines():
+        logger.error(f"exiftool stderr: {line}")
+    for line in proc.stdout.decode("utf-8").splitlines():
+        logger.info(f"exiftool stdout: {line}")
 
         proc.check_returncode()
 
@@ -285,20 +284,26 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
         "-overwrite_original",
         "-use",
         "MWG",
+        "-v1",
         # Face regions
-        "-RegionInfo=",
-        "-Orientation=",
+        "-XMP-mwg-rs:RegionInfo=",
+        "-MWG:Orientation=",
         # Tags
-        "-KeywordInfo=",
-        "-XMP-acdsee=Categories=",
-        "-MWG:HierarchicalKeywords=",
+        "-XMP-mwg-kw:KeywordInfo=",
+        "-XMP-acdsee:Categories=",
+        "-HierarchicalKeywords=",
         "-XMP-microsoft:LastKeywordXMP=",
         "-XMP-digiKam:TagsList=",
         "-XMP-lr:HierarchicalSubject=",
         "-XMP-mediapro:CatalogSets=",
-        "-MWG:Title=",
+        "-Title=",
         "-MWG:Description=",
         "-XMP-dc:Description=",
+        "-EXIF:ImageDescription=",
+        "-IPTC:Caption-Abstract=",
+        "-XMP-dc:Description-x-default=",
+        "-IFD0:ImageDescription=",
+        "-IPTC:Caption-Abstract=",
     ]
     for image in images:
         cmd.append(str(image.resolve()))  # noqa: PERF401
@@ -306,11 +311,10 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
     logger.debug(f"Running command '{' '.join(cmd)}'")
     proc = subprocess.run(cmd, check=False, capture_output=True)
 
-    if proc.returncode != 0:
-        for line in proc.stderr.decode("utf-8").splitlines():
-            logger.error(f"exiftool: {line}")
-        for line in proc.stdout.decode("utf-8").splitlines():
-            logger.info(f"exiftool : {line}")
+    for line in proc.stderr.decode("utf-8").splitlines():
+        logger.error(f"exiftool stderr: {line}")
+    for line in proc.stdout.decode("utf-8").splitlines():
+        logger.info(f"exiftool stdout: {line}")
 
     # Do this after logging anything
     proc.check_returncode()
