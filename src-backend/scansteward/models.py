@@ -84,18 +84,17 @@ class Person(SimpleNamedModel, TimestampMixin, models.Model):
     """
 
 
-class FaceInImage(TimestampMixin, models.Model):
+class Pet(SimpleNamedModel, TimestampMixin, models.Model):
     """
-    Holds information for a face in an image, ideally tied to a Person
+    Holds the information about a single person
     """
 
-    person = models.ForeignKey(
-        Person,
-        on_delete=models.SET_NULL,
-        related_name="images",
-        help_text="Person is in this Image at the given location",
-        null=True,
-    )
+
+class AbstractBoxInImage(TimestampMixin, models.Model):
+    """
+    Holds information for a bounding box in an image, ideally tied to a Person or Per
+    """
+
     image = models.ForeignKey(
         "Image",
         on_delete=models.CASCADE,
@@ -117,6 +116,19 @@ class FaceInImage(TimestampMixin, models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
 
+    class Meta:
+        abstract = True
+
+
+class PersonInImage(AbstractBoxInImage):
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.SET_NULL,
+        related_name="images",
+        help_text="Person is in this Image at the given location",
+        null=True,
+    )
+
     exclude_from_training = models.BooleanField(
         default=False,
         help_text="For future growth, do not use this box for facial recognition training",
@@ -126,6 +138,22 @@ class FaceInImage(TimestampMixin, models.Model):
     def name(self) -> str:
         if self.person:
             return self.person.name
+        return "Unknown"
+
+
+class PetInImage(AbstractBoxInImage):
+    pet = models.ForeignKey(
+        Pet,
+        on_delete=models.SET_NULL,
+        related_name="images",
+        help_text="Pet is in this Image at the given location",
+        null=True,
+    )
+
+    @property
+    def name(self) -> str:
+        if self.pet:
+            return self.pet.name
         return "Unknown"
 
 
@@ -201,7 +229,12 @@ class Image(TimestampMixin, models.Model):
 
     people = models.ManyToManyField(
         Person,
-        through=FaceInImage,
+        through=PersonInImage,
+    )
+
+    pets = models.ManyToManyField(
+        Pet,
+        through=PetInImage,
     )
 
     tags = models.ManyToManyField(
@@ -234,7 +267,7 @@ class Image(TimestampMixin, models.Model):
     def face_boxes(self) -> list[PersonWithBox]:
         boxes = []
         for person in self.people.all():
-            bounding_box = FaceInImage.objects.filter(image=self, person=person).first()
+            bounding_box = PersonInImage.objects.filter(image=self, person=person).first()
             if TYPE_CHECKING:
                 assert bounding_box is not None
             boxes.append(

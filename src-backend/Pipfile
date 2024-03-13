@@ -5,8 +5,6 @@ name = "pypi"
 
 [packages]
 django-ninja = "*"
-django-ninja-crud = "*"
-django-treebeard = "*"
 # Task Queue
 taskiq = "*"
 taskiq-redis = "*"
