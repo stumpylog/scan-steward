@@ -26,6 +26,17 @@ def now_string() -> str:
 def process_separated_list(parent: KeywordStruct, remaining: list[str]):
     """
     Given a list of strings, build a tree structure from them, rooted at the given parent
+
+    Example:
+        Root|Child|ChildChild
+        Root|OtherChild
+
+        becomes
+
+        Root -->
+          Child -->
+            ChildChild
+          OtherChild
     """
     if not remaining:
         # TODO: Should this set Applied?  Leaf nodes are assumed to be applied
@@ -245,10 +256,10 @@ def bulk_write_image_metadata(
             "wcg",  # Create new tags/groups as necessary, overwrite existing
             f"-json={json_path}",
         ]
-        # * unpacking doesn't resolve for the command
+        # * unpacking doesn't resolve for the command?
         for x in metadata:
-            cmd.append(x.SourceFile.resolve())  # noqa: PERF401
-        logger.debug(f"Running command '{cmd}'")
+            cmd.append(str(x.SourceFile.resolve()))  # noqa: PERF401
+        logger.debug(f"Running command '{' '.join(cmd)}'")
         proc = subprocess.run(cmd, check=False, capture_output=True)
 
         if proc.returncode != 0:
@@ -267,10 +278,9 @@ def clear_existing_metadata(image: Path) -> None:
 def bulk_clear_existing_metadata(images: list[Path]) -> None:
     cmd = [
         EXIF_TOOL_EXE,
-        "-struct",
-        "-json",
-        "-n",  # Disable print conversion, use machine readable
         "-overwrite_original",
+        "-use",
+        "MWG",
         # Face regions
         "-RegionInfo=",
         "-Orientation=",
@@ -287,8 +297,10 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
     ]
     for image in images:
         cmd.append(str(image.resolve()))  # noqa: PERF401
-    logger.debug(f"Running command '{cmd}'")
+
+    logger.debug(f"Running command '{' '.join(cmd)}'")
     proc = subprocess.run(cmd, check=False, capture_output=True)
+
     if proc.returncode != 0:
         for line in proc.stderr.decode("utf-8").splitlines():
             logger.error(f"exiftool: {line}")
