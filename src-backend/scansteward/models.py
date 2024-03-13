@@ -11,6 +11,7 @@ from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from scansteward.imageops.models import RotationEnum
 from scansteward.images.schemas import BoundingBox
 from scansteward.images.schemas import PersonWithBox
 from scansteward.people.schemas import PersonReadSchema
@@ -201,9 +202,20 @@ class Image(TimestampMixin, models.Model):
     Holds the information about an Image
     """
 
+    class OrientationChoices(models.IntegerChoices):
+        HORIZONTAL = RotationEnum.HORIZONTAL.value
+        MIRROR_HORIZONTAL = RotationEnum.MIRROR_HORIZONTAL.value
+        ROTATE_180 = RotationEnum.ROTATE_180.value
+        MIRROR_VERTICAL = RotationEnum.MIRROR_VERTICAL.value
+        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_270_CW.value
+        ROTATE_90_CW = RotationEnum.ROTATE_90_CW.value
+        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
+        ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
+
     checksum = models.CharField(
         max_length=64,
         unique=True,
+        db_index=True,
         verbose_name="blake3 hex digest",
         help_text="The BLAKE3 checksum of the original file",
     )
@@ -212,6 +224,13 @@ class Image(TimestampMixin, models.Model):
         verbose_name="file size in bytes",
         help_text="Size of the original file in bytes",
     )
+
+    orientation = models.SmallIntegerField(
+        choices=OrientationChoices.choices,
+        default=OrientationChoices.HORIZONTAL,
+    )
+
+    description = models.TextField(null=True, blank=True)
 
     source = models.CharField(
         max_length=100,

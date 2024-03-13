@@ -97,11 +97,16 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"  {image_path.name} indexing completed"))
 
     def handle_new_image(self, image_path: Path, image_hash: str) -> None:
+
+        metadata = read_image_metadata(image_path)
+
         new_img = ImageModel.objects.create(
             file_size=image_path.stat().st_size,
             checksum=image_hash,
             original=str(image_path.resolve()),
             source=self.source,
+            orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
+            description=metadata.Description,
         )
 
         self.stdout.write(self.style.SUCCESS("  Creating thumbnail"))
@@ -113,8 +118,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("  Creating WebP version"))
         with Image.open(image_path) as im_file:
             im_file.save(new_img.full_size_path, quality=90)
-
-        metadata = read_image_metadata(image_path)
 
         # Parse Faces
         self.stdout.write(self.style.SUCCESS("  Parsing faces"))

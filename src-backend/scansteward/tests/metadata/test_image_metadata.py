@@ -1,4 +1,3 @@
-import collections
 import shutil
 from pathlib import Path
 
@@ -12,214 +11,40 @@ from scansteward.imageops.metadata import bulk_write_image_metadata
 from scansteward.imageops.metadata import clear_existing_metadata
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.metadata import write_image_metadata
-from scansteward.imageops.models import DimensionsStruct
-from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
 from scansteward.imageops.models import KeywordStruct
-from scansteward.imageops.models import RegionInfoStruct
-from scansteward.imageops.models import RegionStruct
-from scansteward.imageops.models import RotationEnum
 from scansteward.imageops.models import XmpAreaStruct
+from scansteward.tests.mixins import SampleDirMixin
+from scansteward.tests.mixins import SampleMetadataMixin
 
 
-def assert_count_equal(first: list | None, second: list | None) -> None:
-    """
-    https://github.com/python/cpython/blob/17d31bf3843c384873999a15ce683cc3654f46ae/Lib/unittest/case.py#L1186
-    """
-    first_seq, second_seq = list(first or []), list(second or [])
-    first_counter = collections.Counter(first_seq)
-    second_counter = collections.Counter(second_seq)
-    assert first_counter == second_counter
+class TestReadImageMetadata(
+    SampleMetadataMixin,
+    SampleDirMixin,
+):
 
+    def test_read_single_image_metadata(self):
 
-def verify_expected_vs_actual_metadata(expected: ImageMetadata, actual: ImageMetadata):
-    assert expected.SourceFile == actual.SourceFile
-    assert expected.Title == actual.Title
-    assert expected.Description == actual.Description
-    assert expected.RegionInfo == actual.RegionInfo
-    assert expected.Orientation == actual.Orientation
-    assert_count_equal(expected.LastKeywordXMP, actual.LastKeywordXMP)
-    assert_count_equal(expected.TagsList, actual.TagsList)
-    assert_count_equal(expected.CatalogSets, actual.CatalogSets)
-    assert_count_equal(expected.HierarchicalSubject, actual.HierarchicalSubject)
-    assert expected.KeywordInfo == actual.KeywordInfo
+        metadata = read_image_metadata(self.SAMPLE_ONE)
 
+        self.verify_sample_one_metadata(self.SAMPLE_ONE, metadata)
 
-def sample_one_metadata(sample_one_jpeg: Path) -> ImageMetadata:
-    list_of_tags = [
-        ["Locations", "United States", "Washington DC"],
-        ["People", "Barack Obama"],
-        ["Pets", "Dogs", "Bo"],
-    ]
-    return ImageMetadata(
-        SourceFile=sample_one_jpeg,
-        Title=None,
-        Description=(
-            "President Barack Obama throws a ball for Bo, the family dog, in the Rose Garden"
-            " of the White House, Sept. 9, 2010.  (Official White House Photo by Pete Souza)\n\nThis official White"
-            " House photograph is being made available only for publication by news organizations and/or for personal"
-            " use printing by the subject(s) of the photograph. The photograph may not be manipulated in any way and"
-            " may not be used in commercial or political materials, advertisements, emails, products, promotions that"
-            " in any way suggests approval or endorsement of the President, the First Family, or the White House. "
-        ),
-        RegionInfo=RegionInfoStruct(
-            AppliedToDimensions=DimensionsStruct(H=683.0, W=1024.0, Unit="pixel"),
-            RegionList=[
-                RegionStruct(
-                    Area=XmpAreaStruct(
-                        H=0.0585652,
-                        W=0.0292969,
-                        X=0.317383,
-                        Y=0.303075,
-                        Unit="normalized",
-                        D=None,
-                    ),
-                    Name="Barack Obama",
-                    Type="Face",
-                    Description=None,
-                ),
-            ],
-        ),
-        Orientation=None,
-        LastKeywordXMP=["/".join(x) for x in list_of_tags],
-        TagsList=["/".join(x) for x in list_of_tags],
-        CatalogSets=["|".join(x) for x in list_of_tags],
-        HierarchicalSubject=["|".join(x) for x in list_of_tags],
-        # This is the expected tree from the tags
-        KeywordInfo=KeywordInfoModel.model_validate(
-            {
-                "Hierarchy": [
-                    {
-                        "Applied": None,
-                        "Children": [
-                            {
-                                "Applied": None,
-                                "Children": [{"Applied": None, "Children": [], "Keyword": "Bo"}],
-                                "Keyword": "Dogs",
-                            },
-                        ],
-                        "Keyword": "Pets",
-                    },
-                    {
-                        "Applied": None,
-                        "Children": [
-                            {
-                                "Applied": None,
-                                "Children": [{"Applied": None, "Children": [], "Keyword": "Washington DC"}],
-                                "Keyword": "United States",
-                            },
-                        ],
-                        "Keyword": "Locations",
-                    },
-                    {
-                        "Applied": None,
-                        "Children": [{"Applied": None, "Children": [], "Keyword": "Barack Obama"}],
-                        "Keyword": "People",
-                    },
-                ],
-            },
-        ),
-    )
-
-
-def sample_two_metadata(sample_two_jpeg: Path) -> ImageMetadata:
-    list_of_tags = [["Locations", "United States", "Washington DC"], ["People", "Barack Obama"]]
-    return ImageMetadata(
-        SourceFile=sample_two_jpeg,
-        Title=None,
-        Description=(
-            "President Barack Obama signs a letter to a Cuban letter writer, in the Oval Office, March 14, 2016."
-            " (Official White House Photo by Pete Souza)\n\nThis official White House photograph is being made"
-            " available only for publication by news organizations and/or for personal use printing by the"
-            " subject(s) of the photograph. The photograph may not be manipulated in any way and may not be"
-            " used in commercial or political materials, advertisements, emails, products, promotions that"
-            " in any way suggests approval or endorsement of the President, the First Family, or the White House."
-        ),
-        RegionInfo=RegionInfoStruct(
-            AppliedToDimensions=DimensionsStruct(H=2333.0, W=3500.0, Unit="pixel"),
-            RegionList=[
-                RegionStruct(
-                    Area=XmpAreaStruct(
-                        H=0.216459,
-                        Unit="normalized",
-                        W=0.129714,
-                        X=0.492857,
-                        Y=0.277968,
-                        D=None,
-                    ),
-                    Name="Barack Obama",
-                    Type="Face",
-                    Description=None,
-                ),
-            ],
-        ),
-        Orientation=RotationEnum.HORIZONTAL,
-        LastKeywordXMP=["/".join(x) for x in list_of_tags],
-        TagsList=["/".join(x) for x in list_of_tags],
-        CatalogSets=["|".join(x) for x in list_of_tags],
-        HierarchicalSubject=["|".join(x) for x in list_of_tags],
-        # This is the expected tree from the tags
-        KeywordInfo=KeywordInfoModel.model_validate(
-            {
-                "Hierarchy": [
-                    {
-                        "Applied": None,
-                        "Children": [
-                            {
-                                "Applied": None,
-                                "Children": [{"Applied": None, "Children": [], "Keyword": "Washington DC"}],
-                                "Keyword": "United States",
-                            },
-                        ],
-                        "Keyword": "Locations",
-                    },
-                    {
-                        "Applied": None,
-                        "Children": [{"Applied": None, "Children": [], "Keyword": "Barack Obama"}],
-                        "Keyword": "People",
-                    },
-                ],
-            },
-        ),
-    )
-
-
-def verify_sample_one_metadata(sample_one_jpeg: Path, actual: ImageMetadata) -> None:
-    expected = sample_one_metadata(sample_one_jpeg)
-    verify_expected_vs_actual_metadata(expected=expected, actual=actual)
-
-
-def verify_sample_two_metadata(sample_two_jpeg: Path, actual: ImageMetadata) -> None:
-    expected = sample_two_metadata(sample_two_jpeg)
-    verify_expected_vs_actual_metadata(expected=expected, actual=actual)
-
-
-class TestReadImageMetadata:
-
-    def test_read_single_image_metadata(self, sample_one_jpeg: Path):
-
-        metadata = read_image_metadata(sample_one_jpeg)
-
-        verify_sample_one_metadata(sample_one_jpeg, metadata)
-
-    def test_bulk_read_image_faces(self, sample_one_jpeg: Path, sample_two_jpeg: Path):
+    def test_bulk_read_image_faces(self):
         metadata = bulk_read_image_metadata(
-            [sample_one_jpeg, sample_two_jpeg],
+            [self.SAMPLE_ONE, self.SAMPLE_TWO],
         )
 
         assert len(metadata) == 2
 
-        verify_sample_one_metadata(sample_one_jpeg, metadata[0])
-        verify_sample_two_metadata(sample_two_jpeg, metadata[1])
+        self.verify_sample_one_metadata(self.SAMPLE_ONE, metadata[0])
+        self.verify_sample_two_metadata(self.SAMPLE_TWO, metadata[1])
 
+    def test_change_single_image_metadata(self, temporary_directory: Path):
 
-class TestWriteImageMetadata:
-    def test_change_single_image_metadata(self, temporary_directory: Path, sample_one_jpeg: Path):
-
-        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
         # Change something
-        new_metadata = sample_one_metadata(sample_one_jpeg).model_copy(deep=True)
+        new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
         new_metadata.SourceFile = new_sample_one
         new_metadata.RegionInfo.RegionList[0].Name = "Billy Bob"
 
@@ -227,15 +52,15 @@ class TestWriteImageMetadata:
 
         changed_metadata = read_image_metadata(new_sample_one)
 
-        verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+        self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
-    def test_bulk_write_faces(self, temporary_directory: Path, sample_one_jpeg: Path, sample_two_jpeg: Path):
+    def test_bulk_write_faces(self, temporary_directory: Path):
 
-        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
-        new_sample_two = Path(shutil.copy(sample_two_jpeg, temporary_directory / sample_two_jpeg.name))
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
+        new_sample_two = Path(shutil.copy(self.SAMPLE_TWO, temporary_directory / self.SAMPLE_TWO.name))
 
-        old_one_metadata = sample_one_metadata(sample_one_jpeg)
-        old_two_metadata = sample_two_metadata(sample_two_jpeg)
+        old_one_metadata = self.sample_one_metadata(self.SAMPLE_ONE)
+        old_two_metadata = self.sample_two_metadata(self.SAMPLE_TWO)
 
         new_one_metadata = old_one_metadata.model_copy(deep=True)
         new_one_metadata.SourceFile = new_sample_one
@@ -257,14 +82,14 @@ class TestWriteImageMetadata:
 
         assert len(changed_metadata) == 2
 
-        verify_expected_vs_actual_metadata(new_one_metadata, changed_metadata[0])
-        verify_expected_vs_actual_metadata(new_two_metadata, changed_metadata[1])
+        self.verify_expected_vs_actual_metadata(new_one_metadata, changed_metadata[0])
+        self.verify_expected_vs_actual_metadata(new_two_metadata, changed_metadata[1])
 
-    def test_write_change_keywords(self, temporary_directory: Path, sample_one_jpeg: Path):
+    def test_write_change_keywords(self, temporary_directory: Path):
 
-        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
-        new_metadata = sample_one_metadata(sample_one_jpeg).model_copy(deep=True)
+        new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
         new_metadata.SourceFile = new_sample_one
         # Clear all the old style tags
         new_metadata.RegionInfo = None
@@ -282,24 +107,24 @@ class TestWriteImageMetadata:
             ],
         )
 
-        shutil.copy(new_sample_one, sample_one_jpeg.parent / "before.jpeg")
+        shutil.copy(new_sample_one, self.SAMPLE_ONE.parent / "before.jpeg")
 
         write_image_metadata(new_metadata, clear_existing_metadata=True)
 
-        shutil.copy(new_sample_one, sample_one_jpeg.parent / "after.jpeg")
+        shutil.copy(new_sample_one, self.SAMPLE_ONE.parent / "after.jpeg")
 
         changed_metadata = read_image_metadata(new_sample_one)
 
         # TODO: CatalogSets is returned empty for some reason
         # new_metadata.CatalogSets = None
 
-        verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+        self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
-    def test_write_change_no_keywords(self, temporary_directory: Path, sample_one_jpeg: Path):
+    def test_write_change_no_keywords(self, temporary_directory: Path):
 
-        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
-        new_metadata = sample_one_metadata(sample_one_jpeg).model_copy(deep=True)
+        new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
         new_metadata.SourceFile = new_sample_one
         # Clear all the tags
         new_metadata.RegionInfo = None
@@ -313,20 +138,20 @@ class TestWriteImageMetadata:
 
         changed_metadata = read_image_metadata(new_sample_one)
 
-        verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+        self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
 
-class TestMetadataClear:
-    def test_clear_existing_metadata(self, temporary_directory: Path, sample_one_jpeg: Path):
+class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):
+    def test_clear_existing_metadata(self, temporary_directory: Path):
 
-        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
         clear_existing_metadata(new_sample_one)
 
         changed_metadata = read_image_metadata(new_sample_one)
 
         # Everything should be cleared
-        expected = sample_one_metadata(new_sample_one).model_copy(deep=True)
+        expected = self.sample_one_metadata(new_sample_one).model_copy(deep=True)
         expected.RegionInfo = None
         expected.LastKeywordXMP = None
         expected.CatalogSets = None
@@ -335,7 +160,7 @@ class TestMetadataClear:
         expected.KeywordInfo = None
         expected.Description = None
 
-        verify_expected_vs_actual_metadata(expected, changed_metadata)
+        self.verify_expected_vs_actual_metadata(expected, changed_metadata)
 
 
 class TestErrorCases:
