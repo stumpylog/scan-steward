@@ -503,3 +503,14 @@ class TestApiAlbumDownload(SampleDirMixin, TemporaryDirectoryMixin, FakerMixin, 
 
     def test_album_download_original(self):
         self.download_test_common(use_original_download=True)
+
+    def test_album_no_images(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        resp = self.client.get(f"/api/album/{album_id}/download/")
+
+        assert resp.status_code == HTTPStatus.BAD_REQUEST
