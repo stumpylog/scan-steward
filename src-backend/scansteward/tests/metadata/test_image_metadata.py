@@ -10,7 +10,7 @@ from scansteward.imageops.errors import NoImagePathsError
 from scansteward.imageops.metadata import bulk_read_image_metadata
 from scansteward.imageops.metadata import bulk_write_image_metadata
 from scansteward.imageops.metadata import read_image_metadata
-from scansteward.imageops.metadata import write_image_metadata
+from scansteward.imageops.metadata import write_image_metadata, clear_existing_metadata
 from scansteward.imageops.models import DimensionsStruct
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
@@ -281,12 +281,16 @@ class TestWriteImageMetadata:
             ],
         )
 
+        shutil.copy(new_sample_one, sample_one_jpeg.parent / "before.jpeg")
+
         write_image_metadata(new_metadata, clear_existing_metadata=True)
+
+        shutil.copy(new_sample_one, sample_one_jpeg.parent / "after.jpeg")
 
         changed_metadata = read_image_metadata(new_sample_one)
 
         # TODO: CatalogSets is returned empty for some reason
-        new_metadata.CatalogSets = None
+        # new_metadata.CatalogSets = None
 
         verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
@@ -309,6 +313,28 @@ class TestWriteImageMetadata:
         changed_metadata = read_image_metadata(new_sample_one)
 
         verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+
+
+class TestMetadataClear:
+    def test_clear_existing_metadata(self, temporary_directory: Path, sample_one_jpeg: Path):
+
+        new_sample_one = Path(shutil.copy(sample_one_jpeg, temporary_directory / sample_one_jpeg.name))
+
+        clear_existing_metadata(new_sample_one)
+
+        changed_metadata = read_image_metadata(new_sample_one)
+
+        # Everything should be cleared
+        expected = sample_one_metadata(new_sample_one).model_copy(deep=True)
+        expected.RegionInfo = None
+        expected.LastKeywordXMP = None
+        expected.CatalogSets = None
+        expected.TagsList = None
+        expected.HierarchicalSubject = None
+        expected.KeywordInfo = None
+        expected.Description = None
+
+        verify_expected_vs_actual_metadata(expected, changed_metadata)
 
 
 class TestErrorCases:
