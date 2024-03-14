@@ -228,9 +228,14 @@ class Image(TimestampMixin, models.Model):
     orientation = models.SmallIntegerField(
         choices=OrientationChoices.choices,
         default=OrientationChoices.HORIZONTAL,
+        help_text="MWG Orientation flag",
     )
 
-    description = models.TextField(null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True, help_text="MWG Country tag")
+    state = models.CharField(max_length=100, null=True, blank=True, help_text="MWG State tag")
+    city = models.CharField(max_length=100, null=True, blank=True, help_text="MWG city tag")
+
+    description = models.TextField(null=True, blank=True, help_text="MWG Description tag")
 
     source = models.CharField(
         max_length=100,
@@ -244,6 +249,11 @@ class Image(TimestampMixin, models.Model):
         max_length=1024,
         unique=True,
         verbose_name="Path to the original image",
+    )
+
+    is_dirty = models.BooleanField(
+        default=False,
+        help_text="The metadata is dirty and needs to be synced to the file",
     )
 
     people = models.ManyToManyField(

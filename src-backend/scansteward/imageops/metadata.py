@@ -185,6 +185,9 @@ def bulk_read_image_metadata(
         "-XMP-mediapro:CatalogSets",
         "-MWG:Title",
         "-MWG:Description",
+        "-MWG:Country",
+        "-MWG:State",
+        "-MWG:City",
     ]
 
     # Add the actual images
@@ -267,9 +270,9 @@ def bulk_write_image_metadata(
         proc = subprocess.run(cmd, check=False, capture_output=True)
 
     for line in proc.stderr.decode("utf-8").splitlines():
-        logger.error(f"exiftool stderr: {line}")
+        logger.debug(f"exiftool stderr: {line}")
     for line in proc.stdout.decode("utf-8").splitlines():
-        logger.info(f"exiftool stdout: {line}")
+        logger.debug(f"exiftool stdout: {line}")
 
         proc.check_returncode()
 
@@ -279,6 +282,7 @@ def clear_existing_metadata(image: Path) -> None:
 
 
 def bulk_clear_existing_metadata(images: list[Path]) -> None:
+    logger.debug("Clearing existing metadata")
     cmd = [
         EXIF_TOOL_EXE,
         "-overwrite_original",
@@ -312,9 +316,9 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
     proc = subprocess.run(cmd, check=False, capture_output=True)
 
     for line in proc.stderr.decode("utf-8").splitlines():
-        logger.error(f"exiftool stderr: {line}")
+        logger.debug(f"exiftool stderr: {line}")
     for line in proc.stdout.decode("utf-8").splitlines():
-        logger.info(f"exiftool stdout: {line}")
+        logger.debug(f"exiftool stdout: {line}")
 
     # Do this after logging anything
     proc.check_returncode()

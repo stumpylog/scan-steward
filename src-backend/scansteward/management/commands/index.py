@@ -107,6 +107,11 @@ class Command(BaseCommand):
             source=self.source,
             orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
             description=metadata.Description,
+            country=metadata.Country,
+            state=metadata.State,
+            city=metadata.City,
+            # This time cannot be dirty
+            is_dirty=False,
         )
 
         self.stdout.write(self.style.SUCCESS("  Creating thumbnail"))
@@ -120,7 +125,7 @@ class Command(BaseCommand):
             im_file.save(new_img.full_size_path, quality=90)
 
         # Parse Faces
-        self.stdout.write(self.style.SUCCESS("  Parsing faces"))
+        self.stdout.write(self.style.SUCCESS("  Parsing regions"))
         if metadata.RegionInfo:
             for region in metadata.RegionInfo.RegionList:
                 if region.Type == "Face" and region.Name:
@@ -186,5 +191,6 @@ class Command(BaseCommand):
         else:  # pragma: no cover
             self.stdout.write(self.style.SUCCESS("  No keywords"))
 
-        # And done
+        # And done.  Image cannot be dirty, use update to avoid getting marked as such
+        ImageModel.objects.filter(pk=new_img.pk).update(is_dirty=False)
         self.stdout.write(self.style.SUCCESS("  indexing completed"))

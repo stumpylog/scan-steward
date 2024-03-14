@@ -103,6 +103,9 @@ class ImageMetadata(BaseModel):
     CatalogSets: list[str] | None = None
     HierarchicalSubject: list[str] | None = None
     KeywordInfo: KeywordInfoModel | None = None
+    Country: str | None = None
+    City: str | None = None
+    State: str | None = None
 
     @field_serializer("SourceFile")
     def serialize_source_file(self, source_file: FilePath, _info) -> str:
