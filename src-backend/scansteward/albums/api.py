@@ -212,7 +212,6 @@ async def delete_album(request: HttpRequest, album_id: int):
 
 @router.get(
     "/{album_id}/download/",
-    response=AlbumWithImagesReadSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -220,6 +219,9 @@ async def delete_album(request: HttpRequest, album_id: int):
             },
             HTTPStatus.BAD_REQUEST: {
                 "description": "No images in album",
+            },
+            HTTPStatus.OK: {
+                "content": {"application/zip": {"schema": {"type": "string", "format": "binary"}}},
             },
         },
     },
