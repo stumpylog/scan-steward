@@ -57,6 +57,7 @@ class DirectoriesMixin(TemporaryDirectoryMixin):
         for x in [data, logs, media, thumbnail, fullsize]:
             x.mkdir(parents=True)
         self._overrides = override_settings(
+            BASE_DIR=base_dir,
             DATA_DIR=data,
             LOGGING_DIR=logs,
             MEDIA_ROOT=media,

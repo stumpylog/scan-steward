@@ -4,9 +4,10 @@ from django.test import TestCase
 
 from scansteward.models import Person
 from scansteward.tests.api.utils import GeneratePeopleMixin
+from scansteward.tests.mixins import DirectoriesMixin
 
 
-class TestApiPeopleRead(GeneratePeopleMixin, TestCase):
+class TestApiPeopleRead(GeneratePeopleMixin, DirectoriesMixin, TestCase):
     def setUp(self) -> None:
         return super().setUp()
 
@@ -77,7 +78,7 @@ class TestApiPeopleRead(GeneratePeopleMixin, TestCase):
         assert len(data["items"]) == limit
 
 
-class TestApiPeopleCreate(GeneratePeopleMixin, TestCase):
+class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
 
     def test_create_person(self):
         person_name = self.faker.name()
@@ -134,7 +135,7 @@ class TestApiPeopleCreate(GeneratePeopleMixin, TestCase):
         assert Person.objects.count() == 1
 
 
-class TestApiPeopleUpdate(GeneratePeopleMixin, TestCase):
+class TestApiPeopleUpdate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
     def test_update_person_name(self):
         self.generate_people_objects(1)
 
@@ -175,7 +176,7 @@ class TestApiPeopleUpdate(GeneratePeopleMixin, TestCase):
         assert data["description"] == new_desc
 
 
-class TestApiPeopleDelete(GeneratePeopleMixin, TestCase):
+class TestApiPeopleDelete(GeneratePeopleMixin, DirectoriesMixin, TestCase):
     def test_delete_person(self):
         self.generate_people_objects(1)
 

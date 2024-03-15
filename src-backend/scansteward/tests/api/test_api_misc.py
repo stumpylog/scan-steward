@@ -2,8 +2,10 @@ from http import HTTPStatus
 
 from django.test import TestCase
 
+from scansteward.tests.mixins import DirectoriesMixin
 
-class TestCustom404(TestCase):
+
+class TestCustom404(DirectoriesMixin, TestCase):
     def test_custom_404_handle(self):
         resp = self.client.get("/api/thisisnthere/")
 

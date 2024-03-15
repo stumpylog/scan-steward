@@ -85,6 +85,9 @@ def get_image_original(request: HttpRequest, image_id: int):
 )
 def get_image_details(request: HttpRequest, image_id: int):
     return get_object_or_404(
-        Image.objects.prefetch_related("people").prefetch_related("albums").prefetch_related("tags"),
+        Image.objects.prefetch_related("people")
+        .prefetch_related("albums")
+        .prefetch_related("tags")
+        .prefetch_related("pets"),
         id=image_id,
     )

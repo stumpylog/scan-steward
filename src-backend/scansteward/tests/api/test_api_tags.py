@@ -5,9 +5,10 @@ from django.test import TestCase
 from scansteward.models import Tag
 from scansteward.tests.api.utils import FakerMixin
 from scansteward.tests.api.utils import GenerateTagsMixin
+from scansteward.tests.mixins import DirectoriesMixin
 
 
-class TestApiTagRead(GenerateTagsMixin, TestCase):
+class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
     def test_get_single_tag_not_found(self):
         resp = self.client.get("/api/tag/1/")
 
@@ -67,7 +68,7 @@ class TestApiTagRead(GenerateTagsMixin, TestCase):
                     assert len(child["children"]) == 1
 
 
-class TestApiTagCreate(FakerMixin, TestCase):
+class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
 
     def test_create_tag_no_parent(self):
         tag_name = self.faker.country()
@@ -126,7 +127,7 @@ class TestApiTagCreate(FakerMixin, TestCase):
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
 
-class TestApiTagUpdate(GenerateTagsMixin, TestCase):
+class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
     def test_update_tag_name(self):
         self.generate_root_tag_objects(1)
 
@@ -184,7 +185,7 @@ class TestApiTagUpdate(GenerateTagsMixin, TestCase):
         assert root.description is not None
 
 
-class TestApiTagDelete(GenerateTagsMixin, TestCase):
+class TestApiTagDelete(GenerateTagsMixin, DirectoriesMixin, TestCase):
     def test_delete_single_tag(self):
         self.generate_root_tag_objects(1)
         root: Tag = self.roots[0]

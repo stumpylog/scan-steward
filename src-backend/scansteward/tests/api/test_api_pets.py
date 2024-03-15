@@ -4,9 +4,10 @@ from django.test import TestCase
 
 from scansteward.models import Pet
 from scansteward.tests.api.utils import GeneratePetsMixin
+from scansteward.tests.mixins import DirectoriesMixin
 
 
-class TestApiPetsRead(GeneratePetsMixin, TestCase):
+class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
     def setUp(self) -> None:
         return super().setUp()
 
@@ -77,7 +78,7 @@ class TestApiPetsRead(GeneratePetsMixin, TestCase):
         assert len(data["items"]) == limit
 
 
-class TestApiPetsCreate(GeneratePetsMixin, TestCase):
+class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
 
     def test_create_pet(self):
         pet_name = self.faker.name()
@@ -134,7 +135,7 @@ class TestApiPetsCreate(GeneratePetsMixin, TestCase):
         assert Pet.objects.count() == 1
 
 
-class TestApiPetsUpdate(GeneratePetsMixin, TestCase):
+class TestApiPetsUpdate(GeneratePetsMixin, DirectoriesMixin, TestCase):
     def test_update_pet_name(self):
         self.generate_pet_objects(1)
 
@@ -175,7 +176,7 @@ class TestApiPetsUpdate(GeneratePetsMixin, TestCase):
         assert data["description"] == new_desc
 
 
-class TestApiPetsDelete(GeneratePetsMixin, TestCase):
+class TestApiPetsDelete(GeneratePetsMixin, DirectoriesMixin, TestCase):
     def test_delete_pet(self):
         self.generate_pet_objects(1)
 

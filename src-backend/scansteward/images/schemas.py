@@ -1,7 +1,9 @@
 from ninja import Schema
 
 from scansteward.common.schemas import SimpleNamedWithIdSchema
+from scansteward.imageops.models import RotationEnum
 from scansteward.people.schemas import PersonReadSchema
+from scansteward.pets.schemas import PetReadSchema
 from scansteward.tags.schemas import TagRead
 
 
@@ -16,12 +18,45 @@ class BoundingBox(Schema):
     width: float
 
 
-class PersonWithBox(Schema):
-    person: PersonReadSchema
+class ThingWithBox(Schema):
     box: BoundingBox
 
 
+class PersonWithBox(ThingWithBox):
+    person: PersonReadSchema
+
+
+class PetWithBox(ThingWithBox):
+    pet: PetReadSchema
+
+
 class ImageDetailsRead(Schema):
+    orientation: RotationEnum
     face_boxes: list[PersonWithBox] | None = None
+    pet_boxes: list[PetWithBox] | None = None
     tags: list[TagRead] | None = None
     albums: list[Album] | None = None
+
+    country: str | None = None
+    state: str | None = None
+    city: str | None = None
+
+    description: str | None = None
+
+
+class ImageUpdateSchema(Schema):
+    add_faces: list[PersonWithBox] | None = None
+    remove_faces: list[PersonWithBox] | None = None
+
+    add_pets: list[PetWithBox] | None = None
+    remove_pets: list[PetWithBox] | None = None
+
+    country: str | None = None
+    state: str | None = None
+    city: str | None = None
+
+    description: str | None = None
+
+    orientation: RotationEnum | None = None
+
+    # TODO: Tags????

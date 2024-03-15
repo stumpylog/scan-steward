@@ -236,7 +236,8 @@ def download_album(request: HttpRequest, album_id: int, originals: bool = False)
         )
 
     zip_name = slugify(album_instance.name)
-    zip_path = Path(tempfile.NamedTemporaryFile(prefix=f"{zip_name}", suffix=".zip").name)
+    # TODO: Track and clean these up on a schedule
+    zip_path = Path(tempfile.NamedTemporaryFile(prefix=f"{zip_name}", suffix=".zip", delete=False).name)
     with zipfile.ZipFile(zip_path, mode="w") as output_zip:
         for index, image in enumerate(album_instance.images.order_by("imageinalbum__sort_order").all()):
             if TYPE_CHECKING:

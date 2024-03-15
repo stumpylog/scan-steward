@@ -15,6 +15,7 @@ from scansteward.imageops.models import RotationEnum
 from scansteward.images.schemas import BoundingBox
 from scansteward.images.schemas import PersonWithBox
 from scansteward.people.schemas import PersonReadSchema
+from scansteward.pets.schemas import PetReadSchema
 
 
 class TimestampMixin(models.Model):
@@ -302,6 +303,26 @@ class Image(TimestampMixin, models.Model):
             boxes.append(
                 PersonWithBox(
                     person=PersonReadSchema.from_orm(person),
+                    box=BoundingBox(
+                        center_x=bounding_box.center_x,
+                        center_y=bounding_box.center_y,
+                        height=bounding_box.height,
+                        width=bounding_box.width,
+                    ),
+                ),
+            )
+        return boxes
+
+    @property
+    def pet_boxes(self) -> list[PetReadSchema]:
+        boxes = []
+        for pet in self.pets.all():
+            bounding_box = PetInImage.objects.filter(image=self, pet=pet).first()
+            if TYPE_CHECKING:
+                assert bounding_box is not None
+            boxes.append(
+                PersonWithBox(
+                    pet=PetReadSchema.from_orm(pet),
                     box=BoundingBox(
                         center_x=bounding_box.center_x,
                         center_y=bounding_box.center_y,

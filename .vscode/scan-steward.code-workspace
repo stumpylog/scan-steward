@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"name": "scan-steward",
+			"path": ".."
+		},
+		{
+			"name": "Backend",
+			"path": "../src-backend"
+		},
+		{
+			"name": "Frontend",
+			"path": "../src-frontend"
+		},
+		{
+			"name": "Docker",
+			"path": "../src-docker"
+		},
+		{
+			"name": "Documentation",
+			"path": "../src-docs"
+		}
+	],
+	"settings": {}
+}

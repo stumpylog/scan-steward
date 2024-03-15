@@ -12,8 +12,8 @@ from scansteward.models import Album
 from scansteward.models import Image
 from scansteward.tests.api.utils import FakerMixin
 from scansteward.tests.api.utils import GenerateImagesMixin
+from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import SampleDirMixin
-from scansteward.tests.mixins import TemporaryDirectoryMixin
 
 
 def create_single_album(client: Client, name: str, description: str | None = None) -> HttpResponse:
@@ -27,7 +27,7 @@ def create_single_album(client: Client, name: str, description: str | None = Non
     )
 
 
-class TestApiAlbumRead(FakerMixin, TestCase):
+class TestApiAlbumRead(FakerMixin, DirectoriesMixin, TestCase):
     def test_read_no_albums(self):
         Album.objects.all().delete()
         resp = self.client.get(
@@ -69,7 +69,7 @@ class TestApiAlbumRead(FakerMixin, TestCase):
         assert resp.json()["name"] == instance.name
 
 
-class TestApiAlbumCreate(FakerMixin, TestCase):
+class TestApiAlbumCreate(FakerMixin, DirectoriesMixin, TestCase):
 
     def test_create_album(self):
         album_name = self.faker.unique.name()
@@ -98,7 +98,7 @@ class TestApiAlbumCreate(FakerMixin, TestCase):
         assert Album.objects.get(id=data["id"]).images.count() == 0
 
 
-class TestApiAlbumUpdate(FakerMixin, TestCase):
+class TestApiAlbumUpdate(FakerMixin, DirectoriesMixin, TestCase):
 
     def test_update_album(self):
         album_name = self.faker.unique.name()
@@ -157,7 +157,7 @@ class TestApiAlbumUpdate(FakerMixin, TestCase):
         assert Album.objects.get(id=album_id).description == desc
 
 
-class TestApiAlbumDelete(FakerMixin, TestCase):
+class TestApiAlbumDelete(FakerMixin, DirectoriesMixin, TestCase):
     def test_delete_album(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
@@ -178,7 +178,7 @@ class TestApiAlbumDelete(FakerMixin, TestCase):
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
-class TestApiAlbumImages(GenerateImagesMixin, TestCase):
+class TestApiAlbumImages(GenerateImagesMixin, DirectoriesMixin, TestCase):
     def test_add_single_image(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
@@ -349,7 +349,7 @@ class TestApiAlbumImages(GenerateImagesMixin, TestCase):
         } == resp.json()
 
 
-class TestApiAlbumSorting(GenerateImagesMixin, TestCase):
+class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
     def test_update_sorting_reversed(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
@@ -448,7 +448,7 @@ class TestApiAlbumSorting(GenerateImagesMixin, TestCase):
         )
 
 
-class TestApiAlbumDownload(SampleDirMixin, TemporaryDirectoryMixin, FakerMixin, TestCase):
+class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCase):
 
     def download_test_common(self, *, use_original_download=False):
         # Create album with images
