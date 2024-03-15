@@ -75,6 +75,7 @@ extra:
     provider: mike
   analytics:
     provider: google
+    # TODO: Need to change to a new one
     property: G-P64Q8ZKMX3
   consent:
     title: Cookie consent
