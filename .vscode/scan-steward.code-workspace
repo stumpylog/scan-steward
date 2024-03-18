@@ -21,5 +21,24 @@
 			"path": "../src-docs"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"editor.formatOnSave": true,
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/.mypy_cache": true,
+			"**/.ruff_cache": true,
+			"**/.pytest_cache": true,
+			"**/.idea": true,
+			"**/.venv": true,
+			"**/.coverage": true,
+			"**/coverage.json": true
+		},
+		"python.analysis.extraPaths": [
+			"../src-backend/scansteward"
+		],
+		"python.defaultInterpreterPath": "../src-backend/.venv/bin/python3.exe",
+		"css.styleSheets": [
+			"../src-frontend/node_modules/bootstrap/dist/css/bootstrap.css"
+		]
+	}
 }
