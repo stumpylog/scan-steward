@@ -1,2 +1,40 @@
-data/scansteward.sqlite3
-coverage_html_report
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Ruff cache
+.ruff_cache/
+
+# Distribution / packaging
+dist/
+
+# Unit test / coverage reports
+coverage_html_report/
+.coverage
+.coverage.*
+.pytest_cache/
+coverage.xml
+coverage.json
+
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDEs
+.idea/
+
+# mypy
+.mypy_cache/
+
+# Possible PDF generated from testing
+tests/outputs/**
+
+# Documentation site
+site/
+.cache/
+
+data/
+media/

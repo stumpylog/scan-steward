@@ -1,0 +1,5 @@
+# EditorConfig: http://EditorConfig.org
+
+[*.py]
+indent_size = 4
+indent_style = space
