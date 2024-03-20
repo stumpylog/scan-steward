@@ -25,3 +25,7 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+## Links
+
+- <https://codesandbox.io/p/sandbox/add-rectangle-on-image-angular-bx9u2?file=%2Fsrc%2Fapp%2Fapp.component.ts>

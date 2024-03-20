@@ -1,8 +1,9 @@
 {
-  "printWidth": 110,
+  "printWidth": 88,
   "useTabs": false,
   "semi": true,
   "singleQuote": true,
   "bracketSpacing": true,
+  "bracketSameLine": true,
   "endOfLine": "lf"
 }
