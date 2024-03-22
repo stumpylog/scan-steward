@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { RecipeModel } from '../../shared/models/recipe.model';
 
 @Component({
@@ -20,5 +20,11 @@ export class RecipeListComponent {
     ),
   ];
 
+  @Output() recipeSelected = new EventEmitter<RecipeModel>();
+
   constructor() {}
+
+  onDetailEvent(currentRecipe: RecipeModel): void {
+    this.recipeSelected.emit(currentRecipe);
+  }
 }

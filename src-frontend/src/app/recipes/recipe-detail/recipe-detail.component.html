@@ -1,11 +1,14 @@
 <div class="row">
   <div class="col-sm-12">
-    <img src="" alt="" class="img-fluid" />
+    <img
+      src="{{ this.detailedRecipe.imagePath }}"
+      alt="{{ this.detailedRecipe.name }}"
+      class="img-thumbnail" />
   </div>
 </div>
 <div class="row">
   <div class="col-sm-12">
-    <h1>Recipe Name</h1>
+    <h1>{{ this.detailedRecipe.name }}</h1>
   </div>
 </div>
 <div class="row">
@@ -23,8 +26,8 @@
   </div>
 </div>
 <div class="row">
-  <div class="col-sm-12">Description</div>
+  <div class="col-sm-12">{{ this.detailedRecipe.description }}</div>
 </div>
 <div class="row">
-  <div class="col-sm-12">Ingredients</div>
+  <div class="col-sm-12">TODO</div>
 </div>

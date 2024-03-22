@@ -8,24 +8,12 @@
   <div class="col-sm-12">
     <ul class="list-group">
       <li class="list-group-item">
-        <a
-          href="#"
-          class="list-group-item clearfix"
-          *ngFor="let currentRecipe of this.recipes">
-          <div class="ms-2 me-auto">
-            <div class="float-start">
-              <div class="fw-bold">{{ currentRecipe.name }}</div>
-              <p class="list-group-item-text">{{ currentRecipe.description }}</p>
-            </div>
-            <img
-              class="img-thumbnail rounded float-end"
-              [src]="currentRecipe.imagePath"
-              alt="{{ currentRecipe.name }}"
-              style="height: 80px" />
-          </div>
-        </a>
+        @for (currentRecipe of this.recipes; track currentRecipe) {
+          <app-recipe-item
+            [inputRecipe]="currentRecipe"
+            (detailEvent)="this.onDetailEvent(currentRecipe)"></app-recipe-item>
+        }
       </li>
     </ul>
-    <app-recipe-item></app-recipe-item>
   </div>
 </div>

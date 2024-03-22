@@ -1,1 +1,13 @@
-<p>recipe-item works!</p>
+<a href="#" class="list-group-item clearfix" (click)="onDetailView($event)">
+  <div class="ms-2 me-auto">
+    <div class="float-start">
+      <div class="fw-bold">{{ inputRecipe.name }}</div>
+      <p class="list-group-item-text">{{ inputRecipe.description }}</p>
+    </div>
+    <img
+      class="img-thumbnail rounded float-end"
+      [src]="inputRecipe.imagePath"
+      alt="{{ inputRecipe.name }}"
+      style="height: 80px" />
+  </div>
+</a>
