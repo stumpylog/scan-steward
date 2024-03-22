@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 django-ninja = "*"
+django-countries = "*"
+"iso3166-2" = "*"
 # Task Queue
 taskiq = "*"
 taskiq-redis = "*"

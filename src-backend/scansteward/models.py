@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
+from django_countries.fields import CountryField
 
 from scansteward.imageops.models import RotationEnum
 from scansteward.images.schemas import BoundingBox
@@ -198,6 +199,45 @@ class ImageInAlbum(TimestampMixin, models.Model):
         ]
 
 
+class Location(TimestampMixin, models.Model):
+    """
+    Holds the information about a Location where an image was.
+
+    As much information should be filled in as possible, at least the country is required
+    """
+
+    country = CountryField(help_text="Country where the state, province or subdivision lies")
+    state = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="State, province or subdivision",
+    )
+    city = models.CharField(max_length=255, null=True, blank=True, help_text="City or town")
+    sub_location = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Detailed location within a city or Town",
+    )
+
+    class Meta:
+        constraints: Sequence = [
+            models.UniqueConstraint(fields=["country", "state"], name="country-to-state"),
+            models.UniqueConstraint(fields=["state", "city"], name="state-to-city"),
+            models.UniqueConstraint(fields=["city", "sub_location"], name="city-to-sub-location"),
+        ]
+
+    def valid_subdivisions(self) -> list[str]:
+        from iso3166_2 import ISO3166_2
+
+        if TYPE_CHECKING:
+            assert hasattr(self.country, "alpha3")
+            assert isinstance(self.country.alpha3, str)
+
+        return ISO3166_2()[self.country.alpha3]
+
+
 class Image(TimestampMixin, models.Model):
     """
     Holds the information about an Image
@@ -232,9 +272,13 @@ class Image(TimestampMixin, models.Model):
         help_text="MWG Orientation flag",
     )
 
-    country = models.CharField(max_length=100, null=True, blank=True, help_text="MWG Country tag")
-    state = models.CharField(max_length=100, null=True, blank=True, help_text="MWG State tag")
-    city = models.CharField(max_length=100, null=True, blank=True, help_text="MWG city tag")
+    location_field = models.ForeignKey(
+        Location,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Location where the image was taken, with as much refinement as possible",
+    )
 
     description = models.TextField(null=True, blank=True, help_text="MWG Description tag")
 
@@ -285,13 +329,13 @@ class Image(TimestampMixin, models.Model):
         if TYPE_CHECKING:
             assert hasattr(settings, "THUMBNAIL_DIR")
             assert isinstance(settings.THUMBNAIL_DIR, Path)
-        return (settings.THUMBNAIL_DIR / f"{self.pk:010}").with_suffix(".webp").resolve()
+        return (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
     @property
     def full_size_path(self) -> Path:
         if TYPE_CHECKING:
             assert isinstance(settings.FULL_SIZE_DIR, Path)
-        return (settings.FULL_SIZE_DIR / f"{self.pk:010}").with_suffix(".webp").resolve()
+        return (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
     @property
     def face_boxes(self) -> list[PersonWithBox]:
@@ -332,3 +376,7 @@ class Image(TimestampMixin, models.Model):
                 ),
             )
         return boxes
+
+    @property
+    def image_fs_id(self) -> str:
+        return f"{self.pk:010}"

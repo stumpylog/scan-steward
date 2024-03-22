@@ -477,7 +477,7 @@ class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCas
         if not use_original_download:
             resp = self.client.get(f"/api/album/{album_id}/download/")
         else:
-            resp = self.client.get(f"/api/album/{album_id}/download/?originals=True")
+            resp = self.client.get(f"/api/album/{album_id}/download/?zip_originals=True")
         assert resp.status_code == HTTPStatus.OK
 
         zipped_album = tmp_dir / "test.zip"

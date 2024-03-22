@@ -158,11 +158,19 @@ def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemo
             HTTPStatus.NOT_FOUND: {
                 "description": "Not Found Response",
             },
+            HTTPStatus.BAD_REQUEST: {
+                "description": "Sorting data did not match album image count",
+            },
         },
     },
 )
 def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpdate):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
+
+    if album_instance.images.count() != len(data.sorting):
+        msg = f"Album contains {album_instance.images.count()} images, but {len(data.sorting)} sorting values were provided."
+        logger.error(msg)
+        raise Http400Error(msg)
 
     with transaction.atomic():
 
@@ -226,7 +234,7 @@ async def delete_album(request: HttpRequest, album_id: int):
         },
     },
 )
-def download_album(request: HttpRequest, album_id: int, originals: bool = False):  # noqa: FBT001, FBT002
+def download_album(request: HttpRequest, album_id: int, zip_originals: bool = False):  # noqa: FBT001, FBT002
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     if album_instance.images.count() == 0:
@@ -242,7 +250,7 @@ def download_album(request: HttpRequest, album_id: int, originals: bool = False)
         for index, image in enumerate(album_instance.images.order_by("imageinalbum__sort_order").all()):
             if TYPE_CHECKING:
                 assert isinstance(image, Image)
-            if originals:
+            if zip_originals:
                 output_zip.write(image.original_path, arcname=f"{index + 1:010}{image.original_path.suffix}")
             else:
                 output_zip.write(
