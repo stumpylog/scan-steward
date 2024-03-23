@@ -4,6 +4,7 @@ from http import HTTPStatus
 from django.core.management import call_command
 from django.test import TestCase
 
+from scansteward.imageops.models import RotationEnum
 from scansteward.models import Image
 from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import FileSystemAssertsMixin
@@ -77,6 +78,12 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
         assert resp.status_code == HTTPStatus.OK
         assert {
             "albums": [],
+            "orientation": RotationEnum.HORIZONTAL.value,
+            "description": (
+                "President Barack Obama throws a ball for Bo, the family dog, "
+                "in the Rose Garden of the White House, Sept. 9, 2010.  "
+                "(Official White House Photo by Pete Souza)"
+            ),
             "face_boxes": [
                 {
                     "box": {
@@ -88,6 +95,7 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
                     "person": {"description": None, "id": 1, "name": "Barack Obama"},
                 },
             ],
+            "pet_boxes": [],
             "tags": [
                 {"applied": False, "description": None, "id": 1, "name": "Pets", "parent_id": None},
                 {"applied": False, "description": None, "id": 2, "name": "Dogs", "parent_id": 1},
@@ -96,4 +104,10 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
                 {"applied": False, "description": None, "id": 5, "name": "United States", "parent_id": 4},
                 {"applied": False, "description": None, "id": 6, "name": "Washington DC", "parent_id": 5},
             ],
+            "location": {
+                "city": "WASHINGTON",
+                "country_code": "US",
+                "sub_location": None,
+                "subdivision_code": "US-DC",
+            },
         } == resp.json()

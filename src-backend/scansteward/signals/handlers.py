@@ -2,6 +2,7 @@ from django.db import models
 from django.dispatch import receiver
 
 from scansteward.models import Image
+from scansteward.models import Location
 from scansteward.models import Person
 from scansteward.models import Pet
 
@@ -30,3 +31,8 @@ def mark_person_images_as_dirty(sender, instance: Person, **kwargs):
 @receiver(models.signals.post_save, sender=Pet)
 def mark_petimages_as_dirty(sender, instance: Pet, **kwargs):
     Image.objects.filter(pets__id=instance.pk).update(is_dirty=True)
+
+
+@receiver(models.signals.post_save, sender=Location)
+def mark_location_updates_as_dirty(sender, instance: Location, **kwargs):
+    Image.objects.filter(location=instance).update(is_dirty=True)

@@ -44,9 +44,11 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         assert img.full_size_path.exists()
         assert img.full_size_path.is_file()
 
-        assert img.city == "WASHINGTON"
-        assert img.country == "USA"
-        assert img.state == "DC"
+        assert img.location is not None
+        assert img.location.country_code == "US"
+        assert img.location.subdivision_code == "US-DC"
+        assert img.location.city == "WASHINGTON"
+        assert img.location.sub_location is None
 
         # Check the person was read correctly
         assert img.people.count() == 1

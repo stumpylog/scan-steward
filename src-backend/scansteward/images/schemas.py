@@ -1,4 +1,5 @@
 from ninja import Schema
+from pydantic_extra_types.country import CountryAlpha2
 
 from scansteward.common.schemas import SimpleNamedWithIdSchema
 from scansteward.imageops.models import RotationEnum
@@ -30,18 +31,21 @@ class PetWithBox(ThingWithBox):
     pet: PetReadSchema
 
 
+class ImageLocation(Schema):
+    country_code: CountryAlpha2
+    subdivision_code: str | None = None
+    city: str | None = None
+    sub_location: str | None = None
+
+
 class ImageDetailsRead(Schema):
     orientation: RotationEnum
     face_boxes: list[PersonWithBox] | None = None
     pet_boxes: list[PetWithBox] | None = None
     tags: list[TagRead] | None = None
     albums: list[Album] | None = None
-
-    country: str | None = None
-    state: str | None = None
-    city: str | None = None
-
     description: str | None = None
+    location: ImageLocation | None = None
 
 
 class ImageUpdateSchema(Schema):

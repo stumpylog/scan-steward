@@ -106,6 +106,7 @@ class ImageMetadata(BaseModel):
     Country: str | None = None
     City: str | None = None
     State: str | None = None
+    Location: str | None = None
 
     @field_serializer("SourceFile")
     def serialize_source_file(self, source_file: FilePath, _info) -> str:

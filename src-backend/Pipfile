@@ -5,8 +5,6 @@ name = "pypi"
 
 [packages]
 django-ninja = "*"
-django-countries = "*"
-"iso3166-2" = "*"
 pydantic_extra_types = {version = "*", extras = ["pycountry"] }
 # Task Queue
 taskiq = "*"

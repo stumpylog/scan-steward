@@ -68,13 +68,20 @@ ignore = [
   # Allow boolean positional values in function calls, like `dict.get(... True)`
   "FBT003",
   # Ignore checks for possible passwords
-  "S105", "S106", "S107",
+  "S105",
+  "S106",
+  "S107",
   # Ignore complexity
-  "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+  "C901",
+  "PLR0911",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915",
   # Ignore no author and missing issue link in TODO tags
-  "TD002", "TD003",
+  "TD002",
+  "TD003",
   # Ignore subprocess.run calls
-  "S603"
+  "S603",
 ]
 
 [tool.ruff.lint.isort]
@@ -99,10 +106,7 @@ DJANGO_SETTINGS_MODULE = "scansteward.settings"
 
 
 [tool.mypy]
-plugins = [
-  "pydantic.mypy",
-  "mypy_django_plugin.main"
-]
+plugins = ["pydantic.mypy", "mypy_django_plugin.main"]
 
 follow_imports = "silent"
 warn_redundant_casts = true
@@ -116,9 +120,9 @@ no_implicit_reexport = true
 
 [[tool.mypy.overrides]]
 module = [
-    "advanced_alchemy.extensions.litestar.dto",
-    "advanced_alchemy.base",
-    "advanced_alchemy.types",
+  "advanced_alchemy.extensions.litestar.dto",
+  "advanced_alchemy.base",
+  "advanced_alchemy.types",
 ]
 ignore_missing_imports = true
 
@@ -129,16 +133,15 @@ warn_required_dynamic_aliases = true
 
 [tool.coverage.run]
 branch = true
-omit = [
-  "*/tests/*"
-]
+omit = ["*/tests/*"]
 
 [tool.coverage.report]
 exclude_also = [
-    "def __repr__",
-    "if TYPE_CHECKING:",
-    "if proc.returncode != 0:"
-    ]
+  "def __repr__",
+  "if TYPE_CHECKING:",
+  "if proc.returncode != 0:",
+  "if sys.version_info > (3, 11):",
+]
 
 [tool.coverage.html]
 directory = "coverage_html_report"

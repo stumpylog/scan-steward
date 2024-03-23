@@ -447,6 +447,36 @@ class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
             == resp.json()
         )
 
+    def test_sorting_invalid_length(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+        for img in self.images:
+            resp = self.client.patch(
+                f"/api/album/{album_id}/add/",
+                content_type="application/json",
+                data={"image_id": img.pk},
+            )
+            assert resp.status_code == HTTPStatus.OK
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/sort/",
+            content_type="application/json",
+            data={
+                "sorting": [
+                    self.images[1].pk,
+                    self.images[3].pk,
+                ],
+            },
+        )
+
+        assert resp.status_code == HTTPStatus.BAD_REQUEST
+
 
 class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCase):
 

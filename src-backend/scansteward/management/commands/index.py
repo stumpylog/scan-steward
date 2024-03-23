@@ -10,7 +10,10 @@ from PIL import Image
 
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.models import KeywordStruct
+from scansteward.locations.utils import get_country_code_from_name
+from scansteward.locations.utils import get_subdivision_code_from_name
 from scansteward.models import Image as ImageModel
+from scansteward.models import Location
 from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
@@ -107,9 +110,6 @@ class Command(BaseCommand):
             source=self.source,
             orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
             description=metadata.Description,
-            country=metadata.Country,
-            state=metadata.State,
-            city=metadata.City,
             # This time cannot be dirty
             is_dirty=False,
         )
@@ -190,6 +190,23 @@ class Command(BaseCommand):
                     maybe_create_tag_tree(new_img, existing_root_tag, child)
         else:  # pragma: no cover
             self.stdout.write(self.style.SUCCESS("  No keywords"))
+
+        # Parse Location
+        if metadata.Country:
+            country_alpha_2 = get_country_code_from_name(metadata.Country)
+            if country_alpha_2:
+                subdivision_code = None
+                if metadata.State:
+                    subdivision_code = get_subdivision_code_from_name(country_alpha_2, metadata.State)
+                location, _ = Location.objects.get_or_create(
+                    country_code=country_alpha_2,
+                    subdivision_code=subdivision_code,
+                    city=metadata.City,
+                    sub_location=metadata.Location,
+                )
+                ImageModel.objects.filter(pk=new_img.pk).update(location=location)
+        else:  # pragma: no cover
+            self.stdout.write(self.style.SUCCESS("  No country set"))
 
         # And done.  Image cannot be dirty, use update to avoid getting marked as such
         ImageModel.objects.filter(pk=new_img.pk).update(is_dirty=False)

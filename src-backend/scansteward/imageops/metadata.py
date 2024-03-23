@@ -188,6 +188,7 @@ def bulk_read_image_metadata(
         "-MWG:Country",
         "-MWG:State",
         "-MWG:City",
+        "-MWG:Location",
     ]
 
     # Add the actual images

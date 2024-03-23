@@ -192,8 +192,8 @@ class ImageInAlbum(TimestampMixin, models.Model):
     sort_order = models.PositiveBigIntegerField(verbose_name="Order of this image in the album")
 
     class Meta:
-        ordering = ["sort_order"]  # noqa: RUF012
-        constraints = [  # noqa: RUF012
+        ordering: Sequence = ["sort_order"]
+        constraints: Sequence = [
             models.UniqueConstraint(fields=["sort_order", "album"], name="sorting-to-album"),
         ]
 
@@ -208,7 +208,6 @@ class Location(TimestampMixin, models.Model):
     country_code = models.CharField(
         max_length=4,
         db_index=True,
-        unique=True,
         help_text="Country code in ISO 3166-2 alpha 2 format",
     )
     subdivision_code = models.CharField(
@@ -228,10 +227,12 @@ class Location(TimestampMixin, models.Model):
     )
 
     class Meta:
+        ordering: Sequence = ["country_code", "subdivision_code", "city", "sub_location"]
         constraints: Sequence = [
-            models.UniqueConstraint(fields=["country", "state"], name="country-to-state"),
-            models.UniqueConstraint(fields=["state", "city"], name="state-to-city"),
-            models.UniqueConstraint(fields=["city", "sub_location"], name="city-to-sub-location"),
+            models.UniqueConstraint(
+                fields=["country_code", "subdivision_code", "city", "sub_location"],
+                name="unique-location",
+            ),
         ]
 
 
@@ -269,7 +270,7 @@ class Image(TimestampMixin, models.Model):
         help_text="MWG Orientation flag",
     )
 
-    location_field = models.ForeignKey(
+    location = models.ForeignKey(
         Location,
         on_delete=models.SET_NULL,
         null=True,

@@ -8,6 +8,7 @@ from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
 from scansteward.common.errors import Http400Error
+from scansteward.common.errors import Http409Error
 from scansteward.locations.schemas import LocationCreateSchema
 from scansteward.locations.schemas import LocationReadSchema
 from scansteward.locations.schemas import LocationUpdateSchema
@@ -50,32 +51,35 @@ async def get_single_location(request: HttpRequest, location_id: int):
                 "description": "Not Found Response",
             },
             HTTPStatus.BAD_REQUEST: {
-                "description": "Country already exists",
+                "description": "Subdivision provided without country",
+            },
+            HTTPStatus.CONFLICT: {
+                "description": "Location already exists",
             },
         },
     },
 )
 async def create_location(request: HttpRequest, data: LocationCreateSchema):
-    country_exists = await Location.objects.filter(country=data.country_alpha_2_code).aexists()
-    if country_exists:
-        msg = f"Location with country {data.country_alpha_2_code.short_name} already exists"
-        logger.error(msg)
-        raise Http400Error(msg)
 
-    elif data.subdivision_code and not subdivision_in_country(
-        data.country_alpha_2_code,
+    if data.subdivision_code and not subdivision_in_country(
+        data.country_code,
         data.subdivision_code,
     ):
-        msg = f"Subdivision {data.subdivision_code} is not in country {data.country_alpha_2_code}"
+        msg = f"Subdivision {data.subdivision_code} is not in country {data.country_code}"
         logger.error(msg)
         raise Http400Error(msg)
 
-    instance: Location = await Location.objects.acreate(
-        country_code=data.country_alpha_2_code,
+    instance, created = await Location.objects.aget_or_create(
+        country_code=data.country_code,
         subdivision_code=data.subdivision_code,
         city=data.city,
         sub_location=data.sub_location,
     )
+    if not created:
+        msg = "Location with provided fields already exists"
+        logger.error(msg)
+        raise Http409Error(msg)
+
     return HTTPStatus.CREATED, instance
 
 
@@ -92,32 +96,26 @@ async def create_location(request: HttpRequest, data: LocationCreateSchema):
 )
 async def update_location(request: HttpRequest, location_id: int, data: LocationUpdateSchema):
     # Validate that at least one field is provided to be updated
-    if not any([data.country_alpha_2_code, data.subdivision_code, data.city, data.sub_location]):
+    if not any([data.country_code, data.subdivision_code, data.city, data.sub_location]):
         msg = "At least one of the fields must be provided"
         logger.error(msg)
         raise Http400Error(msg)
 
-    if data.subdivision_code:
-        # Check that country code is provided when subdivision code is
-        if not data.country_alpha_2_code:
-            msg = "Country code must be provided when the subdivision is also provided"
-            logger.error(msg)
-            raise Http400Error(msg)
-        # Check that the provided subdivision code is in the country
-        elif not subdivision_in_country(
-            country_code=data.country_alpha_2_code,
-            subdivision_code=data.subdivision_code,
-        ):
-            msg = f"Subdivision {data.subdivision_code} is not in country {data.country_alpha_2_code}"
-            logger.error(msg)
-            raise Http400Error(msg)
+    # Check that the provided subdivision code is in the country
+    if data.subdivision_code and not subdivision_in_country(
+        country_code=data.country_code,
+        subdivision_code=data.subdivision_code,
+    ):
+        msg = f"Subdivision {data.subdivision_code} is not in country {data.country_code}"
+        logger.error(msg)
+        raise Http400Error(msg)
 
     # Retrieve the location object from the database
     instance: Location = await aget_object_or_404(Location, id=location_id)
 
     # Update the country
-    if data.country_alpha_2_code:
-        instance.country_code = str(data.country_alpha_2_code)
+    if data.country_code:
+        instance.country_code = str(data.country_code)
 
     # Update the subdivision/state/province value
     if data.subdivision_code:
