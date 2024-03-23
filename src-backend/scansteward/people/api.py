@@ -1,18 +1,21 @@
+import logging
 from http import HTTPStatus
 
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Router
-from ninja.errors import HttpError
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
+from scansteward.common.errors import Http400Error
 from scansteward.models import Person
 from scansteward.people.schemas import PersonCreateSchema
 from scansteward.people.schemas import PersonReadSchema
 from scansteward.people.schemas import PersonUpdateSchema
 
 router = Router(tags=["people"])
+
+logger = logging.getLogger(__name__)
 
 
 @router.get("/", response=list[PersonReadSchema])
@@ -54,10 +57,9 @@ async def get_single_person(request: HttpRequest, person_id: int):
 async def create_person(request: HttpRequest, data: PersonCreateSchema):
     person_name_exists = await Person.objects.filter(name=data.name).aexists()
     if person_name_exists:
-        raise HttpError(
-            HTTPStatus.BAD_REQUEST,
-            f"Tag named {data.name} already exists",
-        )
+        msg = f"Tag named {data.name} already exists"
+        logger.error(msg)
+        raise Http400Error(msg)
     instance: Person = await Person.objects.acreate(
         name=data.name,
         description=data.description,
@@ -77,6 +79,10 @@ async def create_person(request: HttpRequest, data: PersonCreateSchema):
     },
 )
 async def update_person(request: HttpRequest, person_id: int, data: PersonUpdateSchema):
+    if not any([data.name, data.description]):
+        msg = "At least one field must be updated"
+        logger.error(msg)
+        raise Http400Error(msg)
     instance: Person = await aget_object_or_404(Person, id=person_id)
     if data.name is not None:
         instance.name = data.name

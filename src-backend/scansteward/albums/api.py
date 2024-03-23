@@ -14,7 +14,6 @@ from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from ninja import Router
-from ninja.errors import HttpError
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
@@ -25,6 +24,7 @@ from scansteward.albums.schemas import AlbumRemoveImageSchema
 from scansteward.albums.schemas import AlbumSortUpdate
 from scansteward.albums.schemas import AlbumUpdateSchema
 from scansteward.albums.schemas import AlbumWithImagesReadSchema
+from scansteward.common.errors import Http400Error
 from scansteward.models import Album
 from scansteward.models import Image
 from scansteward.models import ImageInAlbum
@@ -32,10 +32,6 @@ from scansteward.models import ImageInAlbum
 router = Router(tags=["albums"])
 
 logger = logging.getLogger(__name__)
-
-
-class Http400Error(Exception):
-    pass
 
 
 @router.get("/", response=list[AlbumBasicReadSchema])
@@ -238,10 +234,9 @@ def download_album(request: HttpRequest, album_id: int, zip_originals: bool = Fa
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     if album_instance.images.count() == 0:
-        raise HttpError(
-            HTTPStatus.BAD_REQUEST,
-            f"Album {album_instance.name} has no images",
-        )
+        msg = f"Album {album_instance.name} has no images"
+        logger.error(msg)
+        raise Http400Error(msg)
 
     zip_name = slugify(album_instance.name)
     # TODO: Track and clean these up on a schedule

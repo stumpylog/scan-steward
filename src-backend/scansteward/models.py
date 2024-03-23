@@ -10,7 +10,6 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
-from django_countries.fields import CountryField
 
 from scansteward.imageops.models import RotationEnum
 from scansteward.images.schemas import BoundingBox
@@ -206,16 +205,23 @@ class Location(TimestampMixin, models.Model):
     As much information should be filled in as possible, at least the country is required
     """
 
-    country = CountryField(help_text="Country where the state, province or subdivision lies")
-    state = models.CharField(
-        max_length=255,
+    country_code = models.CharField(
+        max_length=4,
+        db_index=True,
+        unique=True,
+        help_text="Country code in ISO 3166-2 alpha 2 format",
+    )
+    subdivision_code = models.CharField(
+        max_length=12,  # Longest subdivision in the world is 6 characters, double that
+        db_index=True,
         null=True,
         blank=True,
-        help_text="State, province or subdivision",
+        help_text="State, province or subdivision ISO 3166-2 alpha 2 format",
     )
-    city = models.CharField(max_length=255, null=True, blank=True, help_text="City or town")
+    city = models.CharField(max_length=255, db_index=True, null=True, blank=True, help_text="City or town")
     sub_location = models.CharField(
         max_length=255,
+        db_index=True,
         null=True,
         blank=True,
         help_text="Detailed location within a city or Town",
@@ -227,15 +233,6 @@ class Location(TimestampMixin, models.Model):
             models.UniqueConstraint(fields=["state", "city"], name="state-to-city"),
             models.UniqueConstraint(fields=["city", "sub_location"], name="city-to-sub-location"),
         ]
-
-    def valid_subdivisions(self) -> list[str]:
-        from iso3166_2 import ISO3166_2
-
-        if TYPE_CHECKING:
-            assert hasattr(self.country, "alpha3")
-            assert isinstance(self.country.alpha3, str)
-
-        return ISO3166_2()[self.country.alpha3]
 
 
 class Image(TimestampMixin, models.Model):
