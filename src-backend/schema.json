@@ -1,0 +1,2258 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ScanSteward API",
+    "version": "1.0.0",
+    "description": ""
+  },
+  "paths": {
+    "/api/person/": {
+      "get": {
+        "operationId": "scansteward_people_api_get_all_people",
+        "summary": "Get All People",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPersonReadSchema"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["people"]
+      },
+      "post": {
+        "operationId": "scansteward_people_api_create_person",
+        "summary": "Create Person",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Tag Already Exists"
+          }
+        },
+        "tags": ["people"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonCreateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/person/{person_id}/": {
+      "get": {
+        "operationId": "scansteward_people_api_get_single_person",
+        "summary": "Get Single Person",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_id",
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["people"]
+      },
+      "patch": {
+        "operationId": "scansteward_people_api_update_person",
+        "summary": "Update Person",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_id",
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["people"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonUpdateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "delete": {
+        "operationId": "scansteward_people_api_delete_person",
+        "summary": "Delete Person",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "person_id",
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["people"]
+      }
+    },
+    "/api/tag/tree/": {
+      "get": {
+        "operationId": "scansteward_tags_api_get_tag_tree",
+        "summary": "Get Tag Tree",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TagTree"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["tags"]
+      }
+    },
+    "/api/tag/": {
+      "get": {
+        "operationId": "scansteward_tags_api_get_tags",
+        "summary": "Get Tags",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedTagRead"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["tags"]
+      },
+      "post": {
+        "operationId": "scansteward_tags_api_create_tag",
+        "summary": "Create Tag",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Tag Already Exists"
+          }
+        },
+        "tags": ["tags"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreate"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/tag/{tag_id}/": {
+      "get": {
+        "operationId": "scansteward_tags_api_get_single_tag",
+        "summary": "Get Single Tag",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tag_id",
+            "schema": {
+              "title": "Tag Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["tags"]
+      },
+      "patch": {
+        "operationId": "scansteward_tags_api_update_tag",
+        "summary": "Update Tag",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tag_id",
+            "schema": {
+              "title": "Tag Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["tags"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagUpdate"
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "delete": {
+        "operationId": "scansteward_tags_api_delete_tag",
+        "summary": "Delete Tag",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tag_id",
+            "schema": {
+              "title": "Tag Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["tags"]
+      }
+    },
+    "/api/image/{image_id}/thumbnail/": {
+      "get": {
+        "operationId": "scansteward_images_api_get_image_thumbnail",
+        "summary": "Get Image Thumbnail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["images"]
+      }
+    },
+    "/api/image/{image_id}/full/": {
+      "get": {
+        "operationId": "scansteward_images_api_get_image_full_size",
+        "summary": "Get Image Full Size",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["images"]
+      }
+    },
+    "/api/image/{image_id}/original/": {
+      "get": {
+        "operationId": "scansteward_images_api_get_image_original",
+        "summary": "Get Image Original",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["images"]
+      }
+    },
+    "/api/image/{image_id}/details/": {
+      "get": {
+        "operationId": "scansteward_images_api_get_image_details",
+        "summary": "Get Image Details",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageDetailsRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["images"]
+      }
+    },
+    "/api/album/": {
+      "get": {
+        "operationId": "scansteward_albums_api_get_albums",
+        "summary": "Get Albums",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedAlbumBasicReadSchema"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["albums"]
+      },
+      "post": {
+        "operationId": "scansteward_albums_api_create_album",
+        "summary": "Create Album",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumBasicReadSchema"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["albums"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumCreateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/album/{album_id}/": {
+      "get": {
+        "operationId": "scansteward_albums_api_get_album",
+        "summary": "Get Album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["albums"]
+      },
+      "patch": {
+        "operationId": "scansteward_albums_api_update_album",
+        "summary": "Update Album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumBasicReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["albums"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumUpdateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "delete": {
+        "operationId": "scansteward_albums_api_delete_album",
+        "summary": "Delete Album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["albums"]
+      }
+    },
+    "/api/album/{album_id}/add/": {
+      "patch": {
+        "operationId": "scansteward_albums_api_add_image_to_album",
+        "summary": "Add Image To Album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["albums"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumAddImageSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/album/{album_id}/remove/": {
+      "patch": {
+        "operationId": "scansteward_albums_api_remove_image_from_album",
+        "summary": "Remove Image From Album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["albums"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumRemoveImageSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/album/{album_id}/sort/": {
+      "patch": {
+        "operationId": "scansteward_albums_api_update_album_sorting",
+        "summary": "Update Album Sorting",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Sorting data did not match album image count"
+          }
+        },
+        "tags": ["albums"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumSortUpdate"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/album/{album_id}/download/": {
+      "get": {
+        "operationId": "scansteward_albums_api_download_album",
+        "summary": "Download Album",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "album_id",
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "zip_originals",
+            "schema": {
+              "default": false,
+              "title": "Zip Originals",
+              "type": "boolean"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "No images in album"
+          }
+        },
+        "tags": ["albums"]
+      }
+    },
+    "/api/pet/": {
+      "get": {
+        "operationId": "scansteward_pets_api_get_all_pets",
+        "summary": "Get All Pets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPetReadSchema"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["pets"]
+      },
+      "post": {
+        "operationId": "scansteward_pets_api_create_pet",
+        "summary": "Create Pet",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Tag Already Exists"
+          }
+        },
+        "tags": ["pets"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetCreateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/pet/{pet_id}/": {
+      "get": {
+        "operationId": "scansteward_pets_api_get_single_pet",
+        "summary": "Get Single Pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pet_id",
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["pets"]
+      },
+      "patch": {
+        "operationId": "scansteward_pets_api_update_pet",
+        "summary": "Update Pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pet_id",
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["pets"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetUpdateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "delete": {
+        "operationId": "scansteward_pets_api_delete_pet",
+        "summary": "Delete Pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pet_id",
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["pets"]
+      }
+    },
+    "/api/location/": {
+      "get": {
+        "operationId": "scansteward_locations_api_get_all_locations",
+        "summary": "Get All Locations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedLocationReadSchema"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["locations"]
+      },
+      "post": {
+        "operationId": "scansteward_locations_api_create_location",
+        "summary": "Create Location",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Subdivision provided without country"
+          },
+          "409": {
+            "description": "Location already exists"
+          }
+        },
+        "tags": ["locations"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationCreateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/location/{location_id}/": {
+      "get": {
+        "operationId": "scansteward_locations_api_get_single_location",
+        "summary": "Get Single Location",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "location_id",
+            "schema": {
+              "title": "Location Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["locations"]
+      },
+      "patch": {
+        "operationId": "scansteward_locations_api_update_location",
+        "summary": "Update Location",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "location_id",
+            "schema": {
+              "title": "Location Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationReadSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["locations"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationUpdateSchema"
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "delete": {
+        "operationId": "scansteward_locations_api_delete_location",
+        "summary": "Delete Location",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "location_id",
+            "schema": {
+              "title": "Location Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["locations"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Input": {
+        "properties": {
+          "limit": {
+            "default": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "title": "Input",
+        "type": "object"
+      },
+      "PagedPersonReadSchema": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PersonReadSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedPersonReadSchema",
+        "type": "object"
+      },
+      "PersonReadSchema": {
+        "description": "Schema when reading a person",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["name", "id"],
+        "title": "PersonReadSchema",
+        "type": "object"
+      },
+      "PersonCreateSchema": {
+        "description": "Schema to create a Person",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "required": ["name"],
+        "title": "PersonCreateSchema",
+        "type": "object"
+      },
+      "PersonUpdateSchema": {
+        "description": "Schema to update a person",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "title": "PersonUpdateSchema",
+        "type": "object"
+      },
+      "TagNameFilter": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "TagNameFilter",
+        "type": "object"
+      },
+      "TagTree": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "children": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TreeLikeSimpleNamedTree"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Children"
+          }
+        },
+        "required": ["name", "id"],
+        "title": "TagTree",
+        "type": "object"
+      },
+      "TreeLikeSimpleNamedTree": {
+        "description": "Common schema for reading the Tree",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "children": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TreeLikeSimpleNamedTree"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Children"
+          }
+        },
+        "required": ["name", "id"],
+        "title": "TreeLikeSimpleNamedTree",
+        "type": "object"
+      },
+      "PagedTagRead": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TagRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedTagRead",
+        "type": "object"
+      },
+      "TagRead": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "applied": {
+            "title": "Applied",
+            "type": "boolean"
+          }
+        },
+        "required": ["name", "id", "applied"],
+        "title": "TagRead",
+        "type": "object"
+      },
+      "TagCreate": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          }
+        },
+        "required": ["name"],
+        "title": "TagCreate",
+        "type": "object"
+      },
+      "TagUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          }
+        },
+        "title": "TagUpdate",
+        "type": "object"
+      },
+      "Album": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["name", "id"],
+        "title": "Album",
+        "type": "object"
+      },
+      "BoundingBox": {
+        "properties": {
+          "center_x": {
+            "title": "Center X",
+            "type": "number"
+          },
+          "center_y": {
+            "title": "Center Y",
+            "type": "number"
+          },
+          "height": {
+            "title": "Height",
+            "type": "number"
+          },
+          "width": {
+            "title": "Width",
+            "type": "number"
+          }
+        },
+        "required": ["center_x", "center_y", "height", "width"],
+        "title": "BoundingBox",
+        "type": "object"
+      },
+      "ImageDetailsRead": {
+        "properties": {
+          "orientation": {
+            "$ref": "#/components/schemas/RotationEnum"
+          },
+          "face_boxes": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PersonWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Face Boxes"
+          },
+          "pet_boxes": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PetWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pet Boxes"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TagRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "albums": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Album"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Albums"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageLocation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["orientation"],
+        "title": "ImageDetailsRead",
+        "type": "object"
+      },
+      "ImageLocation": {
+        "properties": {
+          "country_code": {
+            "pattern": "^\\w{2}$",
+            "title": "Country Code",
+            "type": "string"
+          },
+          "subdivision_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subdivision Code"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "sub_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Location"
+          }
+        },
+        "required": ["country_code"],
+        "title": "ImageLocation",
+        "type": "object"
+      },
+      "PersonWithBox": {
+        "properties": {
+          "box": {
+            "$ref": "#/components/schemas/BoundingBox"
+          },
+          "person": {
+            "$ref": "#/components/schemas/PersonReadSchema"
+          }
+        },
+        "required": ["box", "person"],
+        "title": "PersonWithBox",
+        "type": "object"
+      },
+      "PetReadSchema": {
+        "description": "Schema when reading a pet",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["name", "id"],
+        "title": "PetReadSchema",
+        "type": "object"
+      },
+      "PetWithBox": {
+        "properties": {
+          "box": {
+            "$ref": "#/components/schemas/BoundingBox"
+          },
+          "pet": {
+            "$ref": "#/components/schemas/PetReadSchema"
+          }
+        },
+        "required": ["box", "pet"],
+        "title": "PetWithBox",
+        "type": "object"
+      },
+      "RotationEnum": {
+        "description": "https://exiftool.org/TagNames/EXIF.html",
+        "enum": [1, 2, 3, 4, 5, 6, 7, 8],
+        "title": "RotationEnum",
+        "type": "integer"
+      },
+      "AlbumBasicReadSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["name", "id"],
+        "title": "AlbumBasicReadSchema",
+        "type": "object"
+      },
+      "PagedAlbumBasicReadSchema": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AlbumBasicReadSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedAlbumBasicReadSchema",
+        "type": "object"
+      },
+      "AlbumCreateSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "required": ["name"],
+        "title": "AlbumCreateSchema",
+        "type": "object"
+      },
+      "AlbumWithImagesReadSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "image_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Image Ids",
+            "type": "array"
+          }
+        },
+        "required": ["name", "id", "image_ids"],
+        "title": "AlbumWithImagesReadSchema",
+        "type": "object"
+      },
+      "AlbumUpdateSchema": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "title": "AlbumUpdateSchema",
+        "type": "object"
+      },
+      "AlbumAddImageSchema": {
+        "properties": {
+          "image_id": {
+            "title": "Image Id",
+            "type": "integer"
+          }
+        },
+        "required": ["image_id"],
+        "title": "AlbumAddImageSchema",
+        "type": "object"
+      },
+      "AlbumRemoveImageSchema": {
+        "properties": {
+          "image_id": {
+            "title": "Image Id",
+            "type": "integer"
+          }
+        },
+        "required": ["image_id"],
+        "title": "AlbumRemoveImageSchema",
+        "type": "object"
+      },
+      "AlbumSortUpdate": {
+        "properties": {
+          "sorting": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Sorting",
+            "type": "array"
+          }
+        },
+        "required": ["sorting"],
+        "title": "AlbumSortUpdate",
+        "type": "object"
+      },
+      "PagedPetReadSchema": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PetReadSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedPetReadSchema",
+        "type": "object"
+      },
+      "PetCreateSchema": {
+        "description": "Schema to create a Pet",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "required": ["name"],
+        "title": "PetCreateSchema",
+        "type": "object"
+      },
+      "PetUpdateSchema": {
+        "description": "Schema to update a pet",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "title": "PetUpdateSchema",
+        "type": "object"
+      },
+      "LocationReadSchema": {
+        "description": "Schema to create a Person",
+        "properties": {
+          "country_code": {
+            "pattern": "^\\w{2}$",
+            "title": "Country Code",
+            "type": "string"
+          },
+          "subdivision_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subdivision Code"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "sub_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Location"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": ["country_code", "id"],
+        "title": "LocationReadSchema",
+        "type": "object"
+      },
+      "PagedLocationReadSchema": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LocationReadSchema"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": ["items", "count"],
+        "title": "PagedLocationReadSchema",
+        "type": "object"
+      },
+      "LocationCreateSchema": {
+        "description": "Schema to create a Person",
+        "properties": {
+          "country_code": {
+            "pattern": "^\\w{2}$",
+            "title": "Country Code",
+            "type": "string"
+          },
+          "subdivision_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subdivision Code"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "sub_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Location"
+          }
+        },
+        "required": ["country_code"],
+        "title": "LocationCreateSchema",
+        "type": "object"
+      },
+      "LocationUpdateSchema": {
+        "description": "Schema to create a Person",
+        "properties": {
+          "country_code": {
+            "anyOf": [
+              {
+                "pattern": "^\\w{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
+          },
+          "subdivision_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subdivision Code"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "sub_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Location"
+          }
+        },
+        "title": "LocationUpdateSchema",
+        "type": "object"
+      }
+    }
+  },
+  "servers": []
+}
