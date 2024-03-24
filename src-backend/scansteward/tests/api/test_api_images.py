@@ -74,7 +74,7 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
         img = Image.objects.first()
         assert img is not None
 
-        resp = self.client.get(f"/api/image/{img.pk}/")
+        resp = self.client.get(f"/api/image/{img.pk}/details/")
         assert resp.status_code == HTTPStatus.OK
         assert {
             "albums": [],

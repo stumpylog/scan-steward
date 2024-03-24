@@ -73,7 +73,7 @@ def get_image_original(request: HttpRequest, image_id: int):
 
 
 @router.get(
-    "/{image_id}/",
+    "/{image_id}/details/",
     response={HTTPStatus.OK: ImageDetailsRead},
     openapi_extra={
         "responses": {

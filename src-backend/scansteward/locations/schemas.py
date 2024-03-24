@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING
 
 from ninja import Schema
 from pydantic import model_validator
-
-if TYPE_CHECKING:
-    from pydantic_extra_types.country import CountryAlpha2
+from pydantic_extra_types.country import CountryAlpha2
 
 if sys.version_info > (3, 11):
     from typing import Self
-
 else:
     from typing_extensions import Self
 
