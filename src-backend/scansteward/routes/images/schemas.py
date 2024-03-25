@@ -5,7 +5,7 @@ from pydantic_extra_types.country import CountryAlpha2
 
 from scansteward.common.schemas import SimpleNamedWithIdSchema
 from scansteward.imageops.models import RotationEnum
-from scansteward.tags.schemas import TagRead
+from scansteward.routes.tags.schemas import TagRead
 
 
 class Album(SimpleNamedWithIdSchema):

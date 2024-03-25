@@ -9,11 +9,11 @@ from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
 from scansteward.models import Tag
-from scansteward.tags.schemas import TagCreate
-from scansteward.tags.schemas import TagNameFilter
-from scansteward.tags.schemas import TagRead
-from scansteward.tags.schemas import TagTree
-from scansteward.tags.schemas import TagUpdate
+from scansteward.routes.tags.schemas import TagCreate
+from scansteward.routes.tags.schemas import TagNameFilter
+from scansteward.routes.tags.schemas import TagRead
+from scansteward.routes.tags.schemas import TagTree
+from scansteward.routes.tags.schemas import TagUpdate
 
 router = Router(tags=["tags"])
 

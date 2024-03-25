@@ -9,8 +9,6 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from scansteward.common.constants import WEBP_CONTENT_TYPE
-from scansteward.images.schemas import ImageDetailsRead
-from scansteward.images.schemas import ImageUpdateSchema
 from scansteward.models import Date
 from scansteward.models import Image
 from scansteward.models import Location
@@ -18,6 +16,8 @@ from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
 from scansteward.models import PetInImage
+from scansteward.routes.images.schemas import ImageDetailsRead
+from scansteward.routes.images.schemas import ImageUpdateSchema
 
 router = Router(tags=["images"])
 

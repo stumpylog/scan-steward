@@ -10,8 +10,6 @@ from PIL import Image
 
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.models import KeywordStruct
-from scansteward.locations.utils import get_country_code_from_name
-from scansteward.locations.utils import get_subdivision_code_from_name
 from scansteward.models import Image as ImageModel
 from scansteward.models import Location
 from scansteward.models import Person
@@ -19,6 +17,8 @@ from scansteward.models import PersonInImage
 from scansteward.models import Pet
 from scansteward.models import PetInImage
 from scansteward.models import Tag
+from scansteward.routes.locations.utils import get_country_code_from_name
+from scansteward.routes.locations.utils import get_subdivision_code_from_name
 
 
 class Verbosity(IntEnum):

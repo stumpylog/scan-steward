@@ -12,10 +12,9 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from scansteward.imageops.models import RotationEnum
-from scansteward.images.schemas import BoundingBox
-from scansteward.images.schemas import PersonWithBox
-from scansteward.people.schemas import PersonReadSchema
-from scansteward.pets.schemas import PetReadSchema
+from scansteward.routes.images.schemas import BoundingBox
+from scansteward.routes.images.schemas import PersonWithBox
+from scansteward.routes.pets.schemas import PetReadSchema
 
 
 class TimestampMixin(models.Model):
@@ -387,7 +386,7 @@ class Image(TimestampMixin, models.Model):
                 assert bounding_box is not None
             boxes.append(
                 PersonWithBox(
-                    person=PersonReadSchema.from_orm(person),
+                    person_id=person.pk,
                     box=BoundingBox(
                         center_x=bounding_box.center_x,
                         center_y=bounding_box.center_y,
@@ -407,7 +406,7 @@ class Image(TimestampMixin, models.Model):
                 assert bounding_box is not None
             boxes.append(
                 PersonWithBox(
-                    pet=PetReadSchema.from_orm(pet),
+                    pet_id=pet.pk,
                     box=BoundingBox(
                         center_x=bounding_box.center_x,
                         center_y=bounding_box.center_y,

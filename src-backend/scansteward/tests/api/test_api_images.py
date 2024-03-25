@@ -92,7 +92,7 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
                         "height": 0.0585652,
                         "width": 0.0292969,
                     },
-                    "person": {"description": None, "id": 1, "name": "Barack Obama"},
+                    "person_id": 1,
                 },
             ],
             "pet_boxes": [],
@@ -110,4 +110,5 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
                 "sub_location": None,
                 "subdivision_code": "US-DC",
             },
+            "date": None,
         } == resp.json()

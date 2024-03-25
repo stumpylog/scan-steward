@@ -17,17 +17,17 @@ from ninja import Router
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
-from scansteward.albums.schemas import AlbumAddImageSchema
-from scansteward.albums.schemas import AlbumBasicReadSchema
-from scansteward.albums.schemas import AlbumCreateSchema
-from scansteward.albums.schemas import AlbumRemoveImageSchema
-from scansteward.albums.schemas import AlbumSortUpdate
-from scansteward.albums.schemas import AlbumUpdateSchema
-from scansteward.albums.schemas import AlbumWithImagesReadSchema
 from scansteward.common.errors import Http400Error
 from scansteward.models import Album
 from scansteward.models import Image
 from scansteward.models import ImageInAlbum
+from scansteward.routes.albums.schemas import AlbumAddImageSchema
+from scansteward.routes.albums.schemas import AlbumBasicReadSchema
+from scansteward.routes.albums.schemas import AlbumCreateSchema
+from scansteward.routes.albums.schemas import AlbumRemoveImageSchema
+from scansteward.routes.albums.schemas import AlbumSortUpdate
+from scansteward.routes.albums.schemas import AlbumUpdateSchema
+from scansteward.routes.albums.schemas import AlbumWithImagesReadSchema
 
 router = Router(tags=["albums"])
 

@@ -8,9 +8,9 @@ from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
 from scansteward.models import Pet
-from scansteward.pets.schemas import PetCreateSchema
-from scansteward.pets.schemas import PetReadSchema
-from scansteward.pets.schemas import PetUpdateSchema
+from scansteward.routes.pets.schemas import PetCreateSchema
+from scansteward.routes.pets.schemas import PetReadSchema
+from scansteward.routes.pets.schemas import PetUpdateSchema
 
 router = Router(tags=["pets"])
 

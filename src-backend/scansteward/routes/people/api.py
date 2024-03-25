@@ -9,9 +9,9 @@ from ninja.pagination import paginate
 
 from scansteward.common.errors import Http400Error
 from scansteward.models import Person
-from scansteward.people.schemas import PersonCreateSchema
-from scansteward.people.schemas import PersonReadSchema
-from scansteward.people.schemas import PersonUpdateSchema
+from scansteward.routes.people.schemas import PersonCreateSchema
+from scansteward.routes.people.schemas import PersonReadSchema
+from scansteward.routes.people.schemas import PersonUpdateSchema
 
 router = Router(tags=["people"])
 

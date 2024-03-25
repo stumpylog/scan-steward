@@ -9,11 +9,11 @@ from ninja.pagination import paginate
 
 from scansteward.common.errors import Http400Error
 from scansteward.common.errors import Http409Error
-from scansteward.locations.schemas import LocationCreateSchema
-from scansteward.locations.schemas import LocationReadSchema
-from scansteward.locations.schemas import LocationUpdateSchema
-from scansteward.locations.utils import subdivision_in_country
 from scansteward.models import Location
+from scansteward.routes.locations.schemas import LocationCreateSchema
+from scansteward.routes.locations.schemas import LocationReadSchema
+from scansteward.routes.locations.schemas import LocationUpdateSchema
+from scansteward.routes.locations.utils import subdivision_in_country
 
 router = Router(tags=["locations"])
 
