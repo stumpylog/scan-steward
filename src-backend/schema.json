@@ -1856,6 +1856,7 @@
       "AlbumBasicReadSchema": {
         "properties": {
           "name": {
+            "description": "The name of the album",
             "title": "Name",
             "type": "string"
           },
@@ -1868,9 +1869,11 @@
                 "type": "null"
               }
             ],
+            "description": "The description of the album",
             "title": "Description"
           },
           "id": {
+            "description": "The id of the album",
             "title": "Id",
             "type": "integer"
           }
@@ -1900,6 +1903,7 @@
       "AlbumCreateSchema": {
         "properties": {
           "name": {
+            "description": "The name of the album",
             "title": "Name",
             "type": "string"
           },
@@ -1912,6 +1916,7 @@
                 "type": "null"
               }
             ],
+            "description": "The description of the album",
             "title": "Description"
           }
         },
@@ -1922,6 +1927,7 @@
       "AlbumWithImagesReadSchema": {
         "properties": {
           "name": {
+            "description": "The name of the album",
             "title": "Name",
             "type": "string"
           },
@@ -1934,13 +1940,16 @@
                 "type": "null"
               }
             ],
+            "description": "The description of the album",
             "title": "Description"
           },
           "id": {
+            "description": "The id of the album",
             "title": "Id",
             "type": "integer"
           },
           "image_ids": {
+            "description": "The ids of the images in this album in sorted order",
             "items": {
               "type": "integer"
             },
@@ -1963,6 +1972,7 @@
                 "type": "null"
               }
             ],
+            "description": "The new name of the album",
             "title": "Name"
           },
           "description": {
@@ -1974,6 +1984,7 @@
                 "type": "null"
               }
             ],
+            "description": "The new description of the album",
             "title": "Description"
           }
         },
@@ -1983,28 +1994,29 @@
       "AlbumAddImageSchema": {
         "properties": {
           "image_id": {
+            "description": "The id of the image to add to the album",
             "title": "Image Id",
             "type": "integer"
           }
         },
-        "required": ["image_id"],
         "title": "AlbumAddImageSchema",
         "type": "object"
       },
       "AlbumRemoveImageSchema": {
         "properties": {
           "image_id": {
+            "description": "The id of the image to remove from the album",
             "title": "Image Id",
             "type": "integer"
           }
         },
-        "required": ["image_id"],
         "title": "AlbumRemoveImageSchema",
         "type": "object"
       },
       "AlbumSortUpdate": {
         "properties": {
           "sorting": {
+            "description": "The new order of the images, with the index being the new position in the album",
             "items": {
               "type": "integer"
             },
@@ -2087,9 +2099,10 @@
         "type": "object"
       },
       "LocationReadSchema": {
-        "description": "Schema to create a Person",
+        "description": "Schema to create a Location",
         "properties": {
           "country_code": {
+            "description": "The ISO 3166-1 alpha-2 code of the country",
             "pattern": "^\\w{2}$",
             "title": "Country Code",
             "type": "string"
@@ -2103,6 +2116,7 @@
                 "type": "null"
               }
             ],
+            "description": "The ISO 3166-2 subdivision code of the location",
             "title": "Subdivision Code"
           },
           "city": {
@@ -2114,6 +2128,7 @@
                 "type": "null"
               }
             ],
+            "description": "The city of the location",
             "title": "City"
           },
           "sub_location": {
@@ -2125,9 +2140,11 @@
                 "type": "null"
               }
             ],
+            "description": "The location taken or shown",
             "title": "Sub Location"
           },
           "id": {
+            "description": "The id of the location",
             "title": "Id",
             "type": "integer"
           }
@@ -2155,9 +2172,10 @@
         "type": "object"
       },
       "LocationCreateSchema": {
-        "description": "Schema to create a Person",
+        "description": "Schema to create a Location",
         "properties": {
           "country_code": {
+            "description": "The ISO 3166-1 alpha-2 code of the country",
             "pattern": "^\\w{2}$",
             "title": "Country Code",
             "type": "string"
@@ -2171,6 +2189,7 @@
                 "type": "null"
               }
             ],
+            "description": "The ISO 3166-2 subdivision code of the location",
             "title": "Subdivision Code"
           },
           "city": {
@@ -2182,6 +2201,7 @@
                 "type": "null"
               }
             ],
+            "description": "The city of the location",
             "title": "City"
           },
           "sub_location": {
@@ -2193,6 +2213,7 @@
                 "type": "null"
               }
             ],
+            "description": "The location taken or shown",
             "title": "Sub Location"
           }
         },
@@ -2201,7 +2222,7 @@
         "type": "object"
       },
       "LocationUpdateSchema": {
-        "description": "Schema to create a Person",
+        "description": "Schema to create a Location",
         "properties": {
           "country_code": {
             "anyOf": [
@@ -2213,6 +2234,7 @@
                 "type": "null"
               }
             ],
+            "description": "The new ISO 3166-1 alpha-2 code of the country",
             "title": "Country Code"
           },
           "subdivision_code": {
@@ -2224,6 +2246,7 @@
                 "type": "null"
               }
             ],
+            "description": "The new ISO 3166-2 subdivision code of the location",
             "title": "Subdivision Code"
           },
           "city": {
@@ -2235,6 +2258,7 @@
                 "type": "null"
               }
             ],
+            "description": "The new city of the location",
             "title": "City"
           },
           "sub_location": {
@@ -2246,6 +2270,7 @@
                 "type": "null"
               }
             ],
+            "description": "The new location taken or shown",
             "title": "Sub Location"
           }
         },

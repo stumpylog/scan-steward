@@ -29,7 +29,14 @@ def create_single_album(client: Client, name: str, description: str | None = Non
 
 class TestApiAlbumRead(FakerMixin, DirectoriesMixin, TestCase):
     def test_read_no_albums(self):
-        Album.objects.all().delete()
+        """
+        GIVEN:
+            - No albums in the database
+        WHEN:
+            - Requesting to read all albums
+        THEN:
+            - Return an empty list of albums
+        """
         resp = self.client.get(
             "/api/album/",
         )
@@ -42,6 +49,14 @@ class TestApiAlbumRead(FakerMixin, DirectoriesMixin, TestCase):
         assert len(data["items"]) == 0
 
     def test_read_albums(self):
+        """
+        GIVEN:
+            - Albums in the database
+        WHEN:
+            - Requesting to read all albums
+        THEN:
+            - Return a list of albums
+        """
         count = 11
         names = []
         for _ in range(count):

@@ -91,6 +91,39 @@ class Pet(SimpleNamedModel, TimestampMixin, models.Model):
     Holds the information about a single person
     """
 
+    class PetTypeChoices(models.TextChoices):
+        CAT = "cat"
+        DOG = "dog"
+        HORSE = "horse"
+
+    pet_type = models.CharField(
+        max_length=10,
+        choices=PetTypeChoices.choices,
+        null=True,
+        blank=True,
+        help_text="The type of pet this is",
+    )
+
+
+class Date(TimestampMixin, models.Model):
+    """
+    The rough date of the image
+    """
+
+    date = models.DateField(unique=True, help_text="The date of the image, maybe not exact")
+
+    month_valid = models.BooleanField(default=False, help_text="Is the month of this date valid?")
+    day_valid = models.BooleanField(default=False, help_text="Is the day of this date valid?")
+
+    class Meta:
+        ordering: Sequence = ["date"]
+        constraints: Sequence = [
+            models.UniqueConstraint(
+                fields=["date", "month_valid", "day_valid"],
+                name="unique-date",
+            ),
+        ]
+
 
 class AbstractBoxInImage(TimestampMixin, models.Model):
     """
@@ -208,7 +241,7 @@ class Location(TimestampMixin, models.Model):
     country_code = models.CharField(
         max_length=4,
         db_index=True,
-        help_text="Country code in ISO 3166-2 alpha 2 format",
+        help_text="Country code in ISO 3166-1 alpha 2 format",
     )
     subdivision_code = models.CharField(
         max_length=12,  # Longest subdivision in the world is 6 characters, double that
@@ -275,7 +308,17 @@ class Image(TimestampMixin, models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name="images",
         help_text="Location where the image was taken, with as much refinement as possible",
+    )
+
+    date = models.ForeignKey(
+        Date,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="images",
+        help_text="Date when the image was taken, with as much refinement as possible",
     )
 
     description = models.TextField(null=True, blank=True, help_text="MWG Description tag")

@@ -1,10 +1,10 @@
+from datetime import date
+
 from ninja import Schema
 from pydantic_extra_types.country import CountryAlpha2
 
 from scansteward.common.schemas import SimpleNamedWithIdSchema
 from scansteward.imageops.models import RotationEnum
-from scansteward.people.schemas import PersonReadSchema
-from scansteward.pets.schemas import PetReadSchema
 from scansteward.tags.schemas import TagRead
 
 
@@ -24,11 +24,11 @@ class ThingWithBox(Schema):
 
 
 class PersonWithBox(ThingWithBox):
-    person: PersonReadSchema
+    person_id: int
 
 
 class PetWithBox(ThingWithBox):
-    pet: PetReadSchema
+    pet_id: int
 
 
 class ImageLocation(Schema):
@@ -36,6 +36,12 @@ class ImageLocation(Schema):
     subdivision_code: str | None = None
     city: str | None = None
     sub_location: str | None = None
+
+
+class ImageDate(Schema):
+    date: date
+    month_valid: bool
+    day_valid: bool
 
 
 class ImageDetailsRead(Schema):
@@ -46,6 +52,7 @@ class ImageDetailsRead(Schema):
     albums: list[Album] | None = None
     description: str | None = None
     location: ImageLocation | None = None
+    date: ImageDate | None = None
 
 
 class ImageUpdateSchema(Schema):
@@ -55,9 +62,8 @@ class ImageUpdateSchema(Schema):
     add_pets: list[PetWithBox] | None = None
     remove_pets: list[PetWithBox] | None = None
 
-    country: str | None = None
-    state: str | None = None
-    city: str | None = None
+    location_id: int | None = None
+    date_id: int | None = None
 
     description: str | None = None
 

@@ -6,6 +6,18 @@ from pycountry import SubdivisionHierarchy
 
 
 @lru_cache
+def subdivision_in_country(country_code: str, subdivision_code: str) -> bool:
+    """
+    Returns True if the given country code and subdivision code are valid together.
+    """
+
+    country_divisions = pycountry.subdivisions.get(country_code=country_code)  # type: ignore[assignment]
+    if TYPE_CHECKING:
+        country_divisions: set[SubdivisionHierarchy]
+    return any(division.code == subdivision_code for division in country_divisions)
+
+
+@lru_cache
 def get_subdivision_name_by_code(country_code: str, subdivision_code: str) -> str | None:
     """
     Returns the name of the given subdivision code in the given country code, or None if the subdivision is not valid.

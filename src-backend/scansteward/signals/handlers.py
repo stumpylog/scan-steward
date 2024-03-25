@@ -1,6 +1,7 @@
 from django.db import models
 from django.dispatch import receiver
 
+from scansteward.models import Date
 from scansteward.models import Image
 from scansteward.models import Location
 from scansteward.models import Person
@@ -23,16 +24,20 @@ def mark_image_as_dirty(sender, instance: Image, **kwargs):
     Image.objects.filter(pk=instance.pk).update(is_dirty=False)
 
 
-@receiver(models.signals.post_save, sender=Person)
-def mark_person_images_as_dirty(sender, instance: Person, **kwargs):
-    Image.objects.filter(people__id=instance.pk).update(is_dirty=True)
-
-
+# On change
 @receiver(models.signals.post_save, sender=Pet)
-def mark_petimages_as_dirty(sender, instance: Pet, **kwargs):
-    Image.objects.filter(pets__id=instance.pk).update(is_dirty=True)
-
-
+@receiver(models.signals.post_save, sender=Person)
 @receiver(models.signals.post_save, sender=Location)
-def mark_location_updates_as_dirty(sender, instance: Location, **kwargs):
-    Image.objects.filter(location=instance).update(is_dirty=True)
+@receiver(models.signals.post_save, sender=Date)
+# On delete
+@receiver(models.signals.pre_delete, sender=Pet)
+@receiver(models.signals.pre_delete, sender=Person)
+@receiver(models.signals.pre_delete, sender=Location)
+@receiver(models.signals.pre_delete, sender=Date)
+def mark_images_as_dirty_on_fk_change(
+    sender: type[Pet | Person | Location | Date],
+    instance: Pet | Person | Location | Date,
+    *args,
+    **kwargs,
+):
+    sender.objects.filter(people__id=instance.pk).update(is_dirty=True)
