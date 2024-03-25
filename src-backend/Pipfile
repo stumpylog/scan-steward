@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 django-ninja = "*"
 pydantic_extra_types = {version = "*", extras = ["pycountry"] }
+pycountry = "*"
 # Task Queue
 taskiq = "*"
 taskiq-redis = "*"
@@ -17,8 +18,8 @@ typing_extensions = { version = "*", markers="python_version < '3.11'"}
 # Server
 granian = "*"
 # Investigate
-iso8601 = "*"
-aniso8601 = "*"
+# iso8601 = "*"
+# aniso8601 = "*"
 
 [dev-packages]
 # Testing
