@@ -49,7 +49,7 @@ async def get_single_person(request: HttpRequest, person_id: int):
                 "description": "Not Found Response",
             },
             HTTPStatus.BAD_REQUEST: {
-                "description": "Tag Already Exists",
+                "description": "Person Already Exists",
             },
         },
     },
@@ -57,7 +57,7 @@ async def get_single_person(request: HttpRequest, person_id: int):
 async def create_person(request: HttpRequest, data: PersonCreateSchema):
     person_name_exists = await Person.objects.filter(name=data.name).aexists()
     if person_name_exists:
-        msg = f"Tag named {data.name} already exists"
+        msg = f"Person named {data.name} already exists"
         logger.error(msg)
         raise Http400Error(msg)
     instance: Person = await Person.objects.acreate(

@@ -104,7 +104,7 @@ class Pet(SimpleNamedModel, TimestampMixin, models.Model):
     )
 
 
-class Date(TimestampMixin, models.Model):
+class RoughDate(TimestampMixin, models.Model):
     """
     The rough date of the image
     """
@@ -312,12 +312,12 @@ class Image(TimestampMixin, models.Model):
     )
 
     date = models.ForeignKey(
-        Date,
+        RoughDate,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="images",
-        help_text="Date when the image was taken, with as much refinement as possible",
+        help_text="RoughDate when the image was taken, with as much refinement as possible",
     )
 
     description = models.TextField(null=True, blank=True, help_text="MWG Description tag")

@@ -19,16 +19,14 @@ class BoundingBox(Schema):
     width: float
 
 
-class ThingWithBox(Schema):
+class PersonWithBox(Schema):
+    person_id: int
     box: BoundingBox
 
 
-class PersonWithBox(ThingWithBox):
-    person_id: int
-
-
-class PetWithBox(ThingWithBox):
+class PetWithBox(Schema):
     pet_id: int
+    box: BoundingBox
 
 
 class ImageLocation(Schema):

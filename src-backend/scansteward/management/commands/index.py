@@ -1,3 +1,4 @@
+from datetime import date
 from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,6 +10,7 @@ from django.db import transaction
 from PIL import Image
 
 from scansteward.imageops.metadata import read_image_metadata
+from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordStruct
 from scansteward.models import Image as ImageModel
 from scansteward.models import Location
@@ -16,6 +18,7 @@ from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
 from scansteward.models import PetInImage
+from scansteward.models import RoughDate
 from scansteward.models import Tag
 from scansteward.routes.locations.utils import get_country_code_from_name
 from scansteward.routes.locations.utils import get_subdivision_code_from_name
@@ -124,7 +127,23 @@ class Command(BaseCommand):
         with Image.open(image_path) as im_file:
             im_file.save(new_img.full_size_path, quality=90)
 
-        # Parse Faces
+        # Parse Faces/pets/regions
+        self.parse_region_info(new_img, metadata)
+
+        # Parse Keywords
+        self.parse_keywords(new_img, metadata)
+
+        # Parse Location
+        self.parse_location(new_img, metadata)
+
+        # TODO: Parse date information from keywords?
+        self.parse_dates_from_keywords(new_img, metadata)
+
+        # And done.  Image cannot be dirty, use update to avoid getting marked as such
+        ImageModel.objects.filter(pk=new_img.pk).update(is_dirty=False)
+        self.stdout.write(self.style.SUCCESS("  indexing completed"))
+
+    def parse_region_info(self, new_image: ImageModel, metadata: ImageMetadata):
         self.stdout.write(self.style.SUCCESS("  Parsing regions"))
         if metadata.RegionInfo:
             for region in metadata.RegionInfo.RegionList:
@@ -136,7 +155,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f"  Found face for person {person.name}"))
                     _ = PersonInImage.objects.create(
                         person=person,
-                        image=new_img,
+                        image=new_image,
                         center_x=region.Area.X,
                         center_y=region.Area.Y,
                         height=region.Area.H,
@@ -150,7 +169,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f"  Found box for pet {pet.name}"))
                     _ = PetInImage.objects.create(
                         pet=pet,
-                        image=new_img,
+                        image=new_image,
                         center_x=region.Area.X,
                         center_y=region.Area.Y,
                         height=region.Area.H,
@@ -161,7 +180,7 @@ class Command(BaseCommand):
                 elif region.Type not in {"Face", "Pet"}:  # pragma: no cover
                     self.stdout.write(self.style.SUCCESS(f"  Skipping region of type {region.Type}"))
 
-        # Parse Keywords
+    def parse_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
         self.stdout.write(self.style.SUCCESS("  Parsing keywords"))
         if metadata.KeywordInfo:
 
@@ -185,13 +204,13 @@ class Command(BaseCommand):
                     parent=None,
                     applied=False if keyword.Applied is None else keyword.Applied,
                 )
-                new_img.tags.add(existing_root_tag)
+                new_image.tags.add(existing_root_tag)
                 for child in keyword.Children:
-                    maybe_create_tag_tree(new_img, existing_root_tag, child)
+                    maybe_create_tag_tree(new_image, existing_root_tag, child)
         else:  # pragma: no cover
             self.stdout.write(self.style.SUCCESS("  No keywords"))
 
-        # Parse Location
+    def parse_location(self, new_image: ImageModel, metadata: ImageMetadata):
         if metadata.Country:
             country_alpha_2 = get_country_code_from_name(metadata.Country)
             if country_alpha_2:
@@ -204,10 +223,46 @@ class Command(BaseCommand):
                     city=metadata.City,
                     sub_location=metadata.Location,
                 )
-                ImageModel.objects.filter(pk=new_img.pk).update(location=location)
+                ImageModel.objects.filter(pk=new_image.pk).update(location=location)
         else:  # pragma: no cover
             self.stdout.write(self.style.SUCCESS("  No country set"))
 
-        # And done.  Image cannot be dirty, use update to avoid getting marked as such
-        ImageModel.objects.filter(pk=new_img.pk).update(is_dirty=False)
-        self.stdout.write(self.style.SUCCESS("  indexing completed"))
+    def parse_dates_from_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
+
+        if metadata.KeywordInfo and metadata.KeywordInfo.Hierarchy:
+            root_nodes = metadata.KeywordInfo.Hierarchy
+            for child in root_nodes:
+                if child.Keyword.lower() == "Dates & Times".lower():
+                    if child.Children:
+                        for year_level in child.Children:
+                            try:
+                                year = int(year_level.Keyword)
+                                month = 1
+                                month_valid = False
+                                for month_level in year_level.Children:
+                                    try:
+                                        # Months are 10 - October, 11 - November, etc.
+                                        month = int(month_level.Keyword.split("-")[0])
+                                        month_valid = True
+                                        day = 1
+                                        day_valid = False
+                                        for day_level in month_level.Children:
+                                            try:
+                                                day = int(day_level.Keyword)
+                                                day_valid = True
+                                            except TypeError as e:  # noqa: PERF203
+                                                self.stderr.write(self.style.ERROR(f"{e}"))
+                                    except TypeError as e:  # noqa: PERF203
+                                        self.stderr.write(self.style.ERROR(f"{e}"))
+
+                                rough_date, _ = RoughDate.objects.get_or_create(
+                                    date=date(year=year, month=month, day=day),
+                                    month_valid=month_valid,
+                                    day_valid=day_valid,
+                                )
+                                new_image.date = rough_date
+                                break
+                            except TypeError as e:
+                                self.stderr.write(self.style.ERROR(f"{e}"))
+                                continue
+                    break
