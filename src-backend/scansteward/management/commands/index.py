@@ -7,6 +7,7 @@ from typing import Final
 from blake3 import blake3
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from imagehash import average_hash
 from PIL import Image
 
 from scansteward.imageops.metadata import read_image_metadata
@@ -106,6 +107,9 @@ class Command(BaseCommand):
 
         metadata = read_image_metadata(image_path)
 
+        with Image.open(image_path) as im_file:
+            p_hash = average_hash(im_file)
+
         new_img = ImageModel.objects.create(
             file_size=image_path.stat().st_size,
             checksum=image_hash,
@@ -113,6 +117,7 @@ class Command(BaseCommand):
             source=self.source,
             orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
             description=metadata.Description,
+            phash=str(p_hash),
             # This time cannot be dirty
             is_dirty=False,
         )

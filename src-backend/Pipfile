@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 django-ninja = "*"
-pydantic_extra_types = {version = "*", extras = ["pycountry"] }
+pydantic_extra_types = "*"
 pycountry = "*"
 # Task Queue
 taskiq = "*"
@@ -15,6 +15,7 @@ redis = { version = "*", extras = ["hiredis"] }
 blake3 = "*"
 orjson = "*"
 typing_extensions = { version = "*", markers="python_version < '3.11'"}
+imagehash = "*"
 # Server
 granian = "*"
 # Investigate

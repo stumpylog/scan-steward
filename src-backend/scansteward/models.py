@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from scansteward.routes.pets.schemas import PetReadSchema
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
@@ -14,7 +16,6 @@ from django.db import models
 from scansteward.imageops.models import RotationEnum
 from scansteward.routes.images.schemas import BoundingBox
 from scansteward.routes.images.schemas import PersonWithBox
-from scansteward.routes.pets.schemas import PetReadSchema
 
 
 class TimestampMixin(models.Model):
@@ -289,6 +290,14 @@ class Image(TimestampMixin, models.Model):
         db_index=True,
         verbose_name="blake3 hex digest",
         help_text="The BLAKE3 checksum of the original file",
+    )
+
+    phash = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        verbose_name="perceptual average hash of the image",
+        help_text="The pHash (average) of the original file",
     )
 
     file_size = models.PositiveBigIntegerField(
