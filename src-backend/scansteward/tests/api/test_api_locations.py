@@ -95,6 +95,16 @@ class TestCreateLocation(TestCase):
         assert resp.status_code == HTTPStatus.BAD_REQUEST
         assert Location.objects.count() == 0
 
+    def test_location_create_invalid_country(self):
+        resp = self.client.post(
+            "/api/location/",
+            content_type="application/json",
+            data={"country_code": "XX"},
+        )
+
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert Location.objects.count() == 0
+
     def test_location_already_exists(self):
         resp = self.client.post(
             "/api/location/",

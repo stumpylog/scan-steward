@@ -101,15 +101,6 @@ async def update_location(request: HttpRequest, location_id: int, data: Location
         logger.error(msg)
         raise Http400Error(msg)
 
-    # Check that the provided subdivision code is in the country
-    if data.subdivision_code and not subdivision_in_country(
-        country_code=data.country_code,
-        subdivision_code=data.subdivision_code,
-    ):
-        msg = f"Subdivision {data.subdivision_code} is not in country {data.country_code}"
-        logger.error(msg)
-        raise Http400Error(msg)
-
     # Retrieve the location object from the database
     instance: Location = await aget_object_or_404(Location, id=location_id)
 
