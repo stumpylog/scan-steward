@@ -59,9 +59,7 @@ class Command(BaseCommand):
         for path in options["paths"]:
             if TYPE_CHECKING:
                 assert isinstance(path, Path)
-            for file_generator in [
-                path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS
-            ]:
+            for file_generator in [path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS]:
                 for filename in file_generator:
                     self.stdout.write(self.style.SUCCESS(f"Indexing {filename.name}"))
                     self.handle_single_image(filename)
@@ -124,8 +122,7 @@ class Command(BaseCommand):
             checksum=image_hash,
             original=str(image_path.resolve()),
             source=self.source,
-            orientation=metadata.Orientation
-            or ImageModel.OrientationChoices.HORIZONTAL,
+            orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
             description=metadata.Description,
             phash=str(p_hash),
             # This time cannot be dirty

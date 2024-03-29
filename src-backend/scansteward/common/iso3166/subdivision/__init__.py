@@ -27,7 +27,5 @@ def valid_subdivision_code(subdivision_code: str) -> bool:
     if not module_path.exists():
         return False
     module = importlib.import_module(f".{country_code}", package=__name__)
-    subdivision_codes: str[str] = {
-        subdivision.code for subdivision in module.SUBDIVISIONS
-    }
+    subdivision_codes: str[str] = {subdivision.code for subdivision in module.SUBDIVISIONS}
     return subdivision_code in subdivision_codes

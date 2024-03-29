@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING
 
 from ninja import Field
 from ninja import Schema
 from pydantic import model_validator
 
+from scansteward.common.iso3166.pydantic import CountryAlpha2  # noqa: TCH001
 from scansteward.routes.locations.utils import subdivision_in_country
-
-if TYPE_CHECKING:
-    from scansteward.common.iso3166.pydantic import CountryAlpha2
 
 if sys.version_info > (3, 11):
     from typing import Self

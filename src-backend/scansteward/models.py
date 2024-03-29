@@ -330,13 +330,9 @@ class Image(TimestampMixin, models.Model):
         MIRROR_HORIZONTAL = RotationEnum.MIRROR_HORIZONTAL.value
         ROTATE_180 = RotationEnum.ROTATE_180.value
         MIRROR_VERTICAL = RotationEnum.MIRROR_VERTICAL.value
-        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = (
-            RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_270_CW.value
-        )
+        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_270_CW.value
         ROTATE_90_CW = RotationEnum.ROTATE_90_CW.value
-        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = (
-            RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
-        )
+        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
         ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
 
     checksum = models.CharField(
@@ -437,17 +433,13 @@ class Image(TimestampMixin, models.Model):
         if TYPE_CHECKING:
             assert hasattr(settings, "THUMBNAIL_DIR")
             assert isinstance(settings.THUMBNAIL_DIR, Path)
-        return (
-            (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
-        )
+        return (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
     @property
     def full_size_path(self) -> Path:
         if TYPE_CHECKING:
             assert isinstance(settings.FULL_SIZE_DIR, Path)
-        return (
-            (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
-        )
+        return (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
     @property
     def face_boxes(self) -> list[PersonWithBox]:
