@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+httpx = "*"
+typer = "*"
+orjson = "*"
+rapidfuzz = "*"
+
+[dev-packages]
+psutil = "*"
+humanize = "*"
+
+[requires]
+python_version = "3.10"
