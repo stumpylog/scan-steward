@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from functools import cached_property, lru_cache
+from functools import cached_property
 
 from typing import Generator
 
@@ -25,8 +25,7 @@ class Country:
     )
     subdivisions_loaded: bool = field(init=False, default=False, repr=False)
 
-    @lru_cache
-    def __contains__(self, subdivision_code: str) -> bool:
+    def contains_subdivision(self, subdivision_code: str) -> bool:
         self._check_and_load()
         return subdivision_code in self.actual_subdivisions
 
@@ -43,12 +42,10 @@ class Country:
         for sub in self.actual_subdivisions:
             yield self.actual_subdivisions[sub]
 
-    @lru_cache
     def get_subdivision(self, subdivision_code: str) -> Subdivision | None:
         self._check_and_load()
         return self.actual_subdivisions.get(subdivision_code)
 
-    @lru_cache
     def get_subdivision_name(self, subdivision_code: str) -> str | None:
         self._check_and_load()
         subdivision = self.get_subdivision(subdivision_code)

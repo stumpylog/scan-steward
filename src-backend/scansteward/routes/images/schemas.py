@@ -1,8 +1,8 @@
 from datetime import date
 
 from ninja import Schema
-from pydantic_extra_types.country import CountryAlpha2
 
+from scansteward.common.iso3166.pydantic import CountryAlpha2
 from scansteward.common.schemas import SimpleNamedWithIdSchema
 from scansteward.imageops.models import RotationEnum
 from scansteward.routes.tags.schemas import TagRead

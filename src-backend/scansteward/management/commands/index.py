@@ -59,14 +59,19 @@ class Command(BaseCommand):
         for path in options["paths"]:
             if TYPE_CHECKING:
                 assert isinstance(path, Path)
-            for file_generator in [path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS]:
+            for file_generator in [
+                path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS
+            ]:
                 for filename in file_generator:
                     self.stdout.write(self.style.SUCCESS(f"Indexing {filename.name}"))
                     self.handle_single_image(filename)
 
     def handle_single_image(self, image_path: Path) -> None:
         # Duplicate check
-        image_hash = blake3(image_path.read_bytes(), max_threads=self.threads).hexdigest()
+        image_hash = blake3(
+            image_path.read_bytes(),
+            max_threads=self.threads,
+        ).hexdigest()
 
         # Update or create
         with transaction.atomic():
@@ -76,7 +81,11 @@ class Command(BaseCommand):
             else:
                 self.handle_new_image(image_path, image_hash)
 
-    def handle_existing_image(self, existing_image: ImageModel, image_path: Path) -> None:
+    def handle_existing_image(
+        self,
+        existing_image: ImageModel,
+        image_path: Path,
+    ) -> None:
         self.stdout.write(self.style.NOTICE("  Image already indexed"))
         # Clear the source if requested
         if self.clear_source and existing_image.source is not None:
@@ -115,7 +124,8 @@ class Command(BaseCommand):
             checksum=image_hash,
             original=str(image_path.resolve()),
             source=self.source,
-            orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
+            orientation=metadata.Orientation
+            or ImageModel.OrientationChoices.HORIZONTAL,
             description=metadata.Description,
             phash=str(p_hash),
             # This time cannot be dirty
@@ -157,7 +167,9 @@ class Command(BaseCommand):
                     if region.Description:
                         person.description = region.Description
                         person.save()
-                    self.stdout.write(self.style.SUCCESS(f"  Found face for person {person.name}"))
+                    self.stdout.write(
+                        self.style.SUCCESS(f"  Found face for person {person.name}"),
+                    )
                     _ = PersonInImage.objects.create(
                         person=person,
                         image=new_image,
@@ -171,7 +183,9 @@ class Command(BaseCommand):
                     if region.Description:
                         pet.description = region.Description
                         pet.save()
-                    self.stdout.write(self.style.SUCCESS(f"  Found box for pet {pet.name}"))
+                    self.stdout.write(
+                        self.style.SUCCESS(f"  Found box for pet {pet.name}"),
+                    )
                     _ = PetInImage.objects.create(
                         pet=pet,
                         image=new_image,
@@ -181,15 +195,23 @@ class Command(BaseCommand):
                         width=region.Area.W,
                     )
                 elif not region.Name:  # pragma: no cover
-                    self.stdout.write(self.style.SUCCESS("  Skipping region with empty Name"))
+                    self.stdout.write(
+                        self.style.SUCCESS("  Skipping region with empty Name"),
+                    )
                 elif region.Type not in {"Face", "Pet"}:  # pragma: no cover
-                    self.stdout.write(self.style.SUCCESS(f"  Skipping region of type {region.Type}"))
+                    self.stdout.write(
+                        self.style.SUCCESS(f"  Skipping region of type {region.Type}"),
+                    )
 
     def parse_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
         self.stdout.write(self.style.SUCCESS("  Parsing keywords"))
         if metadata.KeywordInfo:
 
-            def maybe_create_tag_tree(image_instance: ImageModel, parent: Tag, tree_node: KeywordStruct):
+            def maybe_create_tag_tree(
+                image_instance: ImageModel,
+                parent: Tag,
+                tree_node: KeywordStruct,
+            ):
                 existing_node, _ = Tag.objects.get_or_create(
                     name=tree_node.Keyword,
                     parent=parent,
@@ -221,7 +243,10 @@ class Command(BaseCommand):
             if country_alpha_2:
                 subdivision_code = None
                 if metadata.State:
-                    subdivision_code = get_subdivision_code_from_name(country_alpha_2, metadata.State)
+                    subdivision_code = get_subdivision_code_from_name(
+                        country_alpha_2,
+                        metadata.State,
+                    )
                 location, _ = Location.objects.get_or_create(
                     country_code=country_alpha_2,
                     subdivision_code=subdivision_code,
@@ -237,7 +262,7 @@ class Command(BaseCommand):
         if metadata.KeywordInfo and metadata.KeywordInfo.Hierarchy:
             root_nodes = metadata.KeywordInfo.Hierarchy
             for child in root_nodes:
-                if child.Keyword.lower() == "Dates & Times".lower():
+                if child.Keyword.lower() == "Dates and Times".lower():
                     if child.Children:
                         for year_level in child.Children:
                             try:
@@ -256,7 +281,9 @@ class Command(BaseCommand):
                                                 day = int(day_level.Keyword)
                                                 day_valid = True
                                             except TypeError as e:  # noqa: PERF203
-                                                self.stderr.write(self.style.ERROR(f"{e}"))
+                                                self.stderr.write(
+                                                    self.style.ERROR(f"{e}"),
+                                                )
                                     except TypeError as e:  # noqa: PERF203
                                         self.stderr.write(self.style.ERROR(f"{e}"))
 

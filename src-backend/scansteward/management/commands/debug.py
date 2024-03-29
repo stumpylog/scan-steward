@@ -7,17 +7,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         max_length = 0
-        max_name = None
-        max_country = None
         iso = ISO3166_2()
         for country in iso.subdivision_codes():
-            print(country)
             for region in iso[country]:
-                print(region)
                 if len(region) > max_length:
-                    max_name = region
-                    max_country = country
                     max_length = len(region)
-        print(max_country)
-        print(max_length)
-        print(max_name)

@@ -5,8 +5,7 @@ name = "pypi"
 
 [packages]
 django-ninja = "*"
-pydantic_extra_types = "*"
-pycountry = "*"
+django-typer = "*"
 # Task Queue
 taskiq = "*"
 taskiq-redis = "*"

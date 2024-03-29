@@ -13,6 +13,7 @@ from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from scansteward.common.iso3166.country import get_country_by_code
 from scansteward.imageops.models import RotationEnum
 from scansteward.routes.images.schemas import BoundingBox
 from scansteward.routes.images.schemas import PersonWithBox
@@ -110,10 +111,19 @@ class RoughDate(TimestampMixin, models.Model):
     The rough date of the image
     """
 
-    date = models.DateField(unique=True, help_text="The date of the image, maybe not exact")
+    date = models.DateField(
+        unique=True,
+        help_text="The date of the image, maybe not exact",
+    )
 
-    month_valid = models.BooleanField(default=False, help_text="Is the month of this date valid?")
-    day_valid = models.BooleanField(default=False, help_text="Is the day of this date valid?")
+    month_valid = models.BooleanField(
+        default=False,
+        help_text="Is the month of this date valid?",
+    )
+    day_valid = models.BooleanField(
+        default=False,
+        help_text="Is the day of this date valid?",
+    )
 
     class Meta:
         ordering: Sequence = ["date"]
@@ -204,7 +214,12 @@ class Album(SimpleNamedModel, TimestampMixin, models.Model):
     )
 
     def image_ids(self) -> list[int]:
-        return self.images.order_by("imageinalbum__sort_order").values_list("id", flat=True)
+        return list(
+            self.images.order_by("imageinalbum__sort_order").values_list(
+                "id",
+                flat=True,
+            ),
+        )
 
 
 class ImageInAlbum(TimestampMixin, models.Model):
@@ -222,12 +237,17 @@ class ImageInAlbum(TimestampMixin, models.Model):
         on_delete=models.CASCADE,
     )
 
-    sort_order = models.PositiveBigIntegerField(verbose_name="Order of this image in the album")
+    sort_order = models.PositiveBigIntegerField(
+        verbose_name="Order of this image in the album",
+    )
 
     class Meta:
         ordering: Sequence = ["sort_order"]
         constraints: Sequence = [
-            models.UniqueConstraint(fields=["sort_order", "album"], name="sorting-to-album"),
+            models.UniqueConstraint(
+                fields=["sort_order", "album"],
+                name="sorting-to-album",
+            ),
         ]
 
 
@@ -250,7 +270,13 @@ class Location(TimestampMixin, models.Model):
         blank=True,
         help_text="State, province or subdivision ISO 3166-2 alpha 2 format",
     )
-    city = models.CharField(max_length=255, db_index=True, null=True, blank=True, help_text="City or town")
+    city = models.CharField(
+        max_length=255,
+        db_index=True,
+        null=True,
+        blank=True,
+        help_text="City or town",
+    )
     sub_location = models.CharField(
         max_length=255,
         db_index=True,
@@ -260,13 +286,38 @@ class Location(TimestampMixin, models.Model):
     )
 
     class Meta:
-        ordering: Sequence = ["country_code", "subdivision_code", "city", "sub_location"]
+        ordering: Sequence = [
+            "country_code",
+            "subdivision_code",
+            "city",
+            "sub_location",
+        ]
         constraints: Sequence = [
             models.UniqueConstraint(
                 fields=["country_code", "subdivision_code", "city", "sub_location"],
                 name="unique-location",
             ),
         ]
+
+    @property
+    def country_name(self) -> str:
+
+        country = get_country_by_code(self.country_code)
+        if TYPE_CHECKING:
+            # The code is validated
+            assert country is not None
+
+        return country.name
+
+    @property
+    def subdivision_name(self) -> str | None:
+        if not self.subdivision_code:
+            return None
+        country = get_country_by_code(self.country_code)
+        if TYPE_CHECKING:
+            # The code is validated
+            assert country is not None
+        return country.get_subdivision_name(self.subdivision_code)
 
 
 class Image(TimestampMixin, models.Model):
@@ -279,9 +330,13 @@ class Image(TimestampMixin, models.Model):
         MIRROR_HORIZONTAL = RotationEnum.MIRROR_HORIZONTAL.value
         ROTATE_180 = RotationEnum.ROTATE_180.value
         MIRROR_VERTICAL = RotationEnum.MIRROR_VERTICAL.value
-        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_270_CW.value
+        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = (
+            RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_270_CW.value
+        )
         ROTATE_90_CW = RotationEnum.ROTATE_90_CW.value
-        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
+        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = (
+            RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
+        )
         ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
 
     checksum = models.CharField(
@@ -329,7 +384,11 @@ class Image(TimestampMixin, models.Model):
         help_text="RoughDate when the image was taken, with as much refinement as possible",
     )
 
-    description = models.TextField(null=True, blank=True, help_text="MWG Description tag")
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text="MWG Description tag",
+    )
 
     source = models.CharField(
         max_length=100,
@@ -378,19 +437,26 @@ class Image(TimestampMixin, models.Model):
         if TYPE_CHECKING:
             assert hasattr(settings, "THUMBNAIL_DIR")
             assert isinstance(settings.THUMBNAIL_DIR, Path)
-        return (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+        return (
+            (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+        )
 
     @property
     def full_size_path(self) -> Path:
         if TYPE_CHECKING:
             assert isinstance(settings.FULL_SIZE_DIR, Path)
-        return (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+        return (
+            (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+        )
 
     @property
     def face_boxes(self) -> list[PersonWithBox]:
         boxes = []
         for person in self.people.all():
-            bounding_box = PersonInImage.objects.filter(image=self, person=person).first()
+            bounding_box = PersonInImage.objects.filter(
+                image=self,
+                person=person,
+            ).first()
             if TYPE_CHECKING:
                 assert bounding_box is not None
             boxes.append(

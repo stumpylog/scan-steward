@@ -96,6 +96,7 @@ ban-relative-imports = "all"
 "**/tests/**/*" = ["PLR2004", "S101", "TID252", "ARG001"]
 # Migrations can use mutable class attributes
 "**/migrations/*" = ["RUF012"]
+"scansteward/common/iso3166/subdivision/*" = ["RUF001", "N999"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"

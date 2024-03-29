@@ -51,7 +51,11 @@ class TestCreateLocation(TestCase):
         resp = self.client.post(
             "/api/location/",
             content_type="application/json",
-            data={"country_code": "US", "subdivision_code": "US-CA", "city": "San Francisco"},
+            data={
+                "country_code": "US",
+                "subdivision_code": "US-CA",
+                "city": "San Francisco",
+            },
         )
 
         assert resp.status_code == HTTPStatus.CREATED
@@ -110,7 +114,12 @@ class TestCreateLocation(TestCase):
 class TestReadLocation(TestCase):
 
     def test_read_single_location(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
 
         resp = self.client.get(f"/api/location/{id}/")
 
@@ -130,8 +139,18 @@ class TestReadLocation(TestCase):
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
     def test_read_all_locations(self):
-        id1 = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
-        id2 = util_create_location_object("US", "US-CA", "Los Angeles", "Grand Central Market")
+        id1 = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
+        id2 = util_create_location_object(
+            "US",
+            "US-CA",
+            "Los Angeles",
+            "Grand Central Market",
+        )
 
         resp = self.client.get("/api/location/")
 
@@ -147,7 +166,12 @@ class TestReadLocation(TestCase):
 
 class TestUpdateLocation(TestCase):
     def test_update_city(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
 
         resp = self.client.patch(
             f"/api/location/{id}/",
@@ -159,7 +183,12 @@ class TestUpdateLocation(TestCase):
         assert Location.objects.get(pk=id).city == "New York"
 
     def test_update_subdivision_code_with_no_country(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
 
         resp = self.client.patch(
             f"/api/location/{id}/",
@@ -173,7 +202,12 @@ class TestUpdateLocation(TestCase):
         assert Location.objects.get(pk=id).subdivision_code == "US-CA"
 
     def test_update_subdivision_code_with_wrong_country(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
 
         resp = self.client.patch(
             f"/api/location/{id}/",
@@ -181,22 +215,35 @@ class TestUpdateLocation(TestCase):
             data={"country_code": "US", "subdivision_code": "AM-AG"},
         )
 
-        assert resp.status_code == HTTPStatus.BAD_REQUEST
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         data = resp.json()
-        from pprint import pprint
-
-        pprint(data)
-        assert "Subdivision AM-AG is not in country US" in data["detail"]
+        error = data["detail"][0]
+        context = error["ctx"]
+        assert "AM-AG is not a valid subdivision of US" in context["error"]
         assert Location.objects.get(pk=id).subdivision_code == "US-CA"
 
     def test_update_no_data(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
-        resp = self.client.patch(f"/api/location/{id}/", content_type="application/json", data={})
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
+        resp = self.client.patch(
+            f"/api/location/{id}/",
+            content_type="application/json",
+            data={},
+        )
 
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
     def test_update_country_and_subdivision(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
         resp = self.client.patch(
             f"/api/location/{id}/",
             content_type="application/json",
@@ -210,13 +257,23 @@ class TestUpdateLocation(TestCase):
 
 class TestDeleteLocation(TestCase):
     def test_delete_location(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
         resp = self.client.delete(f"/api/location/{id}/")
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
         assert Location.objects.filter(pk=id).exists() is False
 
     def test_delete_location_not_found(self):
-        id = util_create_location_object("US", "US-CA", "San Francisco", "Golden Gate Bridge")
+        id = util_create_location_object(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
         resp = self.client.delete(f"/api/location/{id + 1}/")
         assert resp.status_code == HTTPStatus.NOT_FOUND
