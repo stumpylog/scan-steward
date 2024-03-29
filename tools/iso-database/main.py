@@ -52,7 +52,7 @@ def main(
 
         country_list = json.loads(country_json.read_text(encoding="utf-8"))["3166-1"]
         for country in country_list:
-            name: str = country["name"]
+            name: str = country.get("common_name", country["name"])
             alpha2 = country["alpha_2"]
             f.write(f'    "{alpha2}": Country("{alpha2}", "{name}"),\n')
         f.write("}\n")
