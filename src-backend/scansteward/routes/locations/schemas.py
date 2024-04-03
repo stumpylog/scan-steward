@@ -5,8 +5,9 @@ import sys
 from ninja import Field
 from ninja import Schema
 from pydantic import model_validator
+from simpleiso3166.countries.types import CountryCodeAlpha2Type  # noqa: TCH002
+from simpleiso3166.subdivisions.types import SubdivisionCodeType  # noqa: TCH002
 
-from scansteward.common.iso3166.pydantic import CountryAlpha2  # noqa: TCH001
 from scansteward.routes.locations.utils import subdivision_in_country
 
 if sys.version_info > (3, 11):
@@ -20,10 +21,10 @@ class LocationCreateSchema(Schema):
     Schema to create a Location
     """
 
-    country_code: CountryAlpha2 = Field(
+    country_code: CountryCodeAlpha2Type = Field(
         description="The ISO 3166-1 alpha-2 code of the country",
     )
-    subdivision_code: str | None = Field(
+    subdivision_code: SubdivisionCodeType | None = Field(
         default=None,
         description="The ISO 3166-2 subdivision code of the location",
     )
@@ -47,11 +48,11 @@ class LocationUpdateSchema(Schema):
     Schema to create a Location
     """
 
-    country_code: CountryAlpha2 | None = Field(
+    country_code: CountryCodeAlpha2Type | None = Field(
         default=None,
         description="The new ISO 3166-1 alpha-2 code of the country",
     )
-    subdivision_code: str | None = Field(
+    subdivision_code: SubdivisionCodeType | None = Field(
         default=None,
         description="The new ISO 3166-2 subdivision code of the location",
     )

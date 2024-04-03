@@ -92,7 +92,7 @@ class TestCreateLocation(TestCase):
             data={"country_code": "US", "subdivision_code": "DE-HM"},
         )
 
-        assert resp.status_code == HTTPStatus.BAD_REQUEST
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         assert Location.objects.count() == 0
 
     def test_location_create_invalid_country(self):

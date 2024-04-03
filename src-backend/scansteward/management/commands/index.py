@@ -238,12 +238,25 @@ class Command(BaseCommand):
         if metadata.Country:
             country_alpha_2 = get_country_code_from_name(metadata.Country)
             if country_alpha_2:
+                self.stdout.write(
+                    self.style.SUCCESS(f"  Got country {country_alpha_2} from {metadata.Country}"),
+                )
                 subdivision_code = None
                 if metadata.State:
                     subdivision_code = get_subdivision_code_from_name(
                         country_alpha_2,
                         metadata.State,
                     )
+                    if not subdivision_code:
+                        self.stdout.write(
+                            self.style.WARNING(f"  No subdivision code found from {metadata.State}"),
+                        )
+                    else:
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f"  Got subdivision code {subdivision_code} from {metadata.State}",
+                            ),
+                        )
                 location, _ = Location.objects.get_or_create(
                     country_code=country_alpha_2,
                     subdivision_code=subdivision_code,
@@ -251,6 +264,8 @@ class Command(BaseCommand):
                     sub_location=metadata.Location,
                 )
                 ImageModel.objects.filter(pk=new_image.pk).update(location=location)
+            else:
+                self.stdout.write(self.style.WARNING(f"  No country code found from {metadata.Country}"))
         else:  # pragma: no cover
             self.stdout.write(self.style.SUCCESS("  No country set"))
 
@@ -260,6 +275,7 @@ class Command(BaseCommand):
             root_nodes = metadata.KeywordInfo.Hierarchy
             for child in root_nodes:
                 if child.Keyword.lower() == "Dates and Times".lower():
+                    self.stdout.write(self.style.SUCCESS("  Found date keyword parent"))
                     if child.Children:
                         for year_level in child.Children:
                             try:
@@ -289,7 +305,8 @@ class Command(BaseCommand):
                                     month_valid=month_valid,
                                     day_valid=day_valid,
                                 )
-                                new_image.date = rough_date
+                                self.stdout.write(self.style.SUCCESS(f"  Set rough date of {rough_date}"))
+                                ImageModel.objects.filter(pk=new_image.pk).update(date=rough_date)
                                 break
                             except TypeError as e:
                                 self.stderr.write(self.style.ERROR(f"{e}"))

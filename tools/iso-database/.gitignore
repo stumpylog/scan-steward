@@ -1,8 +1,0 @@
-iso_3166-1.json
-iso_3166-2.json
-database/subdivision/*
-!database/subdivision/__init__.py
-!database/__init__.py
-!database/models.py
-!database/pydantic.py
-!database/country/__init__.py

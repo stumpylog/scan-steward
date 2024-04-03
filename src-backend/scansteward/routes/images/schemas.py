@@ -1,8 +1,9 @@
 from datetime import date
 
 from ninja import Schema
+from simpleiso3166.countries.types import CountryCodeAlpha2Type
+from simpleiso3166.subdivisions.types import SubdivisionCodeType
 
-from scansteward.common.iso3166.pydantic import CountryAlpha2
 from scansteward.common.schemas import SimpleNamedWithIdSchema
 from scansteward.imageops.models import RotationEnum
 from scansteward.routes.tags.schemas import TagRead
@@ -30,8 +31,8 @@ class PetWithBox(Schema):
 
 
 class ImageLocation(Schema):
-    country_code: CountryAlpha2
-    subdivision_code: str | None = None
+    country_code: CountryCodeAlpha2Type
+    subdivision_code: SubdivisionCodeType | None = None
     city: str | None = None
     sub_location: str | None = None
 

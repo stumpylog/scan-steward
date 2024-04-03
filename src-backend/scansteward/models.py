@@ -12,8 +12,8 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
+from simpleiso3166.countries import Country
 
-from scansteward.common.iso3166.country import get_country_by_code
 from scansteward.imageops.models import RotationEnum
 from scansteward.routes.images.schemas import BoundingBox
 from scansteward.routes.images.schemas import PersonWithBox
@@ -124,6 +124,15 @@ class RoughDate(TimestampMixin, models.Model):
         default=False,
         help_text="Is the day of this date valid?",
     )
+
+    def __str__(self) -> str:
+        year = self.date.year
+        month = self.date.month if self.month_valid else "XX"
+        day = self.date.day if self.day_valid else "YY"
+        return f"{year}-{month}-{day}"
+
+    def __repr__(self) -> str:
+        return f"RoughDate: {self!s}"
 
     class Meta:
         ordering: Sequence = ["date"]
@@ -302,7 +311,7 @@ class Location(TimestampMixin, models.Model):
     @property
     def country_name(self) -> str:
 
-        country = get_country_by_code(self.country_code)
+        country = Country.from_alpha2(self.country_code)
         if TYPE_CHECKING:
             # The code is validated
             assert country is not None
@@ -313,7 +322,7 @@ class Location(TimestampMixin, models.Model):
     def subdivision_name(self) -> str | None:
         if not self.subdivision_code:
             return None
-        country = get_country_by_code(self.country_code)
+        country = Country.from_alpha2(self.country_code)
         if TYPE_CHECKING:
             # The code is validated
             assert country is not None

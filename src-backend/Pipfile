@@ -15,6 +15,7 @@ blake3 = "*"
 orjson = "*"
 typing_extensions = { version = "*", markers="python_version < '3.11'"}
 imagehash = "*"
+simpleiso3166 = { version = "*", extras = ["search"] }
 # Server
 granian = "*"
 # Investigate
