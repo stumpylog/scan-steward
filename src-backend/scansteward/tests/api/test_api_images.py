@@ -97,12 +97,7 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
             ],
             "pet_boxes": [],
             "tags": [
-                {"applied": False, "description": None, "id": 1, "name": "Pets", "parent_id": None},
-                {"applied": False, "description": None, "id": 2, "name": "Dogs", "parent_id": 1},
-                {"applied": False, "description": None, "id": 3, "name": "Bo", "parent_id": 2},
-                {"applied": False, "description": None, "id": 4, "name": "Locations", "parent_id": None},
-                {"applied": False, "description": None, "id": 5, "name": "United States", "parent_id": 4},
-                {"applied": False, "description": None, "id": 6, "name": "Washington DC", "parent_id": 5},
+                {"applied": True, "description": None, "id": 3, "name": "Bo", "parent_id": 2},
             ],
             "location": {
                 "city": "WASHINGTON",

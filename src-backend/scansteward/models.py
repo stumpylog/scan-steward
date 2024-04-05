@@ -333,7 +333,7 @@ class Location(TimestampMixin, models.Model):
         country = Country.from_alpha2(self.country_code)
         if TYPE_CHECKING:
             country: Country
-        value = f"Country: {country.name}"
+        value = f"Country: {country.common_name or country.name}"
         if self.subdivision_code:
             subdivision_name = country.get_subdivision_name(self.subdivision_code)
             if TYPE_CHECKING:

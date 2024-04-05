@@ -66,26 +66,15 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         assert face_box.height == pytest.approx(0.0585652)
         assert face_box.width == pytest.approx(0.0292969)
 
-        assert img.tags.count() == 6
-        assert Tag.objects.count() == 6
+        assert img.tags.count() == 1
+        assert Tag.objects.count() == 3
         # Check tag structure\
         # Pet tag tree
-        assert img.tags.filter(name="Pets").exists()
-        assert img.tags.filter(name="Dogs").exists()
-        assert img.tags.filter(name="Dogs").first().parent == img.tags.filter(name="Pets").first()
-        assert img.tags.filter(name="Bo")
-        assert img.tags.filter(name="Bo").first().parent == img.tags.filter(name="Dogs").first()
-        # Location tag tree
-        assert img.tags.filter(name="Locations").exists()
-        assert img.tags.filter(name="United States").exists()
-        assert (
-            img.tags.filter(name="United States").first().parent == img.tags.filter(name="Locations").first()
-        )
-        assert img.tags.filter(name="Washington DC")
-        assert (
-            img.tags.filter(name="Washington DC").first().parent
-            == img.tags.filter(name="United States").first()
-        )
+        assert Tag.objects.filter(name="Pets").exists()
+        assert Tag.objects.filter(name="Dogs").exists()
+        assert Tag.objects.filter(name="Dogs").first().parent == Tag.objects.filter(name="Pets").first()
+        assert img.tags.filter(name="Bo").exists()
+        assert img.tags.filter(name="Bo").first().parent == Tag.objects.filter(name="Dogs").first()
 
     def test_index_command_file_moved(self):
         tmp_dir = self.get_new_temporary_dir()

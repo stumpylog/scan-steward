@@ -41,16 +41,14 @@ class Command(TyperCommand):
         ".webp",
     }
 
-    def add_arguments(self, parser):
-        parser.add_argument("paths", nargs="+", type=Path)
-        parser.add_argument("--source")
-        parser.add_argument("--clear-source", action="store_true")
-        parser.add_argument("--threads", default=2)
+    DATE_KEYWORD: Final[str] = "Dates"
+    PEOPLE_KEYWORD: Final[str] = "People"
+    LOCATION_KEYWORD: Final[str] = "Locations"
 
     def handle(
         self,
         paths: Annotated[list[Path], Argument(help="The paths to index for new images")],
-        threads: Annotated[int, Option(help="Number of threads to use for hashing")] = 2,
+        hash_threads: Annotated[int, Option(help="Number of threads to use for hashing")] = 2,
         source: Annotated[
             Optional[str],  # noqa: UP007
             Option(help="The source of the images to attach to the image"),
@@ -61,7 +59,7 @@ class Command(TyperCommand):
         else:
             self.source = None
 
-        self.threads = threads
+        self.hash_threads = hash_threads
 
         for path in paths:
             if TYPE_CHECKING:
@@ -75,7 +73,7 @@ class Command(TyperCommand):
         # Duplicate check
         image_hash = blake3(
             image_path.read_bytes(),
-            max_threads=self.threads,
+            max_threads=self.hash_threads,
         ).hexdigest()
 
         # Update or create
@@ -150,7 +148,7 @@ class Command(TyperCommand):
         if not new_img.location:
             self.parse_location_from_keywords(new_img, metadata)
 
-        # TODO: Parse date information from keywords?
+        # Parse date information from keywords?
         self.parse_dates_from_keywords(new_img, metadata)
 
         # And done.  Image cannot be dirty, use update to avoid getting marked as such
@@ -225,9 +223,9 @@ class Command(TyperCommand):
             for keyword in metadata.KeywordInfo.Hierarchy:
                 # Skip keywords with dedicated processing
                 if keyword.Keyword.lower() in {
-                    "People".lower(),
-                    "Dates and Times".lower(),
-                    "Locations".lower(),
+                    self.PEOPLE_KEYWORD.lower(),
+                    self.DATE_KEYWORD.lower(),
+                    self.LOCATION_KEYWORD.lower(),
                 }:
                     continue
                 existing_root_tag, _ = Tag.objects.get_or_create(
@@ -235,6 +233,7 @@ class Command(TyperCommand):
                     parent=None,
                     applied=False if keyword.Applied is None else keyword.Applied,
                 )
+
                 if keyword.Applied or not keyword.Children:
                     new_image.tags.add(existing_root_tag)
                 for child in keyword.Children:
@@ -282,17 +281,18 @@ class Command(TyperCommand):
     def parse_location_from_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
         if (
             metadata.KeywordInfo
-            and (location_tree := metadata.KeywordInfo.get_root_by_name("Locations"))
+            and (location_tree := metadata.KeywordInfo.get_root_by_name(self.LOCATION_KEYWORD))
             and location_tree
             and location_tree.Children
         ):
-            country_alpha2 = get_country_code_from_name(location_tree.Children[0].Keyword)
+            country_node = location_tree.Children[0]
+            country_alpha2 = get_country_code_from_name(country_node.Keyword)
             if country_alpha2:
                 subdivision_code = None
                 city = None
                 location = None
-                if len(location_tree.Children) > 0:
-                    subdivision_node = location_tree.Children[0]
+                if len(country_node.Children) > 0:
+                    subdivision_node = country_node.Children[0]
                     subdivision_code = get_subdivision_code_from_name(
                         country_alpha2,
                         subdivision_node.Keyword,
@@ -334,7 +334,7 @@ class Command(TyperCommand):
         if (
             metadata.KeywordInfo
             and metadata.KeywordInfo
-            and (date_and_time_tree := metadata.KeywordInfo.get_root_by_name("Dates and Times"))
+            and (date_and_time_tree := metadata.KeywordInfo.get_root_by_name(self.DATE_KEYWORD))
             and len(date_and_time_tree.Children) > 0
         ):
             year_node = date_and_time_tree.Children[0]
