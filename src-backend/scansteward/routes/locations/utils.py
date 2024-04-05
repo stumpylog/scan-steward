@@ -20,11 +20,11 @@ def subdivision_in_country(
 
 
 @lru_cache
-def get_country_code_from_name(country_name: str) -> str | None:
+def get_country_code_from_name(country_name: str) -> CountryCodeAlpha2Type | None:
     """
     Returns the code of the given country name, or None if the country is not valid.
     """
-    if country_name.lower() in {"us", "usa"}:
+    if country_name.lower() in {"us", "usa", "united states"}:
         country_name = "United States of America"
     results = list(Country.from_partial_name(country_name))
     if results:
@@ -36,7 +36,7 @@ def get_country_code_from_name(country_name: str) -> str | None:
 def get_subdivision_code_from_name(
     country_alpha2: CountryCodeAlpha2Type,
     subdivision_name: str,
-) -> str | None:
+) -> SubdivisionCodeType | None:
     """
     Returns the code of the given country name, or None if the country is not valid.
     """

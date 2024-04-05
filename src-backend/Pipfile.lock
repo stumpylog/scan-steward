@@ -117,12 +117,12 @@
         },
         "django-typer": {
             "hashes": [
-                "sha256:6652686e69519e0450f75a5efeb198970c07501f38348cb193708db66f2ebb4f",
-                "sha256:a77e6b22f02d52fa50319468794bc00c0568b2999f124ade5b8df0f20c5d96af"
+                "sha256:3f17974d4f6aa6e586970949523e477345d9b64d7b3c4e78c6a7f9a2d564614d",
+                "sha256:8db2bdb751ec64d3a341706f78d1794a8911f4888c43eb498de97e9cf632bdc3"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8' and python_version < '4.0'",
-            "version": "==1.0.9"
+            "version": "==1.1.0"
         },
         "exceptiongroup": {
             "hashes": [

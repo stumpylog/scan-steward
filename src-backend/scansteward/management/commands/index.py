@@ -1,19 +1,23 @@
 from datetime import date
-from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Annotated
 from typing import Final
+from typing import Optional
 
 from blake3 import blake3
-from django.core.management.base import BaseCommand
 from django.db import transaction
+from django_typer import TyperCommand
 from imagehash import average_hash
 from PIL import Image
+from typer import Argument
+from typer import Option
 
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordStruct
 from scansteward.models import Image as ImageModel
+from scansteward.models import ImageSource
 from scansteward.models import Location
 from scansteward.models import Person
 from scansteward.models import PersonInImage
@@ -25,14 +29,7 @@ from scansteward.routes.locations.utils import get_country_code_from_name
 from scansteward.routes.locations.utils import get_subdivision_code_from_name
 
 
-class Verbosity(IntEnum):
-    MINIMAL = 0
-    NORMAL = 1
-    VERBOSE = 2
-    DEBUG = 3
-
-
-class Command(BaseCommand):
+class Command(TyperCommand):
     help = "Indexes the given path(s) for new Images"
 
     IMAGE_EXTENSIONS: Final[set[str]] = {
@@ -50,13 +47,23 @@ class Command(BaseCommand):
         parser.add_argument("--clear-source", action="store_true")
         parser.add_argument("--threads", default=2)
 
-    def handle(self, *args, **options) -> None:  # noqa: ARG002
-        self.source: str | None = options["source"]
-        self.clear_source: bool = options["clear_source"]
-        self.verbosity: Verbosity = Verbosity(options["verbosity"])
-        self.threads: int = options["threads"]
+    def handle(
+        self,
+        paths: Annotated[list[Path], Argument(help="The paths to index for new images")],
+        threads: Annotated[int, Option(help="Number of threads to use for hashing")] = 2,
+        source: Annotated[
+            Optional[str],  # noqa: UP007
+            Option(help="The source of the images to attach to the image"),
+        ] = None,
+    ) -> None:
+        if source:
+            self.source, _ = ImageSource.objects.get_or_create(name=source)
+        else:
+            self.source = None
 
-        for path in options["paths"]:
+        self.threads = threads
+
+        for path in paths:
             if TYPE_CHECKING:
                 assert isinstance(path, Path)
             for file_generator in [path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS]:
@@ -85,16 +92,9 @@ class Command(BaseCommand):
         image_path: Path,
     ) -> None:
         self.stdout.write(self.style.NOTICE("  Image already indexed"))
-        # Clear the source if requested
-        if self.clear_source and existing_image.source is not None:
-            self.stdout.write(self.style.NOTICE("  Clearing source"))
-            existing_image.source = None
-            existing_image.save()
         # Set the source if requested
-        if (
-            not self.clear_source
-            and self.source is not None
-            and (existing_image.source is None or existing_image.source != self.source)
+        if self.source is not None and (
+            existing_image.source is None or existing_image.source != self.source
         ):
             self.stdout.write(self.style.NOTICE(f"  Updating source to {self.source}"))
             existing_image.source = self.source
@@ -147,6 +147,8 @@ class Command(BaseCommand):
 
         # Parse Location
         self.parse_location(new_img, metadata)
+        if not new_img.location:
+            self.parse_location_from_keywords(new_img, metadata)
 
         # TODO: Parse date information from keywords?
         self.parse_dates_from_keywords(new_img, metadata)
@@ -212,23 +214,29 @@ class Command(BaseCommand):
                 existing_node, _ = Tag.objects.get_or_create(
                     name=tree_node.Keyword,
                     parent=parent,
-                    applied=False if tree_node.Applied is None else tree_node.Applied,
+                    applied=tree_node.Applied or not tree_node.Children,
                 )
-                image_instance.tags.add(existing_node)
+                # If this is applied or there are no children, tag it
+                if existing_node.applied or not tree_node.Children:
+                    image_instance.tags.add(existing_node)
                 for node_child in tree_node.Children:
                     maybe_create_tag_tree(image_instance, existing_node, node_child)
 
             for keyword in metadata.KeywordInfo.Hierarchy:
-                # Digikam uses this to also store information on people
-                # But that is already in the face regions
-                if keyword.Keyword == "People":
+                # Skip keywords with dedicated processing
+                if keyword.Keyword.lower() in {
+                    "People".lower(),
+                    "Dates and Times".lower(),
+                    "Locations".lower(),
+                }:
                     continue
                 existing_root_tag, _ = Tag.objects.get_or_create(
                     name=keyword.Keyword,
                     parent=None,
                     applied=False if keyword.Applied is None else keyword.Applied,
                 )
-                new_image.tags.add(existing_root_tag)
+                if keyword.Applied or not keyword.Children:
+                    new_image.tags.add(existing_root_tag)
                 for child in keyword.Children:
                     maybe_create_tag_tree(new_image, existing_root_tag, child)
         else:  # pragma: no cover
@@ -263,52 +271,101 @@ class Command(BaseCommand):
                     city=metadata.City,
                     sub_location=metadata.Location,
                 )
-                ImageModel.objects.filter(pk=new_image.pk).update(location=location)
+                new_image.location = location
+                new_image.save()
+                self.stdout.write(self.style.SUCCESS(f"  Location is {location}"))
             else:
                 self.stdout.write(self.style.WARNING(f"  No country code found from {metadata.Country}"))
         else:  # pragma: no cover
-            self.stdout.write(self.style.SUCCESS("  No country set"))
+            self.stdout.write(self.style.SUCCESS("  No country set, will try keywords"))
+
+    def parse_location_from_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
+        if (
+            metadata.KeywordInfo
+            and (location_tree := metadata.KeywordInfo.get_root_by_name("Locations"))
+            and location_tree
+            and location_tree.Children
+        ):
+            country_alpha2 = get_country_code_from_name(location_tree.Children[0].Keyword)
+            if country_alpha2:
+                subdivision_code = None
+                city = None
+                location = None
+                if len(location_tree.Children) > 0:
+                    subdivision_node = location_tree.Children[0]
+                    subdivision_code = get_subdivision_code_from_name(
+                        country_alpha2,
+                        subdivision_node.Keyword,
+                    )
+                    if not subdivision_code:
+                        # Assume this is a city instead
+                        city = subdivision_node.Keyword
+                    elif len(subdivision_node.Children) > 0:
+                        # If possible, use the first child as the city
+                        city_node = subdivision_node.Children[0]
+                        city = city_node.Keyword
+                        if len(city_node.Children) > 0:
+                            location = city_node.Children[0].Keyword
+
+                location, _ = Location.objects.get_or_create(
+                    country_code=country_alpha2,
+                    subdivision_code=subdivision_code,
+                    city=city,
+                    sub_location=location,
+                )
+                new_image.location = location
+                new_image.save()
+                self.stdout.write(self.style.SUCCESS(f"  Location is {location}"))
 
     def parse_dates_from_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
+        """
+        Looks for a keyword structure like:
+        - Dates and Times
+          - 1980
+            - 12 - December
+                - 25
 
-        if metadata.KeywordInfo and metadata.KeywordInfo.Hierarchy:
-            root_nodes = metadata.KeywordInfo.Hierarchy
-            for child in root_nodes:
-                if child.Keyword.lower() == "Dates and Times".lower():
-                    self.stdout.write(self.style.SUCCESS("  Found date keyword parent"))
-                    if child.Children:
-                        for year_level in child.Children:
-                            try:
-                                year = int(year_level.Keyword)
-                                month = 1
-                                month_valid = False
-                                for month_level in year_level.Children:
-                                    try:
-                                        # Months are 10 - October, 11 - November, etc.
-                                        month = int(month_level.Keyword.split("-")[0])
-                                        month_valid = True
-                                        day = 1
-                                        day_valid = False
-                                        for day_level in month_level.Children:
-                                            try:
-                                                day = int(day_level.Keyword)
-                                                day_valid = True
-                                            except TypeError as e:  # noqa: PERF203
-                                                self.stderr.write(
-                                                    self.style.ERROR(f"{e}"),
-                                                )
-                                    except TypeError as e:  # noqa: PERF203
-                                        self.stderr.write(self.style.ERROR(f"{e}"))
+        Which will convert into a date like: 1980-12-25
 
-                                rough_date, _ = RoughDate.objects.get_or_create(
-                                    date=date(year=year, month=month, day=day),
-                                    month_valid=month_valid,
-                                    day_valid=day_valid,
-                                )
-                                self.stdout.write(self.style.SUCCESS(f"  Set rough date of {rough_date}"))
-                                ImageModel.objects.filter(pk=new_image.pk).update(date=rough_date)
-                                break
-                            except TypeError as e:
-                                self.stderr.write(self.style.ERROR(f"{e}"))
-                                continue
-                    break
+        If no month is found, no day will be looked for.  It is possible to have a rough date of just a year,
+        just a month and year or a year, month, day fully built
+        """
+
+        if (
+            metadata.KeywordInfo
+            and metadata.KeywordInfo
+            and (date_and_time_tree := metadata.KeywordInfo.get_root_by_name("Dates and Times"))
+            and len(date_and_time_tree.Children) > 0
+        ):
+            year_node = date_and_time_tree.Children[0]
+            month = 1
+            month_valid = False
+            if len(year_node.Children) > 0:
+                month_node = year_node.Children[0]
+                day = 1
+                day_valid = False
+                if len(month_node.Children) > 0:
+                    day_node = month_node.Children[0]
+                    try:
+                        day = int(day_node.Keyword)
+                        day_valid = True
+                    except ValueError:
+                        pass
+                try:
+                    month = int(month_node.Keyword.split("-")[0])
+                    month_valid = True
+                except ValueError:
+                    pass
+            try:
+                year = int(year_node.Keyword)
+
+                rough_date, _ = RoughDate.objects.get_or_create(
+                    date=date(year=year, month=month, day=day),
+                    month_valid=month_valid,
+                    day_valid=day_valid,
+                )
+                self.stdout.write(self.style.SUCCESS(f"  Set rough date of {rough_date}"))
+                new_image.date = rough_date
+                new_image.save()
+            except ValueError:
+                pass

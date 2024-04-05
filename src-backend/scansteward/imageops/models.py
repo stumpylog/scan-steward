@@ -80,6 +80,13 @@ class KeywordStruct(BaseModel):
     def __hash__(self) -> int:
         return hash(self.Keyword) + hash(self.Applied)
 
+    def get_child_by_name(self, name: str) -> KeywordStruct | None:
+        name = name.lower()
+        for child in self.Children:
+            if child.Keyword.lower() == name:
+                return child
+        return None
+
 
 KeywordStruct.model_rebuild()
 
@@ -90,6 +97,13 @@ class KeywordInfoModel(BaseModel):
     """
 
     Hierarchy: list[KeywordStruct]
+
+    def get_root_by_name(self, name: str) -> KeywordStruct | None:
+        name = name.lower()
+        for keyword in self.Hierarchy:
+            if keyword.Keyword.lower() == name:
+                return keyword
+        return None
 
 
 class ImageMetadata(BaseModel):

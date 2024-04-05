@@ -75,6 +75,12 @@ class Tag(TimestampMixin, models.Model):
         null=True,
     )
 
+    def __str__(self) -> str:
+        return f"{self.name} ({self.applied})"
+
+    def __repr__(self) -> str:
+        return f"Tag: {self!s}"
+
     class Meta:
         constraints: Sequence = [
             models.UniqueConstraint(fields=["name", "parent"], name="name-to-parent"),
@@ -106,6 +112,21 @@ class Pet(SimpleNamedModel, TimestampMixin, models.Model):
     )
 
 
+class ImageSource(TimestampMixin, models.Model):
+    """
+    Holds multiple Images in an ordered form, with a name and optional description
+    """
+
+    name = models.CharField(max_length=100, unique=True, db_index=True)
+
+    description = models.TextField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text="A description of this source, rendered as markdown",
+    )
+
+
 class RoughDate(TimestampMixin, models.Model):
     """
     The rough date of the image
@@ -127,8 +148,8 @@ class RoughDate(TimestampMixin, models.Model):
 
     def __str__(self) -> str:
         year = self.date.year
-        month = self.date.month if self.month_valid else "XX"
-        day = self.date.day if self.day_valid else "YY"
+        month = self.date.month if self.month_valid else "MM"
+        day = self.date.day if self.day_valid else "DD"
         return f"{year}-{month}-{day}"
 
     def __repr__(self) -> str:
@@ -308,6 +329,25 @@ class Location(TimestampMixin, models.Model):
             ),
         ]
 
+    def __str__(self) -> str:
+        country = Country.from_alpha2(self.country_code)
+        if TYPE_CHECKING:
+            country: Country
+        value = f"Country: {country.name}"
+        if self.subdivision_code:
+            subdivision_name = country.get_subdivision_name(self.subdivision_code)
+            if TYPE_CHECKING:
+                subdivision_name: str
+            value = f"{value} - State: {subdivision_name}"
+        if self.city:
+            value = f"{value} - City: {self.city}"
+        if self.sub_location:
+            value = f"{value} - Location: {self.sub_location}"
+        return value
+
+    def __repr__(self) -> str:
+        return f"Location: {self!s}"
+
     @property
     def country_name(self) -> str:
 
@@ -353,8 +393,7 @@ class Image(TimestampMixin, models.Model):
     )
 
     phash = models.CharField(
-        max_length=64,
-        unique=True,
+        max_length=32,
         db_index=True,
         verbose_name="perceptual average hash of the image",
         help_text="The pHash (average) of the original file",
@@ -369,6 +408,37 @@ class Image(TimestampMixin, models.Model):
         choices=OrientationChoices.choices,
         default=OrientationChoices.HORIZONTAL,
         help_text="MWG Orientation flag",
+    )
+
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text="MWG Description tag",
+    )
+
+    original = models.CharField(
+        max_length=1024,
+        unique=True,
+        verbose_name="Path to the original image",
+    )
+
+    is_dirty = models.BooleanField(
+        default=False,
+        help_text="The metadata is dirty and needs to be synced to the file",
+    )
+
+    in_trash = models.BooleanField(
+        default=False,
+        help_text="The image is in the trash and needs to be deleted from the file system on scheduled run",
+    )
+
+    source = models.ForeignKey(
+        ImageSource,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="images",
+        help_text="Source of the original image (box, deck, carousel, etc)",
     )
 
     location = models.ForeignKey(
@@ -389,44 +459,22 @@ class Image(TimestampMixin, models.Model):
         help_text="RoughDate when the image was taken, with as much refinement as possible",
     )
 
-    description = models.TextField(
-        null=True,
-        blank=True,
-        help_text="MWG Description tag",
-    )
-
-    source = models.CharField(
-        max_length=100,
-        verbose_name="Source of the image",
-        help_text="The string source of the image, example a box or carousel identifier",
-        blank=True,
-        null=True,
-    )
-
-    original = models.CharField(
-        max_length=1024,
-        unique=True,
-        verbose_name="Path to the original image",
-    )
-
-    is_dirty = models.BooleanField(
-        default=False,
-        help_text="The metadata is dirty and needs to be synced to the file",
-    )
-
     people = models.ManyToManyField(
         Person,
         through=PersonInImage,
+        help_text="These people are in the image",
     )
 
     pets = models.ManyToManyField(
         Pet,
         through=PetInImage,
+        help_text="These pets are in the image",
     )
 
     tags = models.ManyToManyField(
         Tag,
         related_name="images",
+        help_text="These tags apply to the image",
     )
 
     @property
