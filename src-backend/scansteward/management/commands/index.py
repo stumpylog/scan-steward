@@ -91,9 +91,7 @@ class Command(TyperCommand):
     ) -> None:
         self.stdout.write(self.style.NOTICE("  Image already indexed"))
         # Set the source if requested
-        if self.source is not None and (
-            existing_image.source is None or existing_image.source != self.source
-        ):
+        if self.source is not None and (existing_image.source is None or existing_image.source != self.source):
             self.stdout.write(self.style.NOTICE(f"  Updating source to {self.source}"))
             existing_image.source = self.source
             existing_image.save()
@@ -109,7 +107,6 @@ class Command(TyperCommand):
         self.stdout.write(self.style.SUCCESS(f"  {image_path.name} indexing completed"))
 
     def handle_new_image(self, image_path: Path, image_hash: str) -> None:
-
         metadata = read_image_metadata(image_path)
 
         with Image.open(image_path) as im_file:

@@ -7,7 +7,6 @@ from django.db import models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -130,7 +129,8 @@ class Migration(migrations.Migration):
                     "in_trash",
                     models.BooleanField(
                         default=False,
-                        help_text="The image is in the trash and needs to be deleted from the file system on scheduled run",
+                        help_text="The image is in the trash and needs to be deleted from the"
+                        " file system on scheduled run",
                     ),
                 ),
                 ("is_starred", models.BooleanField(default=False, help_text="The image has been starred")),

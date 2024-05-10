@@ -79,7 +79,6 @@ class TestApiPeopleRead(GeneratePeopleMixin, DirectoriesMixin, TestCase):
 
 
 class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
-
     def test_create_person(self):
         person_name = self.faker.name()
         resp = self.create_single_person_via_api(person_name)
@@ -107,7 +106,6 @@ class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
         assert Person.objects.get(id=data["id"]).description == description
 
     def test_create_multiple_person(self):
-
         count = 5
 
         for _ in range(count):

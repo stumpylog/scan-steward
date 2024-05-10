@@ -18,7 +18,7 @@ router = Router(tags=["pets"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[PetReadSchema])
+@router.get("/", response=list[PetReadSchema], operation_id="get_pets")
 @paginate(LimitOffsetPagination)
 def get_all_pets(request: HttpRequest):
     return Pet.objects.all()
@@ -34,6 +34,7 @@ def get_all_pets(request: HttpRequest):
             },
         },
     },
+    operation_id="get_single_pet",
 )
 async def get_single_pet(request: HttpRequest, pet_id: int):
     instance: Pet = await aget_object_or_404(Pet, id=pet_id)
@@ -53,6 +54,7 @@ async def get_single_pet(request: HttpRequest, pet_id: int):
             },
         },
     },
+    operation_id="create_pet",
 )
 async def create_pet(request: HttpRequest, data: PetCreateSchema):
     pet_name_exists = await Pet.objects.filter(name__iexact=data.name).aexists()
@@ -77,6 +79,7 @@ async def create_pet(request: HttpRequest, data: PetCreateSchema):
             },
         },
     },
+    operation_id="update_pet",
 )
 async def update_pet(request: HttpRequest, pet_id: int, data: PetUpdateSchema):
     instance: Pet = await aget_object_or_404(Pet, id=pet_id)
@@ -99,6 +102,7 @@ async def update_pet(request: HttpRequest, pet_id: int, data: PetUpdateSchema):
             },
         },
     },
+    operation_id="delete_pet",
 )
 async def delete_pet(request: HttpRequest, pet_id: int):
     instance: Pet = await aget_object_or_404(Pet, id=pet_id)

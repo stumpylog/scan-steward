@@ -122,22 +122,21 @@ class TestCreateLocation(TestCase):
 
 
 class TestReadLocation(TestCase):
-
     def test_read_single_location(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
             "Golden Gate Bridge",
         )
 
-        resp = self.client.get(f"/api/location/{id}/")
+        resp = self.client.get(f"/api/location/{id_}/")
 
         assert resp.status_code == HTTPStatus.OK
 
         data = resp.json()
 
-        assert data["id"] == id
+        assert data["id"] == id_
         assert data["country_code"] == "US"
         assert data["subdivision_code"] == "US-CA"
         assert data["city"] == "San Francisco"
@@ -176,7 +175,7 @@ class TestReadLocation(TestCase):
 
 class TestUpdateLocation(TestCase):
     def test_update_city(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
@@ -184,16 +183,16 @@ class TestUpdateLocation(TestCase):
         )
 
         resp = self.client.patch(
-            f"/api/location/{id}/",
+            f"/api/location/{id_}/",
             content_type="application/json",
             data={"city": "New York"},
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert RoughLocation.objects.get(pk=id).city == "New York"
+        assert RoughLocation.objects.get(pk=id_).city == "New York"
 
     def test_update_subdivision_code_with_no_country(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
@@ -201,7 +200,7 @@ class TestUpdateLocation(TestCase):
         )
 
         resp = self.client.patch(
-            f"/api/location/{id}/",
+            f"/api/location/{id_}/",
             content_type="application/json",
             data={"subdivision_code": "US-NY"},
         )
@@ -209,10 +208,10 @@ class TestUpdateLocation(TestCase):
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         data = resp.json()
         assert "Subdivision must also include country code" in data["detail"][0]["msg"]
-        assert RoughLocation.objects.get(pk=id).subdivision_code == "US-CA"
+        assert RoughLocation.objects.get(pk=id_).subdivision_code == "US-CA"
 
     def test_update_subdivision_code_with_wrong_country(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
@@ -220,7 +219,7 @@ class TestUpdateLocation(TestCase):
         )
 
         resp = self.client.patch(
-            f"/api/location/{id}/",
+            f"/api/location/{id_}/",
             content_type="application/json",
             data={"country_code": "US", "subdivision_code": "AM-AG"},
         )
@@ -230,17 +229,17 @@ class TestUpdateLocation(TestCase):
         error = data["detail"][0]
         context = error["ctx"]
         assert "AM-AG is not a valid subdivision of US" in context["error"]
-        assert RoughLocation.objects.get(pk=id).subdivision_code == "US-CA"
+        assert RoughLocation.objects.get(pk=id_).subdivision_code == "US-CA"
 
     def test_update_no_data(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
             "Golden Gate Bridge",
         )
         resp = self.client.patch(
-            f"/api/location/{id}/",
+            f"/api/location/{id_}/",
             content_type="application/json",
             data={},
         )
@@ -248,42 +247,42 @@ class TestUpdateLocation(TestCase):
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
     def test_update_country_and_subdivision(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
             "Golden Gate Bridge",
         )
         resp = self.client.patch(
-            f"/api/location/{id}/",
+            f"/api/location/{id_}/",
             content_type="application/json",
             data={"country_code": "FR", "subdivision_code": "FR-IDF"},
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert RoughLocation.objects.get(pk=id).country_code == "FR"
-        assert RoughLocation.objects.get(pk=id).subdivision_code == "FR-IDF"
+        assert RoughLocation.objects.get(pk=id_).country_code == "FR"
+        assert RoughLocation.objects.get(pk=id_).subdivision_code == "FR-IDF"
 
 
 class TestDeleteLocation(TestCase):
     def test_delete_location(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
             "Golden Gate Bridge",
         )
-        resp = self.client.delete(f"/api/location/{id}/")
+        resp = self.client.delete(f"/api/location/{id_}/")
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
-        assert RoughLocation.objects.filter(pk=id).exists() is False
+        assert RoughLocation.objects.filter(pk=id_).exists() is False
 
     def test_delete_location_not_found(self):
-        id = util_create_location_object(
+        id_ = util_create_location_object(
             "US",
             "US-CA",
             "San Francisco",
             "Golden Gate Bridge",
         )
-        resp = self.client.delete(f"/api/location/{id + 1}/")
+        resp = self.client.delete(f"/api/location/{id_ + 1}/")
         assert resp.status_code == HTTPStatus.NOT_FOUND

@@ -18,6 +18,5 @@ def _seed_random():
 
 @pytest.fixture(scope="function")  # noqa: PT003
 def temporary_directory() -> Generator[Path, None, None]:
-
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield Path(tmp_dir).resolve()

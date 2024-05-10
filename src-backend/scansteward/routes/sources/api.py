@@ -18,7 +18,7 @@ router = Router(tags=["sources"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[ImageSourceRead])
+@router.get("/", response=list[ImageSourceRead], operation_id="get_scan_sources")
 @paginate(LimitOffsetPagination)
 def get_all_sources(request: HttpRequest):
     return ImageSource.objects.all()
@@ -34,6 +34,7 @@ def get_all_sources(request: HttpRequest):
             },
         },
     },
+    operation_id="get_single_scan_source",
 )
 async def get_single_source(request: HttpRequest, source_id: int):
     instance: ImageSource = await aget_object_or_404(ImageSource, id=source_id)
@@ -45,20 +46,14 @@ async def get_single_source(request: HttpRequest, source_id: int):
     response={HTTPStatus.CREATED: ImageSourceRead},
     openapi_extra={
         "responses": {
-            HTTPStatus.NOT_FOUND: {
-                "description": "Not Found Response",
-            },
-            HTTPStatus.BAD_REQUEST: {
-                "description": "Subdivision provided without country",
-            },
             HTTPStatus.CONFLICT: {
-                "description": "RoughLocation already exists",
+                "description": "Source already exists",
             },
         },
     },
+    operation_id="create_scan_source",
 )
 async def create_source(request: HttpRequest, data: ImageSourceCreate):
-
     source_name_exists = await ImageSource.objects.filter(name__iexact=data.name).aexists()
     if source_name_exists:
         msg = f"Image source named {data.name} already exists"
@@ -82,9 +77,9 @@ async def create_source(request: HttpRequest, data: ImageSourceCreate):
             },
         },
     },
+    operation_id="update_scan_source",
 )
 async def update_source(request: HttpRequest, source_id: int, data: ImageSourceUpdate):
-
     # Retrieve the location object from the database
     instance: ImageSource = await aget_object_or_404(ImageSource, id=source_id)
 

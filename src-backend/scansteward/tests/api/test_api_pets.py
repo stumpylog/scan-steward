@@ -79,7 +79,6 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
 
 
 class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
-
     def test_create_pet(self):
         pet_name = self.faker.name()
         resp = self.create_single_pet_via_api(pet_name)
@@ -107,7 +106,6 @@ class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert Pet.objects.get(id=data["id"]).description == description
 
     def test_create_multiple_pet(self):
-
         count = 5
 
         for _ in range(count):

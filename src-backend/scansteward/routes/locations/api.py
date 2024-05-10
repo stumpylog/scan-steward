@@ -20,7 +20,7 @@ router = Router(tags=["locations"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[LocationReadSchema])
+@router.get("/", response=list[LocationReadSchema], operation_id="get_locations")
 @paginate(LimitOffsetPagination)
 def get_all_locations(request: HttpRequest):
     return RoughLocation.objects.all()
@@ -36,6 +36,7 @@ def get_all_locations(request: HttpRequest):
             },
         },
     },
+    operation_id="get_location",
 )
 async def get_single_location(request: HttpRequest, location_id: int):
     instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)
@@ -58,9 +59,9 @@ async def get_single_location(request: HttpRequest, location_id: int):
             },
         },
     },
+    operation_id="create_location",
 )
 async def create_location(request: HttpRequest, data: LocationCreateSchema):
-
     if data.subdivision_code and not subdivision_in_country(
         data.country_code,
         data.subdivision_code,
@@ -93,6 +94,7 @@ async def create_location(request: HttpRequest, data: LocationCreateSchema):
             },
         },
     },
+    operation_id="update_location",
 )
 async def update_location(request: HttpRequest, location_id: int, data: LocationUpdateSchema):
     # Validate that at least one field is provided to be updated
@@ -130,6 +132,7 @@ async def update_location(request: HttpRequest, location_id: int, data: Location
             },
         },
     },
+    operation_id="delete_location",
 )
 async def delete_location(request: HttpRequest, location_id: int):
     instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)

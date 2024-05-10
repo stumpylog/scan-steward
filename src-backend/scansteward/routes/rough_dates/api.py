@@ -18,7 +18,7 @@ router = Router(tags=["dates"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[RoughDateReadSchema])
+@router.get("/", response=list[RoughDateReadSchema], operation_id="get_rough_dates")
 @paginate(LimitOffsetPagination)
 def get_all_dates(request: HttpRequest):
     return RoughDate.objects.all()
@@ -34,6 +34,7 @@ def get_all_dates(request: HttpRequest):
             },
         },
     },
+    operation_id="get_single_rough_date",
 )
 async def get_single_rough_date(request: HttpRequest, date_id: int):
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)
@@ -53,6 +54,7 @@ async def get_single_rough_date(request: HttpRequest, date_id: int):
             },
         },
     },
+    operation_id="create_rough_date",
 )
 async def create_rough_date(request: HttpRequest, data: RoughDateCreateSchema):
     rough_date_exists = await RoughDate.objects.filter(
@@ -82,6 +84,7 @@ async def create_rough_date(request: HttpRequest, data: RoughDateCreateSchema):
             },
         },
     },
+    operation_id="update_rough_date",
 )
 async def update_rough_date(request: HttpRequest, date_id: int, data: RoughDateUpdateSchema):
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)
@@ -106,6 +109,7 @@ async def update_rough_date(request: HttpRequest, date_id: int, data: RoughDateU
             },
         },
     },
+    operation_id="delete_rough_date",
 )
 async def delete_rough_date(request: HttpRequest, date_id: int):
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)

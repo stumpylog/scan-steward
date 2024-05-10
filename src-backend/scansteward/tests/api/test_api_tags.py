@@ -69,7 +69,6 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
 
 
 class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
-
     def test_create_tag_no_parent(self):
         tag_name = self.faker.country()
         resp = self.client.post(

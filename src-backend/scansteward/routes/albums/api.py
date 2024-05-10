@@ -34,7 +34,7 @@ router = Router(tags=["albums"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[AlbumBasicReadSchema])
+@router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_albums")
 @paginate(LimitOffsetPagination)
 def get_albums(request: HttpRequest):
     return Album.objects.all()
@@ -50,6 +50,7 @@ def get_albums(request: HttpRequest):
             },
         },
     },
+    operation_id="get_album",
 )
 def get_album(request: HttpRequest, album_id: int):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
@@ -57,7 +58,7 @@ def get_album(request: HttpRequest, album_id: int):
     return album_instance
 
 
-@router.post("/", response={HTTPStatus.CREATED: AlbumBasicReadSchema})
+@router.post("/", response={HTTPStatus.CREATED: AlbumBasicReadSchema}, operation_id="create_album")
 async def create_album(request: HttpRequest, data: AlbumCreateSchema):
     instance: Album = await Album.objects.acreate(
         name=data.name,
@@ -76,6 +77,7 @@ async def create_album(request: HttpRequest, data: AlbumCreateSchema):
             },
         },
     },
+    operation_id="update_album",
 )
 async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSchema):
     instance: Album = await aget_object_or_404(Album, id=album_id)
@@ -97,16 +99,14 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSch
             },
         },
     },
+    operation_id="add_album_image",
 )
 def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
     image_instance: Image = get_object_or_404(Image, id=data.image_id)
 
     sort_order = (
-        ImageInAlbum.objects.filter(album=album_instance).aggregate(Max("sort_order", default=0))[
-            "sort_order__max"
-        ]
-        + 1
+        ImageInAlbum.objects.filter(album=album_instance).aggregate(Max("sort_order", default=0))["sort_order__max"] + 1
     )
 
     _ = ImageInAlbum.objects.get_or_create(
@@ -129,6 +129,7 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageS
             },
         },
     },
+    operation_id="delete_album_image",
 )
 def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
@@ -159,22 +160,21 @@ def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemo
             },
         },
     },
+    operation_id="update_album_sorting",
 )
 def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpdate):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     if album_instance.images.count() != len(data.sorting):
-        msg = f"Album contains {album_instance.images.count()} images, but {len(data.sorting)} sorting values were provided."
+        msg = f"Album contains {album_instance.images.count()} images, "
+        f"but {len(data.sorting)} sorting values were provided."
         logger.error(msg)
         raise Http400Error(msg)
 
     with transaction.atomic():
-
         # For a moment, reset the sorting order to be above the current largest
         temp_sort_order = (
-            ImageInAlbum.objects.filter(album=album_instance).aggregate(Max("sort_order", default=0))[
-                "sort_order__max"
-            ]
+            ImageInAlbum.objects.filter(album=album_instance).aggregate(Max("sort_order", default=0))["sort_order__max"]
             + 1
         )
         for image_in_album_instance in ImageInAlbum.objects.filter(album=album_instance).all():
@@ -207,6 +207,7 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
             },
         },
     },
+    operation_id="delete_album",
 )
 async def delete_album(request: HttpRequest, album_id: int):
     instance: Album = await aget_object_or_404(Album, id=album_id)
@@ -229,6 +230,7 @@ async def delete_album(request: HttpRequest, album_id: int):
             },
         },
     },
+    operation_id="download_album",
 )
 def download_album(request: HttpRequest, album_id: int, zip_originals: bool = False):  # noqa: FBT001, FBT002
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)

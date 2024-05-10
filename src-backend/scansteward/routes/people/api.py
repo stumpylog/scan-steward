@@ -20,7 +20,7 @@ router = Router(tags=["people"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[PersonReadSchema])
+@router.get("/", response=list[PersonReadSchema], operation_id="get_people")
 @paginate(LimitOffsetPagination)
 def get_all_people(request: HttpRequest, name_filter: Query[PersonNameFilter]):
     return Person.objects.filter(name_filter.get_filter_expression()).all()
@@ -36,6 +36,7 @@ def get_all_people(request: HttpRequest, name_filter: Query[PersonNameFilter]):
             },
         },
     },
+    operation_id="get_person",
 )
 async def get_single_person(request: HttpRequest, person_id: int):
     instance: Person = await aget_object_or_404(Person, id=person_id)
@@ -55,6 +56,7 @@ async def get_single_person(request: HttpRequest, person_id: int):
             },
         },
     },
+    operation_id="create_person",
 )
 async def create_person(request: HttpRequest, data: PersonCreateSchema):
     person_name_exists = await Person.objects.filter(name__iexact=data.name).aexists()
@@ -79,6 +81,7 @@ async def create_person(request: HttpRequest, data: PersonCreateSchema):
             },
         },
     },
+    operation_id="update_person",
 )
 async def update_person(request: HttpRequest, person_id: int, data: PersonUpdateSchema):
     instance: Person = await aget_object_or_404(Person, id=person_id)
@@ -101,6 +104,7 @@ async def update_person(request: HttpRequest, person_id: int, data: PersonUpdate
             },
         },
     },
+    operation_id="delete_person",
 )
 async def delete_person(request: HttpRequest, person_id: int):
     instance: Person = await aget_object_or_404(Person, id=person_id)

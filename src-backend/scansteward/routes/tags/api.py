@@ -18,7 +18,7 @@ from scansteward.routes.tags.schemas import TagUpdate
 router = Router(tags=["tags"])
 
 
-@router.get("/tree/", response=list[TagTree])
+@router.get("/tree/", response=list[TagTree], operation_id="get_tag_tree")
 def get_tag_tree(request: HttpRequest, filter_name_query: Query[TagNameFilter]):
     items = []
     for root_node in (
@@ -32,7 +32,7 @@ def get_tag_tree(request: HttpRequest, filter_name_query: Query[TagNameFilter]):
     return items
 
 
-@router.get("/", response=list[TagRead])
+@router.get("/", response=list[TagRead], operation_id="get_all_tags")
 @paginate(LimitOffsetPagination)
 def get_tags(
     request: HttpRequest,
@@ -50,6 +50,7 @@ def get_tags(
             },
         },
     },
+    operation_id="get_single_tag",
 )
 async def get_single_tag(request: HttpRequest, tag_id: int):
     instance: Tag = await aget_object_or_404(Tag, id=tag_id)
@@ -69,6 +70,7 @@ async def get_single_tag(request: HttpRequest, tag_id: int):
             },
         },
     },
+    operation_id="create_tag",
 )
 async def create_tag(request: HttpRequest, data: TagCreate):
     tag_name_exists = await Tag.objects.filter(name=data.name).aexists()
@@ -98,6 +100,7 @@ async def create_tag(request: HttpRequest, data: TagCreate):
             },
         },
     },
+    operation_id="update_tag",
 )
 async def update_tag(request: HttpRequest, tag_id: int, data: TagUpdate):
     instance: Tag = await aget_object_or_404(Tag, id=tag_id)
@@ -123,6 +126,7 @@ async def update_tag(request: HttpRequest, tag_id: int, data: TagUpdate):
             },
         },
     },
+    operation_id="delete_tag",
 )
 async def delete_tag(request: HttpRequest, tag_id: int):
     instance: Tag = await aget_object_or_404(Tag, id=tag_id)

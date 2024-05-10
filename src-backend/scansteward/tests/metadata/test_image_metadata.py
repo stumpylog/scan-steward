@@ -22,9 +22,7 @@ class TestReadImageMetadata(
     SampleMetadataMixin,
     SampleDirMixin,
 ):
-
     def test_read_single_image_metadata(self):
-
         metadata = read_image_metadata(self.SAMPLE_ONE)
 
         self.verify_sample_one_metadata(self.SAMPLE_ONE, metadata)
@@ -40,7 +38,6 @@ class TestReadImageMetadata(
         self.verify_sample_two_metadata(self.SAMPLE_TWO, metadata[1])
 
     def test_change_single_image_metadata(self, temporary_directory: Path):
-
         new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
         # Change something
@@ -55,7 +52,6 @@ class TestReadImageMetadata(
         self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
     def test_bulk_write_faces(self, temporary_directory: Path):
-
         new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
         new_sample_two = Path(shutil.copy(self.SAMPLE_TWO, temporary_directory / self.SAMPLE_TWO.name))
 
@@ -86,7 +82,6 @@ class TestReadImageMetadata(
         self.verify_expected_vs_actual_metadata(new_two_metadata, changed_metadata[1])
 
     def test_write_change_keywords(self, temporary_directory: Path):
-
         new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
         new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
@@ -117,7 +112,6 @@ class TestReadImageMetadata(
         self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
     def test_write_change_no_keywords(self, temporary_directory: Path):
-
         new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
         new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
@@ -140,7 +134,6 @@ class TestReadImageMetadata(
 class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):
     @pytest.mark.xfail(reason="Despite best efforts, the description is not cleared")
     def test_clear_existing_metadata(self, temporary_directory: Path):
-
         new_sample_one = Path(shutil.copy(self.SAMPLE_TWO, temporary_directory / self.SAMPLE_TWO.name))
 
         # Everything should be cleared

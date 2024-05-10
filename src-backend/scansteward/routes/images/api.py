@@ -41,6 +41,7 @@ router = Router(tags=["images"])
             },
         },
     },
+    operation_id="get_image_thumbnail",
 )
 @decorate_view(
     cache_control(private=True, max_age=3600),
@@ -64,6 +65,7 @@ def get_image_thumbnail(request: HttpRequest, image_id: int):
             },
         },
     },
+    operation_id="get_image_full_size",
 )
 @decorate_view(
     cache_control(private=True, max_age=3600),
@@ -85,6 +87,7 @@ def get_image_full_size(request: HttpRequest, image_id: int):
             HTTPStatus.OK: {"content": {"image/*": {"schema": {"type": "string", "format": "binary"}}}},
         },
     },
+    operation_id="get_image_original",
 )
 @decorate_view(
     cache_control(private=True, max_age=3600),
@@ -110,6 +113,7 @@ def get_image_original(request: HttpRequest, image_id: int):
             },
         },
     },
+    operation_id="get_image_details",
 )
 def get_image_details(request: HttpRequest, image_id: int):
     return get_object_or_404(
@@ -133,6 +137,7 @@ def get_image_details(request: HttpRequest, image_id: int):
             },
         },
     },
+    operation_id="update_image_details",
 )
 async def update_image_details(request: HttpRequest, image_id: int, data: ImageUpdateSchema):
     instance: Image = await aget_object_or_404(
@@ -146,7 +151,6 @@ async def update_image_details(request: HttpRequest, image_id: int, data: ImageU
     )
 
     with transaction.atomic():
-
         if data.description:
             instance.description = data.description
         if data.orientation:

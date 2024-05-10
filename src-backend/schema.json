@@ -1,6 +1,10 @@
 {
   "openapi": "3.1.0",
-  "info": { "title": "ScanSteward API", "version": "1.0.0", "description": "" },
+  "info": {
+    "title": "ScanSteward API",
+    "version": "1.0.0",
+    "description": ""
+  },
   "paths": {
     "/api/person/": {
       "get": {
@@ -10,19 +14,39 @@
           {
             "in": "query",
             "name": "name",
-            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" },
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            },
             "required": false
           },
           {
             "in": "query",
             "name": "limit",
-            "schema": { "default": 100, "minimum": 1, "title": "Limit", "type": "integer" },
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
             "required": false
           },
           {
             "in": "query",
             "name": "offset",
-            "schema": { "default": 0, "minimum": 0, "title": "Offset", "type": "integer" },
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
             "required": false
           }
         ],
@@ -31,7 +55,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PagedPersonReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPersonReadSchema"
+                }
               }
             }
           }
@@ -46,16 +72,28 @@
           "201": {
             "description": "Created",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PersonReadSchema" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonReadSchema"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" },
-          "400": { "description": "Person Already Exists" }
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Person Already Exists"
+          }
         },
         "tags": ["people"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/PersonCreateSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonCreateSchema"
+              }
+            }
           },
           "required": true
         }
@@ -69,7 +107,10 @@
           {
             "in": "path",
             "name": "person_id",
-            "schema": { "title": "Person Id", "type": "integer" },
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -77,10 +118,16 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PersonReadSchema" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonReadSchema"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["people"]
       },
@@ -91,7 +138,10 @@
           {
             "in": "path",
             "name": "person_id",
-            "schema": { "title": "Person Id", "type": "integer" },
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -99,15 +149,25 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PersonReadSchema" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonReadSchema"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["people"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/PersonUpdateSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonUpdateSchema"
+              }
+            }
           },
           "required": true
         }
@@ -119,13 +179,20 @@
           {
             "in": "path",
             "name": "person_id",
-            "schema": { "title": "Person Id", "type": "integer" },
+            "schema": {
+              "title": "Person Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
-          "204": { "description": "No Content" },
-          "404": { "description": "Not Found Response" }
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["people"]
       }
@@ -138,7 +205,17 @@
           {
             "in": "query",
             "name": "name",
-            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" },
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            },
             "required": false
           }
         ],
@@ -148,7 +225,9 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": { "$ref": "#/components/schemas/TagTree" },
+                  "items": {
+                    "$ref": "#/components/schemas/TagTree"
+                  },
                   "title": "Response",
                   "type": "array"
                 }
@@ -167,13 +246,23 @@
           {
             "in": "query",
             "name": "limit",
-            "schema": { "default": 100, "minimum": 1, "title": "Limit", "type": "integer" },
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
             "required": false
           },
           {
             "in": "query",
             "name": "offset",
-            "schema": { "default": 0, "minimum": 0, "title": "Offset", "type": "integer" },
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
             "required": false
           }
         ],
@@ -181,7 +270,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PagedTagRead" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedTagRead"
+                }
+              }
             }
           }
         },
@@ -195,16 +288,28 @@
           "201": {
             "description": "Created",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/TagRead" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagRead"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" },
-          "400": { "description": "Tag Already Exists" }
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Tag Already Exists"
+          }
         },
         "tags": ["tags"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/TagCreate" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreate"
+              }
+            }
           },
           "required": true
         }
@@ -218,7 +323,10 @@
           {
             "in": "path",
             "name": "tag_id",
-            "schema": { "title": "Tag Id", "type": "integer" },
+            "schema": {
+              "title": "Tag Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -226,10 +334,16 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/TagRead" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagRead"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["tags"]
       },
@@ -240,7 +354,10 @@
           {
             "in": "path",
             "name": "tag_id",
-            "schema": { "title": "Tag Id", "type": "integer" },
+            "schema": {
+              "title": "Tag Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -248,15 +365,25 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/TagRead" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagRead"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["tags"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/TagUpdate" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagUpdate"
+              }
+            }
           },
           "required": true
         }
@@ -268,13 +395,20 @@
           {
             "in": "path",
             "name": "tag_id",
-            "schema": { "title": "Tag Id", "type": "integer" },
+            "schema": {
+              "title": "Tag Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
-          "204": { "description": "No Content" },
-          "404": { "description": "Not Found Response" }
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["tags"]
       }
@@ -287,16 +421,28 @@
           {
             "in": "path",
             "name": "image_id",
-            "schema": { "title": "Image Id", "type": "integer" },
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "image/webp": { "schema": { "type": "string", "format": "binary" } } }
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["images"]
       }
@@ -309,16 +455,28 @@
           {
             "in": "path",
             "name": "image_id",
-            "schema": { "title": "Image Id", "type": "integer" },
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "image/webp": { "schema": { "type": "string", "format": "binary" } } }
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["images"]
       }
@@ -331,16 +489,28 @@
           {
             "in": "path",
             "name": "image_id",
-            "schema": { "title": "Image Id", "type": "integer" },
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
-            "content": { "image/*": { "schema": { "type": "string", "format": "binary" } } }
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["images"]
       }
@@ -353,7 +523,10 @@
           {
             "in": "path",
             "name": "image_id",
-            "schema": { "title": "Image Id", "type": "integer" },
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -361,10 +534,16 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/ImageDetailsRead" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageDetailsRead"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["images"]
       },
@@ -375,7 +554,10 @@
           {
             "in": "path",
             "name": "image_id",
-            "schema": { "title": "Image Id", "type": "integer" },
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -383,15 +565,25 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/ImageDetailsRead" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageDetailsRead"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["images"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/ImageUpdateSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageUpdateSchema"
+              }
+            }
           },
           "required": true
         }
@@ -399,19 +591,29 @@
     },
     "/api/album/": {
       "get": {
-        "operationId": "scansteward_routes_albums_api_get_albums",
+        "operationId": "get_albums",
         "summary": "Get Albums",
         "parameters": [
           {
             "in": "query",
             "name": "limit",
-            "schema": { "default": 100, "minimum": 1, "title": "Limit", "type": "integer" },
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
             "required": false
           },
           {
             "in": "query",
             "name": "offset",
-            "schema": { "default": 0, "minimum": 0, "title": "Offset", "type": "integer" },
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
             "required": false
           }
         ],
@@ -420,7 +622,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PagedAlbumBasicReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/PagedAlbumBasicReadSchema"
+                }
               }
             }
           }
@@ -428,7 +632,7 @@
         "tags": ["albums"]
       },
       "post": {
-        "operationId": "scansteward_routes_albums_api_create_album",
+        "operationId": "create_album",
         "summary": "Create Album",
         "parameters": [],
         "responses": {
@@ -436,7 +640,9 @@
             "description": "Created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AlbumBasicReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumBasicReadSchema"
+                }
               }
             }
           }
@@ -444,7 +650,11 @@
         "tags": ["albums"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/AlbumCreateSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumCreateSchema"
+              }
+            }
           },
           "required": true
         }
@@ -452,13 +662,16 @@
     },
     "/api/album/{album_id}/": {
       "get": {
-        "operationId": "scansteward_routes_albums_api_get_album",
+        "operationId": "get_album",
         "summary": "Get Album",
         "parameters": [
           {
             "in": "path",
             "name": "album_id",
-            "schema": { "title": "Album Id", "type": "integer" },
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -467,22 +680,29 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AlbumWithImagesReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["albums"]
       },
       "patch": {
-        "operationId": "scansteward_routes_albums_api_update_album",
+        "operationId": "update_album",
         "summary": "Update Album",
         "parameters": [
           {
             "in": "path",
             "name": "album_id",
-            "schema": { "title": "Album Id", "type": "integer" },
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -491,47 +711,65 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AlbumBasicReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumBasicReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["albums"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/AlbumUpdateSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumUpdateSchema"
+              }
+            }
           },
           "required": true
         }
       },
       "delete": {
-        "operationId": "scansteward_routes_albums_api_delete_album",
+        "operationId": "delete_album",
         "summary": "Delete Album",
         "parameters": [
           {
             "in": "path",
             "name": "album_id",
-            "schema": { "title": "Album Id", "type": "integer" },
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
-          "204": { "description": "No Content" },
-          "404": { "description": "Not Found Response" }
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["albums"]
       }
     },
     "/api/album/{album_id}/add/": {
       "patch": {
-        "operationId": "scansteward_routes_albums_api_add_image_to_album",
+        "operationId": "add_album_image",
         "summary": "Add Image To Album",
         "parameters": [
           {
             "in": "path",
             "name": "album_id",
-            "schema": { "title": "Album Id", "type": "integer" },
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -540,17 +778,23 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AlbumWithImagesReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["albums"],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AlbumAddImageSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/AlbumAddImageSchema"
+              }
             }
           },
           "required": true
@@ -559,13 +803,16 @@
     },
     "/api/album/{album_id}/remove/": {
       "patch": {
-        "operationId": "scansteward_routes_albums_api_remove_image_from_album",
+        "operationId": "delete_album_image",
         "summary": "Remove Image From Album",
         "parameters": [
           {
             "in": "path",
             "name": "album_id",
-            "schema": { "title": "Album Id", "type": "integer" },
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -574,17 +821,23 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AlbumWithImagesReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["albums"],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AlbumRemoveImageSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/AlbumRemoveImageSchema"
+              }
             }
           },
           "required": true
@@ -593,13 +846,16 @@
     },
     "/api/album/{album_id}/sort/": {
       "patch": {
-        "operationId": "scansteward_routes_albums_api_update_album_sorting",
+        "operationId": "update_album_sorting",
         "summary": "Update Album Sorting",
         "parameters": [
           {
             "in": "path",
             "name": "album_id",
-            "schema": { "title": "Album Id", "type": "integer" },
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -608,17 +864,27 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AlbumWithImagesReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumWithImagesReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" },
-          "400": { "description": "Sorting data did not match album image count" }
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Sorting data did not match album image count"
+          }
         },
         "tags": ["albums"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/AlbumSortUpdate" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlbumSortUpdate"
+              }
+            }
           },
           "required": true
         }
@@ -626,19 +892,26 @@
     },
     "/api/album/{album_id}/download/": {
       "get": {
-        "operationId": "scansteward_routes_albums_api_download_album",
+        "operationId": "download_album",
         "summary": "Download Album",
         "parameters": [
           {
             "in": "path",
             "name": "album_id",
-            "schema": { "title": "Album Id", "type": "integer" },
+            "schema": {
+              "title": "Album Id",
+              "type": "integer"
+            },
             "required": true
           },
           {
             "in": "query",
             "name": "zip_originals",
-            "schema": { "default": false, "title": "Zip Originals", "type": "boolean" },
+            "schema": {
+              "default": false,
+              "title": "Zip Originals",
+              "type": "boolean"
+            },
             "required": false
           }
         ],
@@ -646,11 +919,20 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/zip": { "schema": { "type": "string", "format": "binary" } }
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" },
-          "400": { "description": "No images in album" }
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "No images in album"
+          }
         },
         "tags": ["albums"]
       }
@@ -663,13 +945,23 @@
           {
             "in": "query",
             "name": "limit",
-            "schema": { "default": 100, "minimum": 1, "title": "Limit", "type": "integer" },
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
             "required": false
           },
           {
             "in": "query",
             "name": "offset",
-            "schema": { "default": 0, "minimum": 0, "title": "Offset", "type": "integer" },
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
             "required": false
           }
         ],
@@ -678,7 +970,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PagedPetReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/PagedPetReadSchema"
+                }
               }
             }
           }
@@ -693,16 +987,28 @@
           "201": {
             "description": "Created",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PetReadSchema" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadSchema"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" },
-          "400": { "description": "Tag Already Exists" }
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Tag Already Exists"
+          }
         },
         "tags": ["pets"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/PetCreateSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetCreateSchema"
+              }
+            }
           },
           "required": true
         }
@@ -716,7 +1022,10 @@
           {
             "in": "path",
             "name": "pet_id",
-            "schema": { "title": "Pet Id", "type": "integer" },
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -724,10 +1033,16 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PetReadSchema" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadSchema"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["pets"]
       },
@@ -738,7 +1053,10 @@
           {
             "in": "path",
             "name": "pet_id",
-            "schema": { "title": "Pet Id", "type": "integer" },
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -746,15 +1064,25 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/PetReadSchema" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetReadSchema"
+                }
+              }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["pets"],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/PetUpdateSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetUpdateSchema"
+              }
+            }
           },
           "required": true
         }
@@ -766,13 +1094,20 @@
           {
             "in": "path",
             "name": "pet_id",
-            "schema": { "title": "Pet Id", "type": "integer" },
+            "schema": {
+              "title": "Pet Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
-          "204": { "description": "No Content" },
-          "404": { "description": "Not Found Response" }
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["pets"]
       }
@@ -785,13 +1120,23 @@
           {
             "in": "query",
             "name": "limit",
-            "schema": { "default": 100, "minimum": 1, "title": "Limit", "type": "integer" },
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
             "required": false
           },
           {
             "in": "query",
             "name": "offset",
-            "schema": { "default": 0, "minimum": 0, "title": "Offset", "type": "integer" },
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
             "required": false
           }
         ],
@@ -800,7 +1145,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PagedLocationReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/PagedLocationReadSchema"
+                }
               }
             }
           }
@@ -816,19 +1163,29 @@
             "description": "Created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LocationReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/LocationReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" },
-          "400": { "description": "Subdivision provided without country" },
-          "409": { "description": "RoughLocation already exists" }
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Subdivision provided without country"
+          },
+          "409": {
+            "description": "RoughLocation already exists"
+          }
         },
         "tags": ["locations"],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/LocationCreateSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/LocationCreateSchema"
+              }
             }
           },
           "required": true
@@ -843,7 +1200,10 @@
           {
             "in": "path",
             "name": "location_id",
-            "schema": { "title": "Location Id", "type": "integer" },
+            "schema": {
+              "title": "Location Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -852,11 +1212,15 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LocationReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/LocationReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["locations"]
       },
@@ -867,7 +1231,10 @@
           {
             "in": "path",
             "name": "location_id",
-            "schema": { "title": "Location Id", "type": "integer" },
+            "schema": {
+              "title": "Location Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -876,17 +1243,23 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LocationReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/LocationReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["locations"],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/LocationUpdateSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/LocationUpdateSchema"
+              }
             }
           },
           "required": true
@@ -899,13 +1272,20 @@
           {
             "in": "path",
             "name": "location_id",
-            "schema": { "title": "Location Id", "type": "integer" },
+            "schema": {
+              "title": "Location Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
-          "204": { "description": "No Content" },
-          "404": { "description": "Not Found Response" }
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["locations"]
       }
@@ -918,13 +1298,23 @@
           {
             "in": "query",
             "name": "limit",
-            "schema": { "default": 100, "minimum": 1, "title": "Limit", "type": "integer" },
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
             "required": false
           },
           {
             "in": "query",
             "name": "offset",
-            "schema": { "default": 0, "minimum": 0, "title": "Offset", "type": "integer" },
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
             "required": false
           }
         ],
@@ -933,7 +1323,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PagedRoughDateReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/PagedRoughDateReadSchema"
+                }
               }
             }
           }
@@ -949,18 +1341,26 @@
             "description": "Created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RoughDateReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/RoughDateReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" },
-          "400": { "description": "Date Already Exists" }
+          "404": {
+            "description": "Not Found Response"
+          },
+          "400": {
+            "description": "Date Already Exists"
+          }
         },
         "tags": ["dates"],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RoughDateCreateSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/RoughDateCreateSchema"
+              }
             }
           },
           "required": true
@@ -975,7 +1375,10 @@
           {
             "in": "path",
             "name": "date_id",
-            "schema": { "title": "Date Id", "type": "integer" },
+            "schema": {
+              "title": "Date Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -984,11 +1387,15 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RoughDateReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/RoughDateReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["dates"]
       },
@@ -999,7 +1406,10 @@
           {
             "in": "path",
             "name": "date_id",
-            "schema": { "title": "Date Id", "type": "integer" },
+            "schema": {
+              "title": "Date Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
@@ -1008,17 +1418,23 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RoughDateReadSchema" }
+                "schema": {
+                  "$ref": "#/components/schemas/RoughDateReadSchema"
+                }
               }
             }
           },
-          "404": { "description": "Not Found Response" }
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["dates"],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RoughDateUpdateSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/RoughDateUpdateSchema"
+              }
             }
           },
           "required": true
@@ -1031,13 +1447,20 @@
           {
             "in": "path",
             "name": "date_id",
-            "schema": { "title": "Date Id", "type": "integer" },
+            "schema": {
+              "title": "Date Id",
+              "type": "integer"
+            },
             "required": true
           }
         ],
         "responses": {
-          "204": { "description": "No Content" },
-          "404": { "description": "Not Found Response" }
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
         },
         "tags": ["dates"]
       }
@@ -1047,15 +1470,35 @@
     "schemas": {
       "Input": {
         "properties": {
-          "limit": { "default": 100, "minimum": 1, "title": "Limit", "type": "integer" },
-          "offset": { "default": 0, "minimum": 0, "title": "Offset", "type": "integer" }
+          "limit": {
+            "default": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
         },
         "title": "Input",
         "type": "object"
       },
       "PersonNameFilter": {
         "properties": {
-          "name": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" }
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
         },
         "title": "PersonNameFilter",
         "type": "object"
@@ -1063,11 +1506,16 @@
       "PagedPersonReadSchema": {
         "properties": {
           "items": {
-            "items": { "$ref": "#/components/schemas/PersonReadSchema" },
+            "items": {
+              "$ref": "#/components/schemas/PersonReadSchema"
+            },
             "title": "Items",
             "type": "array"
           },
-          "count": { "title": "Count", "type": "integer" }
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
         },
         "required": ["items", "count"],
         "title": "PagedPersonReadSchema",
@@ -1076,12 +1524,25 @@
       "PersonReadSchema": {
         "description": "Schema when reading a person",
         "properties": {
-          "name": { "title": "Name", "type": "string" },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
-          "id": { "title": "Id", "type": "integer" }
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
         },
         "required": ["name", "id"],
         "title": "PersonReadSchema",
@@ -1090,9 +1551,19 @@
       "PersonCreateSchema": {
         "description": "Schema to create a Person",
         "properties": {
-          "name": { "title": "Name", "type": "string" },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           }
         },
@@ -1103,9 +1574,26 @@
       "PersonUpdateSchema": {
         "description": "Schema to update a person",
         "properties": {
-          "name": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           }
         },
@@ -1114,28 +1602,68 @@
       },
       "TagNameFilter": {
         "properties": {
-          "name": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" }
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
         },
         "title": "TagNameFilter",
         "type": "object"
       },
       "TagTree": {
         "properties": {
-          "id": { "title": "Id", "type": "integer" },
-          "name": { "title": "Name", "type": "string" },
-          "applied": { "title": "Applied", "type": "boolean" },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "applied": {
+            "title": "Applied",
+            "type": "boolean"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
           "parent_id": {
-            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Parent Id"
           },
           "children": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/TagTree" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TagTree"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Children"
           }
@@ -1147,11 +1675,16 @@
       "PagedTagRead": {
         "properties": {
           "items": {
-            "items": { "$ref": "#/components/schemas/TagRead" },
+            "items": {
+              "$ref": "#/components/schemas/TagRead"
+            },
             "title": "Items",
             "type": "array"
           },
-          "count": { "title": "Count", "type": "integer" }
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
         },
         "required": ["items", "count"],
         "title": "PagedTagRead",
@@ -1159,15 +1692,38 @@
       },
       "TagRead": {
         "properties": {
-          "id": { "title": "Id", "type": "integer" },
-          "name": { "title": "Name", "type": "string" },
-          "applied": { "title": "Applied", "type": "boolean" },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "applied": {
+            "title": "Applied",
+            "type": "boolean"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
           "parent_id": {
-            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Parent Id"
           }
         },
@@ -1177,13 +1733,30 @@
       },
       "TagCreate": {
         "properties": {
-          "name": { "title": "Name", "type": "string" },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
           "parent_id": {
-            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Parent Id"
           }
         },
@@ -1193,13 +1766,37 @@
       },
       "TagUpdate": {
         "properties": {
-          "name": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
           "parent_id": {
-            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Parent Id"
           }
         },
@@ -1208,10 +1805,23 @@
       },
       "Album": {
         "properties": {
-          "id": { "title": "Id", "type": "integer" },
-          "name": { "title": "Name", "type": "string" },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           }
         },
@@ -1271,43 +1881,96 @@
       },
       "ImageDetailsRead": {
         "properties": {
-          "orientation": { "$ref": "#/components/schemas/RotationEnum" },
+          "orientation": {
+            "$ref": "#/components/schemas/RotationEnum"
+          },
           "face_boxes": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/PersonWithBox" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PersonWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Face Boxes"
           },
           "pet_boxes": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/PetWithBox" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PetWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Pet Boxes"
           },
           "tags": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/TagRead" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TagRead"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Tags"
           },
           "albums": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/Album" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Album"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Albums"
           },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
           "location": {
-            "anyOf": [{ "$ref": "#/components/schemas/ImageLocation" }, { "type": "null" }]
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageLocation"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
-          "date": { "anyOf": [{ "$ref": "#/components/schemas/ImageDate" }, { "type": "null" }] }
+          "date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
         },
         "required": ["orientation"],
         "title": "ImageDetailsRead",
@@ -6624,18 +7287,34 @@
                 ],
                 "type": "string"
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ],
             "description": "Subdivision code where the image was taken",
             "title": "Subdivision Code"
           },
           "city": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "City where the image was taken",
             "title": "City"
           },
           "sub_location": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "Sub location where the image was taken",
             "title": "Sub Location"
           }
@@ -6646,9 +7325,17 @@
       },
       "PersonWithBox": {
         "properties": {
-          "person_id": { "description": "Person ID", "title": "Person Id", "type": "integer" },
+          "person_id": {
+            "description": "Person ID",
+            "title": "Person Id",
+            "type": "integer"
+          },
           "box": {
-            "allOf": [{ "$ref": "#/components/schemas/BoundingBox" }],
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoundingBox"
+              }
+            ],
             "description": "Bounding box of the person's face"
           }
         },
@@ -6658,9 +7345,17 @@
       },
       "PetWithBox": {
         "properties": {
-          "pet_id": { "description": "Pet ID", "title": "Pet Id", "type": "integer" },
+          "pet_id": {
+            "description": "Pet ID",
+            "title": "Pet Id",
+            "type": "integer"
+          },
           "box": {
-            "allOf": [{ "$ref": "#/components/schemas/BoundingBox" }],
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoundingBox"
+              }
+            ],
             "description": "Bounding box of the pet"
           }
         },
@@ -6678,43 +7373,102 @@
         "properties": {
           "add_faces": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/PersonWithBox" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PersonWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Add Faces"
           },
           "remove_faces": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/PersonWithBox" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PersonWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Remove Faces"
           },
           "add_pets": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/PetWithBox" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PetWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Add Pets"
           },
           "remove_pets": {
             "anyOf": [
-              { "items": { "$ref": "#/components/schemas/PetWithBox" }, "type": "array" },
-              { "type": "null" }
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PetWithBox"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Remove Pets"
           },
           "location_id": {
-            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Location Id"
           },
-          "date_id": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Date Id" },
+          "date_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Id"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
           "orientation": {
-            "anyOf": [{ "$ref": "#/components/schemas/RotationEnum" }, { "type": "null" }]
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RotationEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "title": "ImageUpdateSchema",
@@ -6722,13 +7476,28 @@
       },
       "AlbumBasicReadSchema": {
         "properties": {
-          "name": { "description": "The name of the album", "title": "Name", "type": "string" },
+          "name": {
+            "description": "The name of the album",
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The description of the album",
             "title": "Description"
           },
-          "id": { "description": "The id of the album", "title": "Id", "type": "integer" }
+          "id": {
+            "description": "The id of the album",
+            "title": "Id",
+            "type": "integer"
+          }
         },
         "required": ["name", "id"],
         "title": "AlbumBasicReadSchema",
@@ -6737,11 +7506,16 @@
       "PagedAlbumBasicReadSchema": {
         "properties": {
           "items": {
-            "items": { "$ref": "#/components/schemas/AlbumBasicReadSchema" },
+            "items": {
+              "$ref": "#/components/schemas/AlbumBasicReadSchema"
+            },
             "title": "Items",
             "type": "array"
           },
-          "count": { "title": "Count", "type": "integer" }
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
         },
         "required": ["items", "count"],
         "title": "PagedAlbumBasicReadSchema",
@@ -6749,9 +7523,20 @@
       },
       "AlbumCreateSchema": {
         "properties": {
-          "name": { "description": "The name of the album", "title": "Name", "type": "string" },
+          "name": {
+            "description": "The name of the album",
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The description of the album",
             "title": "Description"
           }
@@ -6762,16 +7547,33 @@
       },
       "AlbumWithImagesReadSchema": {
         "properties": {
-          "name": { "description": "The name of the album", "title": "Name", "type": "string" },
+          "name": {
+            "description": "The name of the album",
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The description of the album",
             "title": "Description"
           },
-          "id": { "description": "The id of the album", "title": "Id", "type": "integer" },
+          "id": {
+            "description": "The id of the album",
+            "title": "Id",
+            "type": "integer"
+          },
           "image_ids": {
             "description": "The ids of the images in this album in sorted order",
-            "items": { "type": "integer" },
+            "items": {
+              "type": "integer"
+            },
             "title": "Image Ids",
             "type": "array"
           }
@@ -6783,12 +7585,26 @@
       "AlbumUpdateSchema": {
         "properties": {
           "name": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The new name of the album",
             "title": "Name"
           },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The new description of the album",
             "title": "Description"
           }
@@ -6822,7 +7638,9 @@
         "properties": {
           "sorting": {
             "description": "The new order of the images, with the index being the new position in the album",
-            "items": { "type": "integer" },
+            "items": {
+              "type": "integer"
+            },
             "title": "Sorting",
             "type": "array"
           }
@@ -6834,11 +7652,16 @@
       "PagedPetReadSchema": {
         "properties": {
           "items": {
-            "items": { "$ref": "#/components/schemas/PetReadSchema" },
+            "items": {
+              "$ref": "#/components/schemas/PetReadSchema"
+            },
             "title": "Items",
             "type": "array"
           },
-          "count": { "title": "Count", "type": "integer" }
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
         },
         "required": ["items", "count"],
         "title": "PagedPetReadSchema",
@@ -6847,12 +7670,25 @@
       "PetReadSchema": {
         "description": "Schema when reading a pet",
         "properties": {
-          "name": { "title": "Name", "type": "string" },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
-          "id": { "title": "Id", "type": "integer" }
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
         },
         "required": ["name", "id"],
         "title": "PetReadSchema",
@@ -6861,9 +7697,19 @@
       "PetCreateSchema": {
         "description": "Schema to create a Pet",
         "properties": {
-          "name": { "title": "Name", "type": "string" },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           }
         },
@@ -6874,9 +7720,26 @@
       "PetUpdateSchema": {
         "description": "Schema to update a pet",
         "properties": {
-          "name": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           }
         },
@@ -12195,22 +13058,42 @@
                 ],
                 "type": "string"
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ],
             "description": "The ISO 3166-2 subdivision code of the location",
             "title": "Subdivision Code"
           },
           "city": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The city of the location",
             "title": "City"
           },
           "sub_location": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The location taken or shown",
             "title": "Sub Location"
           },
-          "id": { "description": "The id of the location", "title": "Id", "type": "integer" }
+          "id": {
+            "description": "The id of the location",
+            "title": "Id",
+            "type": "integer"
+          }
         },
         "required": ["country_code", "id"],
         "title": "LocationReadSchema",
@@ -12219,11 +13102,16 @@
       "PagedLocationReadSchema": {
         "properties": {
           "items": {
-            "items": { "$ref": "#/components/schemas/LocationReadSchema" },
+            "items": {
+              "$ref": "#/components/schemas/LocationReadSchema"
+            },
             "title": "Items",
             "type": "array"
           },
-          "count": { "title": "Count", "type": "integer" }
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
         },
         "required": ["items", "count"],
         "title": "PagedLocationReadSchema",
@@ -17541,18 +18429,34 @@
                 ],
                 "type": "string"
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ],
             "description": "The ISO 3166-2 subdivision code of the location",
             "title": "Subdivision Code"
           },
           "city": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The city of the location",
             "title": "City"
           },
           "sub_location": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The location taken or shown",
             "title": "Sub Location"
           }
@@ -17820,7 +18724,9 @@
                 ],
                 "type": "string"
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ],
             "description": "The new ISO 3166-1 alpha-2 code of the country",
             "title": "Country Code"
@@ -22878,18 +23784,34 @@
                 ],
                 "type": "string"
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ],
             "description": "The new ISO 3166-2 subdivision code of the location",
             "title": "Subdivision Code"
           },
           "city": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The new city of the location",
             "title": "City"
           },
           "sub_location": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "The new location taken or shown",
             "title": "Sub Location"
           }
@@ -22900,11 +23822,16 @@
       "PagedRoughDateReadSchema": {
         "properties": {
           "items": {
-            "items": { "$ref": "#/components/schemas/RoughDateReadSchema" },
+            "items": {
+              "$ref": "#/components/schemas/RoughDateReadSchema"
+            },
             "title": "Items",
             "type": "array"
           },
-          "count": { "title": "Count", "type": "integer" }
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
         },
         "required": ["items", "count"],
         "title": "PagedRoughDateReadSchema",
@@ -22913,10 +23840,25 @@
       "RoughDateReadSchema": {
         "description": "Schema when reading a person",
         "properties": {
-          "date": { "format": "date", "title": "Date", "type": "string" },
-          "month_valid": { "default": false, "title": "Month Valid", "type": "boolean" },
-          "day_valid": { "default": false, "title": "Day Valid", "type": "boolean" },
-          "id": { "title": "Id", "type": "integer" }
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "month_valid": {
+            "default": false,
+            "title": "Month Valid",
+            "type": "boolean"
+          },
+          "day_valid": {
+            "default": false,
+            "title": "Day Valid",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
         },
         "required": ["date", "id"],
         "title": "RoughDateReadSchema",
@@ -22925,9 +23867,21 @@
       "RoughDateCreateSchema": {
         "description": "Schema to create a Person",
         "properties": {
-          "date": { "format": "date", "title": "Date", "type": "string" },
-          "month_valid": { "default": false, "title": "Month Valid", "type": "boolean" },
-          "day_valid": { "default": false, "title": "Day Valid", "type": "boolean" }
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "month_valid": {
+            "default": false,
+            "title": "Month Valid",
+            "type": "boolean"
+          },
+          "day_valid": {
+            "default": false,
+            "title": "Day Valid",
+            "type": "boolean"
+          }
         },
         "required": ["date"],
         "title": "RoughDateCreateSchema",
@@ -22937,15 +23891,37 @@
         "description": "Schema to update a person",
         "properties": {
           "date": {
-            "anyOf": [{ "format": "date", "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Date"
           },
           "month_valid": {
-            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Month Valid"
           },
           "day_valid": {
-            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Day Valid"
           }
         },

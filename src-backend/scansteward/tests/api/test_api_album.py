@@ -85,7 +85,6 @@ class TestApiAlbumRead(FakerMixin, DirectoriesMixin, TestCase):
 
 
 class TestApiAlbumCreate(FakerMixin, DirectoriesMixin, TestCase):
-
     def test_create_album(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
@@ -114,7 +113,6 @@ class TestApiAlbumCreate(FakerMixin, DirectoriesMixin, TestCase):
 
 
 class TestApiAlbumUpdate(FakerMixin, DirectoriesMixin, TestCase):
-
     def test_update_album(self):
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
@@ -187,7 +185,6 @@ class TestApiAlbumDelete(FakerMixin, DirectoriesMixin, TestCase):
         assert resp.status_code == HTTPStatus.NO_CONTENT
 
     def test_delete_does_not_exist(self):
-
         resp = self.client.delete("/api/album/1/")
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
@@ -494,7 +491,6 @@ class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
 
 
 class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCase):
-
     def download_test_common(self, *, use_original_download=False):
         # Create album with images
         tmp_dir = self.get_new_temporary_dir()

@@ -350,7 +350,6 @@ class RoughLocation(TimestampMixin, models.Model):
 
     @property
     def country_name(self) -> str:
-
         country = Country.from_alpha2(self.country_code)  # type: ignore[arg-type]
         if TYPE_CHECKING:
             # The code is validated

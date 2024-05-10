@@ -8,7 +8,6 @@ from ninja.types import DictStrAny
 
 
 class OrjsonParser(Parser):
-
     def parse_body(self, request: HttpRequest) -> DictStrAny:
         return cast(DictStrAny, orjson.loads(request.body))
 
