@@ -135,7 +135,9 @@ class GenerateImagesMixin(FakerMixin):
             self.images.append(
                 Image.objects.create(
                     file_size=random.randint(1, 1_000_000),  # noqa: S311
-                    checksum=self.faker.sha1()[:64],
+                    original_checksum=self.faker.sha1()[:64],
+                    thumbnail_checksum=self.faker.sha1()[:64],
+                    full_size_checksum=self.faker.sha1()[:64],
                     phash=self.faker.sha1()[:64],
                     original=self.faker.file_path(category="image"),
                 ),

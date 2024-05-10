@@ -131,7 +131,7 @@ class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert resp.status_code == HTTPStatus.CREATED
 
         resp = self.create_single_pet_via_api(pet_name)
-        assert resp.status_code == HTTPStatus.BAD_REQUEST
+        assert resp.status_code == HTTPStatus.CONFLICT
         assert Pet.objects.count() == 1
 
 

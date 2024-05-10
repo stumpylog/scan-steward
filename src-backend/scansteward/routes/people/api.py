@@ -3,13 +3,15 @@ from http import HTTPStatus
 
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
+from ninja import Query
 from ninja import Router
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http400Error
+from scansteward.common.errors import Http409Error
 from scansteward.models import Person
 from scansteward.routes.people.schemas import PersonCreateSchema
+from scansteward.routes.people.schemas import PersonNameFilter
 from scansteward.routes.people.schemas import PersonReadSchema
 from scansteward.routes.people.schemas import PersonUpdateSchema
 
@@ -20,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[PersonReadSchema])
 @paginate(LimitOffsetPagination)
-def get_all_people(request: HttpRequest):
-    return Person.objects.all()
+def get_all_people(request: HttpRequest, name_filter: Query[PersonNameFilter]):
+    return Person.objects.filter(name_filter.get_filter_expression()).all()
 
 
 @router.get(
@@ -55,11 +57,11 @@ async def get_single_person(request: HttpRequest, person_id: int):
     },
 )
 async def create_person(request: HttpRequest, data: PersonCreateSchema):
-    person_name_exists = await Person.objects.filter(name=data.name).aexists()
+    person_name_exists = await Person.objects.filter(name__iexact=data.name).aexists()
     if person_name_exists:
         msg = f"Person named {data.name} already exists"
         logger.error(msg)
-        raise Http400Error(msg)
+        raise Http409Error(msg)
     instance: Person = await Person.objects.acreate(
         name=data.name,
         description=data.description,
@@ -79,10 +81,6 @@ async def create_person(request: HttpRequest, data: PersonCreateSchema):
     },
 )
 async def update_person(request: HttpRequest, person_id: int, data: PersonUpdateSchema):
-    if not any([data.name, data.description]):
-        msg = "At least one field must be updated"
-        logger.error(msg)
-        raise Http400Error(msg)
     instance: Person = await aget_object_or_404(Person, id=person_id)
     if data.name is not None:
         instance.name = data.name

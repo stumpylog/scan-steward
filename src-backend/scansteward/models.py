@@ -281,7 +281,7 @@ class ImageInAlbum(TimestampMixin, models.Model):
         ]
 
 
-class Location(TimestampMixin, models.Model):
+class RoughLocation(TimestampMixin, models.Model):
     """
     Holds the information about a Location where an image was.
 
@@ -330,14 +330,14 @@ class Location(TimestampMixin, models.Model):
         ]
 
     def __str__(self) -> str:
-        country = Country.from_alpha2(self.country_code)
+        country = Country.from_alpha2(self.country_code)  # type: ignore[arg-type]
         if TYPE_CHECKING:
-            country: Country
+            assert isinstance(country, Country)
         value = f"Country: {country.common_name or country.name}"
         if self.subdivision_code:
-            subdivision_name = country.get_subdivision_name(self.subdivision_code)
+            subdivision_name = country.get_subdivision_name(self.subdivision_code)  # type: ignore[arg-type]
             if TYPE_CHECKING:
-                subdivision_name: str
+                assert isinstance(subdivision_name, str)
             value = f"{value} - State: {subdivision_name}"
         if self.city:
             value = f"{value} - City: {self.city}"
@@ -346,12 +346,12 @@ class Location(TimestampMixin, models.Model):
         return value
 
     def __repr__(self) -> str:
-        return f"Location: {self!s}"
+        return f"RoughLocation: {self!s}"
 
     @property
     def country_name(self) -> str:
 
-        country = Country.from_alpha2(self.country_code)
+        country = Country.from_alpha2(self.country_code)  # type: ignore[arg-type]
         if TYPE_CHECKING:
             # The code is validated
             assert country is not None
@@ -362,11 +362,11 @@ class Location(TimestampMixin, models.Model):
     def subdivision_name(self) -> str | None:
         if not self.subdivision_code:
             return None
-        country = Country.from_alpha2(self.country_code)
+        country = Country.from_alpha2(self.country_code)  # type: ignore[arg-type]
         if TYPE_CHECKING:
             # The code is validated
             assert country is not None
-        return country.get_subdivision_name(self.subdivision_code)
+        return country.get_subdivision_name(self.subdivision_code)  # type: ignore[arg-type]
 
 
 class Image(TimestampMixin, models.Model):
@@ -384,12 +384,28 @@ class Image(TimestampMixin, models.Model):
         MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
         ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
 
-    checksum = models.CharField(
+    original_checksum = models.CharField(
         max_length=64,
         unique=True,
         db_index=True,
         verbose_name="blake3 hex digest",
         help_text="The BLAKE3 checksum of the original file",
+    )
+
+    thumbnail_checksum = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        verbose_name="blake3 hex digest",
+        help_text="The BLAKE3 checksum of the image thumbnail",
+    )
+
+    full_size_checksum = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        verbose_name="blake3 hex digest",
+        help_text="The BLAKE3 checksum of the full size image",
     )
 
     phash = models.CharField(
@@ -432,6 +448,11 @@ class Image(TimestampMixin, models.Model):
         help_text="The image is in the trash and needs to be deleted from the file system on scheduled run",
     )
 
+    is_starred = models.BooleanField(
+        default=False,
+        help_text="The image has been starred",
+    )
+
     source = models.ForeignKey(
         ImageSource,
         on_delete=models.SET_NULL,
@@ -442,7 +463,7 @@ class Image(TimestampMixin, models.Model):
     )
 
     location = models.ForeignKey(
-        Location,
+        RoughLocation,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

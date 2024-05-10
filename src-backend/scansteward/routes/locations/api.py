@@ -9,7 +9,7 @@ from ninja.pagination import paginate
 
 from scansteward.common.errors import Http400Error
 from scansteward.common.errors import Http409Error
-from scansteward.models import Location
+from scansteward.models import RoughLocation
 from scansteward.routes.locations.schemas import LocationCreateSchema
 from scansteward.routes.locations.schemas import LocationReadSchema
 from scansteward.routes.locations.schemas import LocationUpdateSchema
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 @router.get("/", response=list[LocationReadSchema])
 @paginate(LimitOffsetPagination)
 def get_all_locations(request: HttpRequest):
-    return Location.objects.all()
+    return RoughLocation.objects.all()
 
 
 @router.get(
@@ -38,7 +38,7 @@ def get_all_locations(request: HttpRequest):
     },
 )
 async def get_single_location(request: HttpRequest, location_id: int):
-    instance: Location = await aget_object_or_404(Location, id=location_id)
+    instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)
     return instance
 
 
@@ -54,7 +54,7 @@ async def get_single_location(request: HttpRequest, location_id: int):
                 "description": "Subdivision provided without country",
             },
             HTTPStatus.CONFLICT: {
-                "description": "Location already exists",
+                "description": "RoughLocation already exists",
             },
         },
     },
@@ -69,14 +69,14 @@ async def create_location(request: HttpRequest, data: LocationCreateSchema):
         logger.error(msg)
         raise Http400Error(msg)
 
-    instance, created = await Location.objects.aget_or_create(
+    instance, created = await RoughLocation.objects.aget_or_create(
         country_code=data.country_code,
         subdivision_code=data.subdivision_code,
         city=data.city,
         sub_location=data.sub_location,
     )
     if not created:
-        msg = "Location with provided fields already exists"
+        msg = "RoughLocation with provided fields already exists"
         logger.error(msg)
         raise Http409Error(msg)
 
@@ -102,7 +102,7 @@ async def update_location(request: HttpRequest, location_id: int, data: Location
         raise Http400Error(msg)
 
     # Retrieve the location object from the database
-    instance: Location = await aget_object_or_404(Location, id=location_id)
+    instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)
 
     # Update the country
     if data.country_code:
@@ -132,6 +132,6 @@ async def update_location(request: HttpRequest, location_id: int, data: Location
     },
 )
 async def delete_location(request: HttpRequest, location_id: int):
-    instance: Location = await aget_object_or_404(Location, id=location_id)
+    instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None

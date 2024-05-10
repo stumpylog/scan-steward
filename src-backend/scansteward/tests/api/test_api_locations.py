@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from django.test import TestCase
 
-from scansteward.models import Location
+from scansteward.models import RoughLocation
 
 
 def util_create_location_object(
@@ -11,7 +11,7 @@ def util_create_location_object(
     city: str | None = None,
     location: str | None = None,
 ) -> int:
-    instance = Location.objects.create(
+    instance = RoughLocation.objects.create(
         country_code=country,
         subdivision_code=subdivision,
         city=city,
@@ -31,8 +31,8 @@ class TestCreateLocation(TestCase):
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
 
-        assert Location.objects.count() == 1
-        assert Location.objects.get(pk=data["id"]).country_code == "US"
+        assert RoughLocation.objects.count() == 1
+        assert RoughLocation.objects.get(pk=data["id"]).country_code == "US"
 
     def test_location_create_country_and_state(self):
         resp = self.client.post(
@@ -43,9 +43,9 @@ class TestCreateLocation(TestCase):
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert Location.objects.count() == 1
-        assert Location.objects.get(pk=data["id"]).country_code == "US"
-        assert Location.objects.get(pk=data["id"]).subdivision_code == "US-CA"
+        assert RoughLocation.objects.count() == 1
+        assert RoughLocation.objects.get(pk=data["id"]).country_code == "US"
+        assert RoughLocation.objects.get(pk=data["id"]).subdivision_code == "US-CA"
 
     def test_location_create_country_and_state_and_city(self):
         resp = self.client.post(
@@ -60,10 +60,10 @@ class TestCreateLocation(TestCase):
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert Location.objects.count() == 1
-        assert Location.objects.get(pk=data["id"]).country_code == "US"
-        assert Location.objects.get(pk=data["id"]).subdivision_code == "US-CA"
-        assert Location.objects.get(pk=data["id"]).city == "San Francisco"
+        assert RoughLocation.objects.count() == 1
+        assert RoughLocation.objects.get(pk=data["id"]).country_code == "US"
+        assert RoughLocation.objects.get(pk=data["id"]).subdivision_code == "US-CA"
+        assert RoughLocation.objects.get(pk=data["id"]).city == "San Francisco"
 
     def test_location_create_country_and_state_and_city_and_sublocation(self):
         resp = self.client.post(
@@ -79,11 +79,11 @@ class TestCreateLocation(TestCase):
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert Location.objects.count() == 1
-        assert Location.objects.get(pk=data["id"]).country_code == "US"
-        assert Location.objects.get(pk=data["id"]).subdivision_code == "US-CA"
-        assert Location.objects.get(pk=data["id"]).city == "San Francisco"
-        assert Location.objects.get(pk=data["id"]).sub_location == "Fisherman's Wharf"
+        assert RoughLocation.objects.count() == 1
+        assert RoughLocation.objects.get(pk=data["id"]).country_code == "US"
+        assert RoughLocation.objects.get(pk=data["id"]).subdivision_code == "US-CA"
+        assert RoughLocation.objects.get(pk=data["id"]).city == "San Francisco"
+        assert RoughLocation.objects.get(pk=data["id"]).sub_location == "Fisherman's Wharf"
 
     def test_location_create_country_and_state_invalid(self):
         resp = self.client.post(
@@ -93,7 +93,7 @@ class TestCreateLocation(TestCase):
         )
 
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        assert Location.objects.count() == 0
+        assert RoughLocation.objects.count() == 0
 
     def test_location_create_invalid_country(self):
         resp = self.client.post(
@@ -103,7 +103,7 @@ class TestCreateLocation(TestCase):
         )
 
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        assert Location.objects.count() == 0
+        assert RoughLocation.objects.count() == 0
 
     def test_location_already_exists(self):
         resp = self.client.post(
@@ -190,7 +190,7 @@ class TestUpdateLocation(TestCase):
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert Location.objects.get(pk=id).city == "New York"
+        assert RoughLocation.objects.get(pk=id).city == "New York"
 
     def test_update_subdivision_code_with_no_country(self):
         id = util_create_location_object(
@@ -209,7 +209,7 @@ class TestUpdateLocation(TestCase):
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         data = resp.json()
         assert "Subdivision must also include country code" in data["detail"][0]["msg"]
-        assert Location.objects.get(pk=id).subdivision_code == "US-CA"
+        assert RoughLocation.objects.get(pk=id).subdivision_code == "US-CA"
 
     def test_update_subdivision_code_with_wrong_country(self):
         id = util_create_location_object(
@@ -230,7 +230,7 @@ class TestUpdateLocation(TestCase):
         error = data["detail"][0]
         context = error["ctx"]
         assert "AM-AG is not a valid subdivision of US" in context["error"]
-        assert Location.objects.get(pk=id).subdivision_code == "US-CA"
+        assert RoughLocation.objects.get(pk=id).subdivision_code == "US-CA"
 
     def test_update_no_data(self):
         id = util_create_location_object(
@@ -261,8 +261,8 @@ class TestUpdateLocation(TestCase):
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert Location.objects.get(pk=id).country_code == "FR"
-        assert Location.objects.get(pk=id).subdivision_code == "FR-IDF"
+        assert RoughLocation.objects.get(pk=id).country_code == "FR"
+        assert RoughLocation.objects.get(pk=id).subdivision_code == "FR-IDF"
 
 
 class TestDeleteLocation(TestCase):
@@ -276,7 +276,7 @@ class TestDeleteLocation(TestCase):
         resp = self.client.delete(f"/api/location/{id}/")
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
-        assert Location.objects.filter(pk=id).exists() is False
+        assert RoughLocation.objects.filter(pk=id).exists() is False
 
     def test_delete_location_not_found(self):
         id = util_create_location_object(

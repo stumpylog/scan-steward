@@ -7,7 +7,6 @@ from ninja import Router
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http400Error
 from scansteward.common.errors import Http409Error
 from scansteward.models import RoughDate
 from scansteward.routes.rough_dates.schema import RoughDateCreateSchema
@@ -85,10 +84,6 @@ async def create_rough_date(request: HttpRequest, data: RoughDateCreateSchema):
     },
 )
 async def update_rough_date(request: HttpRequest, date_id: int, data: RoughDateUpdateSchema):
-    if not any([data.date, data.month_valid, data.day_valid]):
-        msg = "At least one field must be updated"
-        logger.error(msg)
-        raise Http400Error(msg)
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)
     if data.date is not None:
         instance.date = data.date

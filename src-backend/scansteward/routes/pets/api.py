@@ -1,18 +1,21 @@
+import logging
 from http import HTTPStatus
 
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Router
-from ninja.errors import HttpError
 from ninja.pagination import LimitOffsetPagination
 from ninja.pagination import paginate
 
+from scansteward.common.errors import Http409Error
 from scansteward.models import Pet
 from scansteward.routes.pets.schemas import PetCreateSchema
 from scansteward.routes.pets.schemas import PetReadSchema
 from scansteward.routes.pets.schemas import PetUpdateSchema
 
 router = Router(tags=["pets"])
+
+logger = logging.getLogger(__name__)
 
 
 @router.get("/", response=list[PetReadSchema])
@@ -52,12 +55,11 @@ async def get_single_pet(request: HttpRequest, pet_id: int):
     },
 )
 async def create_pet(request: HttpRequest, data: PetCreateSchema):
-    pet_name_exists = await Pet.objects.filter(name=data.name).aexists()
+    pet_name_exists = await Pet.objects.filter(name__iexact=data.name).aexists()
     if pet_name_exists:
-        raise HttpError(
-            HTTPStatus.BAD_REQUEST,
-            f"Tag named {data.name} already exists",
-        )
+        msg = f"Pet named {data.name} already exists"
+        logger.warning(msg)
+        raise Http409Error(msg)
     instance: Pet = await Pet.objects.acreate(
         name=data.name,
         description=data.description,

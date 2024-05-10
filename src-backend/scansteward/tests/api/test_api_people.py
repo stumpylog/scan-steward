@@ -131,7 +131,7 @@ class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
         assert resp.status_code == HTTPStatus.CREATED
 
         resp = self.create_single_person_via_api(person_name)
-        assert resp.status_code == HTTPStatus.BAD_REQUEST
+        assert resp.status_code == HTTPStatus.CONFLICT
         assert Person.objects.count() == 1
 
 

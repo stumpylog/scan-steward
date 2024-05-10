@@ -18,12 +18,12 @@ from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordStruct
 from scansteward.models import Image as ImageModel
 from scansteward.models import ImageSource
-from scansteward.models import Location
 from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
 from scansteward.models import PetInImage
 from scansteward.models import RoughDate
+from scansteward.models import RoughLocation
 from scansteward.models import Tag
 from scansteward.routes.locations.utils import get_country_code_from_name
 from scansteward.routes.locations.utils import get_subdivision_code_from_name
@@ -78,7 +78,7 @@ class Command(TyperCommand):
 
         # Update or create
         with transaction.atomic():
-            existing_image = ImageModel.objects.filter(checksum=image_hash).first()
+            existing_image = ImageModel.objects.filter(original_checksum=image_hash).first()
             if existing_image is not None:
                 self.handle_existing_image(existing_image, image_path)
             else:
@@ -117,8 +117,10 @@ class Command(TyperCommand):
 
         new_img = ImageModel.objects.create(
             file_size=image_path.stat().st_size,
-            checksum=image_hash,
+            original_checksum=image_hash,
             original=str(image_path.resolve()),
+            thumbnail_checksum="A",
+            full_size_checksum="B",
             source=self.source,
             orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
             description=metadata.Description,
@@ -133,9 +135,21 @@ class Command(TyperCommand):
             img_copy.thumbnail((500, 500))
             img_copy.save(new_img.thumbnail_path)
 
+        new_img.thumbnail_checksum = blake3(
+            new_img.thumbnail_path.read_bytes(),
+            max_threads=self.hash_threads,
+        ).hexdigest()
+
         self.stdout.write(self.style.SUCCESS("  Creating WebP version"))
         with Image.open(image_path) as im_file:
             im_file.save(new_img.full_size_path, quality=90)
+
+        new_img.full_size_checksum = blake3(
+            new_img.full_size_path.read_bytes(),
+            max_threads=self.hash_threads,
+        ).hexdigest()
+
+        new_img.save()
 
         # Parse Faces/pets/regions
         self.parse_region_info(new_img, metadata)
@@ -264,7 +278,7 @@ class Command(TyperCommand):
                                 f"  Got subdivision code {subdivision_code} from {metadata.State}",
                             ),
                         )
-                location, _ = Location.objects.get_or_create(
+                location, _ = RoughLocation.objects.get_or_create(
                     country_code=country_alpha_2,
                     subdivision_code=subdivision_code,
                     city=metadata.City,
@@ -307,7 +321,7 @@ class Command(TyperCommand):
                         if len(city_node.Children) > 0:
                             location = city_node.Children[0].Keyword
 
-                location, _ = Location.objects.get_or_create(
+                location, _ = RoughLocation.objects.get_or_create(
                     country_code=country_alpha2,
                     subdivision_code=subdivision_code,
                     city=city,
@@ -315,7 +329,7 @@ class Command(TyperCommand):
                 )
                 new_image.location = location
                 new_image.save()
-                self.stdout.write(self.style.SUCCESS(f"  Location is {location}"))
+                self.stdout.write(self.style.SUCCESS(f"  RoughLocation is {location}"))
 
     def parse_dates_from_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
         """

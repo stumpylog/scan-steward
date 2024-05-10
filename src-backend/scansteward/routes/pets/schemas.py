@@ -1,4 +1,12 @@
+import sys
+
 from ninja import Schema
+from pydantic import model_validator
+
+if sys.version_info > (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class PetCreateSchema(Schema):
@@ -23,6 +31,11 @@ class PetUpdateSchema(Schema):
     Schema to update a pet
     """
 
-    # TODO: Validate one or both fields provided
     name: str | None = None
     description: str | None = None
+
+    @model_validator(mode="after")
+    def check_one_or_other(self) -> Self:
+        if self.name is None and self.description is None:
+            raise ValueError("At least one of name or description must be set")  # noqa: TRY003, EM101
+        return self

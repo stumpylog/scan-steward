@@ -1,6 +1,13 @@
 import datetime
+import sys
 
 from ninja import Schema
+from pydantic import model_validator
+
+if sys.version_info > (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class RoughDateCreateSchema(Schema):
@@ -26,7 +33,12 @@ class RoughDateUpdateSchema(Schema):
     Schema to update a person
     """
 
-    # TODO: Validate one or both fields provided
     date: datetime.date | None = None
     month_valid: bool | None = None
     day_valid: bool | None = None
+
+    @model_validator(mode="after")
+    def check_one_or_other(self) -> Self:
+        if self.date is None and self.month_valid is None and self.day_valid is None:
+            raise ValueError("At least one of name or description must be set")  # noqa: TRY003, EM101
+        return self

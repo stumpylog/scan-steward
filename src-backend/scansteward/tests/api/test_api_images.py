@@ -32,6 +32,9 @@ class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixi
         resp = self.client.get(f"/api/image/{img.pk}/thumbnail/")
 
         assert resp.status_code == HTTPStatus.OK
+        assert resp["ETag"] == f'"{img.thumbnail_checksum}"'
+        assert resp["Last-Modified"] == img.modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        assert resp["Cache-Control"] == "private, max-age=3600"
         thumbnail_data = b"".join(resp.streaming_content)
 
         self.assertFileContents(img.thumbnail_path, thumbnail_data)
@@ -43,6 +46,9 @@ class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixi
         resp = self.client.get(f"/api/image/{img.pk}/full/")
 
         assert resp.status_code == HTTPStatus.OK
+        assert resp["ETag"] == f'"{img.full_size_checksum}"'
+        assert resp["Last-Modified"] == img.modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        assert resp["Cache-Control"] == "private, max-age=3600"
         full_size_data = b"".join(resp.streaming_content)
 
         self.assertFileContents(img.full_size_path, full_size_data)
@@ -55,6 +61,11 @@ class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixi
         resp = self.client.get(f"/api/image/{img.pk}/original/")
 
         assert resp.status_code == HTTPStatus.OK
+        assert resp["Content-Type"] == "image/jpeg"
+        assert resp["ETag"] == f'"{img.original_checksum}"'
+        assert resp["Content-Length"] == str(img.file_size)
+        assert resp["Last-Modified"] == img.modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        assert resp["Cache-Control"] == "private, max-age=3600"
         original_data = b"".join(resp.streaming_content)
 
         self.assertFileContents(img.original_path, original_data)

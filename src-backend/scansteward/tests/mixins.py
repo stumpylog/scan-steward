@@ -2,7 +2,6 @@ import collections
 import tempfile
 from collections.abc import Sequence
 from contextlib import ExitStack
-from os import PathLike
 from pathlib import Path
 
 from django.test import override_settings
@@ -24,19 +23,19 @@ class TemporaryDirectoryMixin:
 
     @classmethod
     def setUpClass(cls):
-        cls._dir_stack = ExitStack()
-        super().setUpClass()
+        cls._dir_stack = ExitStack()  # type: ignore[attr-defined]
+        super().setUpClass()  # type: ignore[misc]
 
     @classmethod
     def tearDownClass(cls) -> None:
-        cls._dir_stack.close()
-        super().tearDownClass()
+        cls._dir_stack.close()  # type: ignore[attr-defined]
+        super().tearDownClass()  # type: ignore[misc]
 
     def get_new_temporary_dir(self) -> Path:
         """
         Generates a new temporary directory which will be cleaned up on tearDown
         """
-        tmp_dir = self._dir_stack.enter_context(tempfile.TemporaryDirectory())
+        tmp_dir = self._dir_stack.enter_context(tempfile.TemporaryDirectory(ignore_cleanup_errors=True))  # type: ignore[attr-defined]
         return Path(tmp_dir)
 
 
@@ -67,7 +66,7 @@ class DirectoriesMixin(TemporaryDirectoryMixin):
         self._overrides.enable()
 
     def tearDown(self) -> None:
-        super().tearDown()
+        super().tearDown()  # type: ignore[misc]
         self._overrides.disable()
 
 
@@ -76,22 +75,22 @@ class FileSystemAssertsMixin:
     Utilities for checks various state information of the file system
     """
 
-    def assertIsFile(self, path: PathLike | str):  # noqa: N802
+    def assertIsFile(self, path: Path | str):  # noqa: N802
         assert Path(path).resolve().is_file(), f"File does not exist: {path}"
 
-    def assertIsNotFile(self, path: PathLike | str):  # noqa: N802
+    def assertIsNotFile(self, path: Path | str):  # noqa: N802
         assert not Path(path).resolve().is_file(), f"File does exist: {path}"
 
-    def assertIsDir(self, path: PathLike | str):  # noqa: N802
+    def assertIsDir(self, path: Path | str):  # noqa: N802
         assert Path(path).resolve().is_dir(), f"Dir does not exist: {path}"
 
-    def assertIsNotDir(self, path: PathLike | str):  # noqa: N802
+    def assertIsNotDir(self, path: Path | str):  # noqa: N802
         assert not Path(path).resolve().is_dir(), f"Dir does exist: {path}"
 
     def assertFilesEqual(  # noqa: N802
         self,
-        path1: PathLike | str,
-        path2: PathLike | str,
+        path1: Path | str,
+        path2: Path | str,
     ):
         path1 = Path(path1)
         path2 = Path(path2)
@@ -102,7 +101,7 @@ class FileSystemAssertsMixin:
 
         assert hash1 == hash2, "File SHA256 mismatch"
 
-    def assertFileContents(self, file: PathLike | str, content: bytes | bytearray):  # noqa: N802
+    def assertFileContents(self, file: Path | str, content: bytes | bytearray):  # noqa: N802
         file = Path(file)
         self.assertIsFile(file)
 

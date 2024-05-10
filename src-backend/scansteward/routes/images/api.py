@@ -6,16 +6,23 @@ from django.http import FileResponse
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
+from django.views.decorators.cache import cache_control
+from django.views.decorators.http import condition
 from ninja import Router
+from ninja.decorators import decorate_view
 
 from scansteward.common.constants import WEBP_CONTENT_TYPE
 from scansteward.models import Image
-from scansteward.models import Location
 from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
 from scansteward.models import PetInImage
 from scansteward.models import RoughDate
+from scansteward.models import RoughLocation
+from scansteward.routes.images.conditionals import full_size_etag
+from scansteward.routes.images.conditionals import image_last_modified
+from scansteward.routes.images.conditionals import original_image_etag
+from scansteward.routes.images.conditionals import thumbnail_etag
 from scansteward.routes.images.schemas import ImageDetailsRead
 from scansteward.routes.images.schemas import ImageUpdateSchema
 
@@ -34,6 +41,10 @@ router = Router(tags=["images"])
             },
         },
     },
+)
+@decorate_view(
+    cache_control(private=True, max_age=3600),
+    condition(last_modified_func=image_last_modified, etag_func=thumbnail_etag),
 )
 def get_image_thumbnail(request: HttpRequest, image_id: int):
     img: Image = get_object_or_404(Image, id=image_id)
@@ -54,6 +65,10 @@ def get_image_thumbnail(request: HttpRequest, image_id: int):
         },
     },
 )
+@decorate_view(
+    cache_control(private=True, max_age=3600),
+    condition(last_modified_func=image_last_modified, etag_func=full_size_etag),
+)
 def get_image_full_size(request: HttpRequest, image_id: int):
     img: Image = get_object_or_404(Image, id=image_id)
 
@@ -70,6 +85,10 @@ def get_image_full_size(request: HttpRequest, image_id: int):
             HTTPStatus.OK: {"content": {"image/*": {"schema": {"type": "string", "format": "binary"}}}},
         },
     },
+)
+@decorate_view(
+    cache_control(private=True, max_age=3600),
+    condition(last_modified_func=image_last_modified, etag_func=original_image_etag),
 )
 def get_image_original(request: HttpRequest, image_id: int):
     img: Image = get_object_or_404(Image, id=image_id)
@@ -116,7 +135,15 @@ def get_image_details(request: HttpRequest, image_id: int):
     },
 )
 async def update_image_details(request: HttpRequest, image_id: int, data: ImageUpdateSchema):
-    instance: Image = await aget_object_or_404(Image, id=image_id)
+    instance: Image = await aget_object_or_404(
+        Image.objects.prefetch_related("people")
+        .prefetch_related("albums")
+        .prefetch_related("tags")
+        .prefetch_related("pets")
+        .prefetch_related("location")
+        .prefetch_related("date"),
+        id=image_id,
+    )
 
     with transaction.atomic():
 
@@ -126,7 +153,7 @@ async def update_image_details(request: HttpRequest, image_id: int, data: ImageU
             instance.orientation = data.orientation
 
         if data.location_id:
-            location: Location = await aget_object_or_404(Location, id=data.location_id)
+            location: RoughLocation = await aget_object_or_404(RoughLocation, id=data.location_id)
             instance.location = location
 
         if data.date_id:
@@ -179,5 +206,5 @@ async def update_image_details(request: HttpRequest, image_id: int, data: ImageU
                     width=pet_box.box.width,
                 ).adelete()
 
-        instance.arefresh_from_db()
+        await instance.arefresh_from_db()
         return instance
