@@ -5,7 +5,7 @@ from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Query
 from ninja import Router
-from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
 from scansteward.common.errors import Http409Error
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/", response=list[PersonReadSchema], operation_id="get_people")
-@paginate(LimitOffsetPagination)
+@paginate(PageNumberPagination)
 def get_all_people(request: HttpRequest, name_filter: Query[PersonNameFilter]):
     return Person.objects.filter(name_filter.get_filter_expression()).all()
 

@@ -62,12 +62,12 @@ class TestApiPeopleRead(GeneratePeopleMixin, DirectoriesMixin, TestCase):
 
     def test_list_people_limit_offset(self):
         count = 5
-        limit = 3
-        offset = 0
+
         self.generate_people_objects(count)
 
+        page = 1
         resp = self.client.get(
-            f"/api/person/?limit={limit}&offset={offset}",
+            f"/api/person/?page={page}",
         )
 
         assert resp.status_code == HTTPStatus.OK
@@ -75,7 +75,19 @@ class TestApiPeopleRead(GeneratePeopleMixin, DirectoriesMixin, TestCase):
         data = resp.json()
 
         assert data["count"] == count
-        assert len(data["items"]) == limit
+        assert len(data["items"]) == count
+
+        page = 10
+        resp = self.client.get(
+            f"/api/person/?page={page}",
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == count
+        assert len(data["items"]) == 0
 
 
 class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):

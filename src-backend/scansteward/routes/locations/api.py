@@ -4,7 +4,7 @@ from http import HTTPStatus
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Router
-from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
 from scansteward.common.errors import Http400Error
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/", response=list[LocationReadSchema], operation_id="get_locations")
-@paginate(LimitOffsetPagination)
+@paginate(PageNumberPagination)
 def get_all_locations(request: HttpRequest):
     return RoughLocation.objects.all()
 

@@ -34,15 +34,25 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
         assert len(resp.json()["items"]) == count
 
     def test_tag_paginate(self):
-        count = 100
-        limit = 5
+        count = 110
+
         self.generate_root_tag_objects(count)
 
-        resp = self.client.get(f"/api/tag/?limit={limit}")
+        page = 1
+        resp = self.client.get(f"/api/tag/?page={page}")
 
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json()["count"] == count
-        assert len(resp.json()["items"]) == limit
+        data = resp.json()
+        assert data["count"] == count
+        assert len(data["items"]) == 100
+
+        page = 2
+        resp = self.client.get(f"/api/tag/?page={page}")
+
+        assert resp.status_code == HTTPStatus.OK
+        data = resp.json()
+        assert data["count"] == count
+        assert len(data["items"]) == 10
 
     def test_tag_tree(self):
         root_count = 3

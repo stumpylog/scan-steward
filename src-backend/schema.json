@@ -8,7 +8,7 @@
   "paths": {
     "/api/person/": {
       "get": {
-        "operationId": "scansteward_routes_people_api_get_all_people",
+        "operationId": "get_people",
         "summary": "Get All People",
         "parameters": [
           {
@@ -29,22 +29,11 @@
           },
           {
             "in": "query",
-            "name": "limit",
+            "name": "page",
             "schema": {
-              "default": 100,
+              "default": 1,
               "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            },
-            "required": false
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
+              "title": "Page",
               "type": "integer"
             },
             "required": false
@@ -65,7 +54,7 @@
         "tags": ["people"]
       },
       "post": {
-        "operationId": "scansteward_routes_people_api_create_person",
+        "operationId": "create_person",
         "summary": "Create Person",
         "parameters": [],
         "responses": {
@@ -101,7 +90,7 @@
     },
     "/api/person/{person_id}/": {
       "get": {
-        "operationId": "scansteward_routes_people_api_get_single_person",
+        "operationId": "get_person",
         "summary": "Get Single Person",
         "parameters": [
           {
@@ -132,7 +121,7 @@
         "tags": ["people"]
       },
       "patch": {
-        "operationId": "scansteward_routes_people_api_update_person",
+        "operationId": "update_person",
         "summary": "Update Person",
         "parameters": [
           {
@@ -173,7 +162,7 @@
         }
       },
       "delete": {
-        "operationId": "scansteward_routes_people_api_delete_person",
+        "operationId": "delete_person",
         "summary": "Delete Person",
         "parameters": [
           {
@@ -199,7 +188,7 @@
     },
     "/api/tag/tree/": {
       "get": {
-        "operationId": "scansteward_routes_tags_api_get_tag_tree",
+        "operationId": "get_tag_tree",
         "summary": "Get Tag Tree",
         "parameters": [
           {
@@ -240,27 +229,16 @@
     },
     "/api/tag/": {
       "get": {
-        "operationId": "scansteward_routes_tags_api_get_tags",
+        "operationId": "get_all_tags",
         "summary": "Get Tags",
         "parameters": [
           {
             "in": "query",
-            "name": "limit",
+            "name": "page",
             "schema": {
-              "default": 100,
+              "default": 1,
               "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            },
-            "required": false
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
+              "title": "Page",
               "type": "integer"
             },
             "required": false
@@ -281,7 +259,7 @@
         "tags": ["tags"]
       },
       "post": {
-        "operationId": "scansteward_routes_tags_api_create_tag",
+        "operationId": "create_tag",
         "summary": "Create Tag",
         "parameters": [],
         "responses": {
@@ -317,7 +295,7 @@
     },
     "/api/tag/{tag_id}/": {
       "get": {
-        "operationId": "scansteward_routes_tags_api_get_single_tag",
+        "operationId": "get_single_tag",
         "summary": "Get Single Tag",
         "parameters": [
           {
@@ -348,7 +326,7 @@
         "tags": ["tags"]
       },
       "patch": {
-        "operationId": "scansteward_routes_tags_api_update_tag",
+        "operationId": "update_tag",
         "summary": "Update Tag",
         "parameters": [
           {
@@ -389,7 +367,7 @@
         }
       },
       "delete": {
-        "operationId": "scansteward_routes_tags_api_delete_tag",
+        "operationId": "delete_tag",
         "summary": "Delete Tag",
         "parameters": [
           {
@@ -415,7 +393,7 @@
     },
     "/api/image/{image_id}/thumbnail/": {
       "get": {
-        "operationId": "scansteward_routes_images_api_get_image_thumbnail",
+        "operationId": "get_image_thumbnail",
         "summary": "Get Image Thumbnail",
         "parameters": [
           {
@@ -449,7 +427,7 @@
     },
     "/api/image/{image_id}/full/": {
       "get": {
-        "operationId": "scansteward_routes_images_api_get_image_full_size",
+        "operationId": "get_image_full_size",
         "summary": "Get Image Full Size",
         "parameters": [
           {
@@ -483,7 +461,7 @@
     },
     "/api/image/{image_id}/original/": {
       "get": {
-        "operationId": "scansteward_routes_images_api_get_image_original",
+        "operationId": "get_image_original",
         "summary": "Get Image Original",
         "parameters": [
           {
@@ -517,7 +495,7 @@
     },
     "/api/image/{image_id}/details/": {
       "get": {
-        "operationId": "scansteward_routes_images_api_get_image_details",
+        "operationId": "get_image_details",
         "summary": "Get Image Details",
         "parameters": [
           {
@@ -548,7 +526,7 @@
         "tags": ["images"]
       },
       "patch": {
-        "operationId": "scansteward_routes_images_api_update_image_details",
+        "operationId": "update_image_details",
         "summary": "Update Image Details",
         "parameters": [
           {
@@ -596,22 +574,11 @@
         "parameters": [
           {
             "in": "query",
-            "name": "limit",
+            "name": "page",
             "schema": {
-              "default": 100,
+              "default": 1,
               "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            },
-            "required": false
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
+              "title": "Page",
               "type": "integer"
             },
             "required": false
@@ -939,27 +906,16 @@
     },
     "/api/pet/": {
       "get": {
-        "operationId": "scansteward_routes_pets_api_get_all_pets",
+        "operationId": "get_pets",
         "summary": "Get All Pets",
         "parameters": [
           {
             "in": "query",
-            "name": "limit",
+            "name": "page",
             "schema": {
-              "default": 100,
+              "default": 1,
               "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            },
-            "required": false
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
+              "title": "Page",
               "type": "integer"
             },
             "required": false
@@ -980,7 +936,7 @@
         "tags": ["pets"]
       },
       "post": {
-        "operationId": "scansteward_routes_pets_api_create_pet",
+        "operationId": "create_pet",
         "summary": "Create Pet",
         "parameters": [],
         "responses": {
@@ -1016,7 +972,7 @@
     },
     "/api/pet/{pet_id}/": {
       "get": {
-        "operationId": "scansteward_routes_pets_api_get_single_pet",
+        "operationId": "get_single_pet",
         "summary": "Get Single Pet",
         "parameters": [
           {
@@ -1047,7 +1003,7 @@
         "tags": ["pets"]
       },
       "patch": {
-        "operationId": "scansteward_routes_pets_api_update_pet",
+        "operationId": "update_pet",
         "summary": "Update Pet",
         "parameters": [
           {
@@ -1088,7 +1044,7 @@
         }
       },
       "delete": {
-        "operationId": "scansteward_routes_pets_api_delete_pet",
+        "operationId": "delete_pet",
         "summary": "Delete Pet",
         "parameters": [
           {
@@ -1114,27 +1070,16 @@
     },
     "/api/location/": {
       "get": {
-        "operationId": "scansteward_routes_locations_api_get_all_locations",
+        "operationId": "get_locations",
         "summary": "Get All Locations",
         "parameters": [
           {
             "in": "query",
-            "name": "limit",
+            "name": "page",
             "schema": {
-              "default": 100,
+              "default": 1,
               "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            },
-            "required": false
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
+              "title": "Page",
               "type": "integer"
             },
             "required": false
@@ -1155,7 +1100,7 @@
         "tags": ["locations"]
       },
       "post": {
-        "operationId": "scansteward_routes_locations_api_create_location",
+        "operationId": "create_location",
         "summary": "Create Location",
         "parameters": [],
         "responses": {
@@ -1194,7 +1139,7 @@
     },
     "/api/location/{location_id}/": {
       "get": {
-        "operationId": "scansteward_routes_locations_api_get_single_location",
+        "operationId": "get_location",
         "summary": "Get Single Location",
         "parameters": [
           {
@@ -1225,7 +1170,7 @@
         "tags": ["locations"]
       },
       "patch": {
-        "operationId": "scansteward_routes_locations_api_update_location",
+        "operationId": "update_location",
         "summary": "Update Location",
         "parameters": [
           {
@@ -1266,7 +1211,7 @@
         }
       },
       "delete": {
-        "operationId": "scansteward_routes_locations_api_delete_location",
+        "operationId": "delete_location",
         "summary": "Delete Location",
         "parameters": [
           {
@@ -1292,27 +1237,16 @@
     },
     "/api/rough-date/": {
       "get": {
-        "operationId": "scansteward_routes_rough_dates_api_get_all_dates",
+        "operationId": "get_rough_dates",
         "summary": "Get All Dates",
         "parameters": [
           {
             "in": "query",
-            "name": "limit",
+            "name": "page",
             "schema": {
-              "default": 100,
+              "default": 1,
               "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            },
-            "required": false
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
+              "title": "Page",
               "type": "integer"
             },
             "required": false
@@ -1333,7 +1267,7 @@
         "tags": ["dates"]
       },
       "post": {
-        "operationId": "scansteward_routes_rough_dates_api_create_rough_date",
+        "operationId": "create_rough_date",
         "summary": "Create Rough Date",
         "parameters": [],
         "responses": {
@@ -1369,7 +1303,7 @@
     },
     "/api/rough-date/{date_id}/": {
       "get": {
-        "operationId": "scansteward_routes_rough_dates_api_get_single_rough_date",
+        "operationId": "get_single_rough_date",
         "summary": "Get Single Rough Date",
         "parameters": [
           {
@@ -1400,7 +1334,7 @@
         "tags": ["dates"]
       },
       "patch": {
-        "operationId": "scansteward_routes_rough_dates_api_update_rough_date",
+        "operationId": "update_rough_date",
         "summary": "Update Rough Date",
         "parameters": [
           {
@@ -1441,7 +1375,7 @@
         }
       },
       "delete": {
-        "operationId": "scansteward_routes_rough_dates_api_delete_rough_date",
+        "operationId": "delete_rough_date",
         "summary": "Delete Rough Date",
         "parameters": [
           {
@@ -1470,16 +1404,10 @@
     "schemas": {
       "Input": {
         "properties": {
-          "limit": {
-            "default": 100,
+          "page": {
+            "default": 1,
             "minimum": 1,
-            "title": "Limit",
-            "type": "integer"
-          },
-          "offset": {
-            "default": 0,
-            "minimum": 0,
-            "title": "Offset",
+            "title": "Page",
             "type": "integer"
           }
         },

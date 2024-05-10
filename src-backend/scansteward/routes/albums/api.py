@@ -14,7 +14,7 @@ from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from ninja import Router
-from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
 from scansteward.common.errors import Http400Error
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_albums")
-@paginate(LimitOffsetPagination)
+@paginate(PageNumberPagination)
 def get_albums(request: HttpRequest):
     return Album.objects.all()
 
@@ -241,8 +241,8 @@ def download_album(request: HttpRequest, album_id: int, zip_originals: bool = Fa
         raise Http400Error(msg)
 
     zip_name = slugify(album_instance.name)
-    # TODO: Track and clean these up on a schedule
-    zip_path = Path(tempfile.NamedTemporaryFile(prefix=f"{zip_name}", suffix=".zip", delete=False).name)
+    # TODO: Track and clean these up on a schedule?
+    zip_path = Path(tempfile.mkdtemp()) / f"{zip_name}.zip"
     with zipfile.ZipFile(zip_path, mode="w") as output_zip:
         for index, image in enumerate(album_instance.images.order_by("imageinalbum__sort_order").all()):
             if TYPE_CHECKING:

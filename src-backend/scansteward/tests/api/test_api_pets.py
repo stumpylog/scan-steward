@@ -11,7 +11,7 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
     def setUp(self) -> None:
         return super().setUp()
 
-    def test_get_people_with_no_people(self):
+    def test_get_pets_with_no_pets(self):
         Pet.objects.all().delete()
         resp = self.client.get(
             "/api/pet/",
@@ -45,7 +45,7 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert "name" in data
         assert data["name"] == instance.name
 
-    def test_list_people(self):
+    def test_list_pets(self):
         count = 5
         self.generate_pet_objects(count)
 
@@ -60,14 +60,14 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert data["count"] == count
         assert len(data["items"]) == count
 
-    def test_list_people_limit_offset(self):
+    def test_list_pet_page(self):
         count = 5
-        limit = 3
-        offset = 0
+
         self.generate_pet_objects(count)
 
+        page = 1
         resp = self.client.get(
-            f"/api/pet/?limit={limit}&offset={offset}",
+            f"/api/pet/?page={page}",
         )
 
         assert resp.status_code == HTTPStatus.OK
@@ -75,7 +75,19 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
         data = resp.json()
 
         assert data["count"] == count
-        assert len(data["items"]) == limit
+        assert len(data["items"]) == count
+
+        page = 10
+        resp = self.client.get(
+            f"/api/pet/?page={page}",
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == count
+        assert len(data["items"]) == 0
 
 
 class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):

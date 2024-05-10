@@ -5,7 +5,7 @@ from django.shortcuts import aget_object_or_404
 from ninja import Query
 from ninja import Router
 from ninja.errors import HttpError
-from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
 from scansteward.models import Tag
@@ -33,7 +33,7 @@ def get_tag_tree(request: HttpRequest, filter_name_query: Query[TagNameFilter]):
 
 
 @router.get("/", response=list[TagRead], operation_id="get_all_tags")
-@paginate(LimitOffsetPagination)
+@paginate(PageNumberPagination)
 def get_tags(
     request: HttpRequest,
 ):

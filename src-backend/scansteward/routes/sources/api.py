@@ -4,7 +4,7 @@ from http import HTTPStatus
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from ninja import Router
-from ninja.pagination import LimitOffsetPagination
+from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
 from scansteward.common.errors import Http409Error
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/", response=list[ImageSourceRead], operation_id="get_scan_sources")
-@paginate(LimitOffsetPagination)
+@paginate(PageNumberPagination)
 def get_all_sources(request: HttpRequest):
     return ImageSource.objects.all()
 
