@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "format": "prettier --write ./src/",
-    "generate": "ng-openapi-gen --input <path-to-openapi-json> --output <angular-app-path>/src/app/api"
+    "api:generate": "ng-openapi-gen --endOfLineStyle lf --input ../src-backend/schema.json --output ./src/app/api"
   },
   "private": true,
   "dependencies": {
