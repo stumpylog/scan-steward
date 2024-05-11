@@ -1,6 +1,8 @@
+<div class="container"><button class="btn btn-success">Create Person</button></div>
+<hr />
 <div class="container mt-4">
   <div class="row">
-    @for (person of this.getPeople(); track person.id) {
+    @for (person of this.people; track person.id) {
       <div class="col-auto mb-3">
         <div class="card" style="width: 18rem">
           <div class="card-body">
@@ -16,9 +18,9 @@
             }
 
             <div class="btn-group" role="group" aria-label="Basic example">
-              <a href="#" class="btn btn-primary">View</a>
-              <a href="#" class="btn btn-warning">Edit</a>
-              <a href="#" class="btn btn-danger">Delete</a>
+              <a class="btn btn-primary">View</a>
+              <a class="btn btn-warning">Edit</a>
+              <a class="btn btn-danger">Delete</a>
             </div>
           </div>
         </div>
@@ -26,3 +28,4 @@
     }
   </div>
 </div>
+<router-outlet></router-outlet>
