@@ -158,6 +158,10 @@ class RoughDate(TimestampMixin, models.Model):
     class Meta:
         ordering: Sequence = ["date"]
         constraints: Sequence = [
+            models.CheckConstraint(
+                check=(models.Q(day_valid=False) | ~models.Q(month_valid=False)),
+                name="invalid-month-day-combo",
+            ),
             models.UniqueConstraint(
                 fields=["date", "month_valid", "day_valid"],
                 name="unique-date",

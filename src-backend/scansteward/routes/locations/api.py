@@ -7,8 +7,8 @@ from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http400Error
-from scansteward.common.errors import Http409Error
+from scansteward.common.errors import HttpBadRequestError
+from scansteward.common.errors import HttpConflictError
 from scansteward.models import RoughLocation
 from scansteward.routes.locations.schemas import LocationCreateSchema
 from scansteward.routes.locations.schemas import LocationReadSchema
@@ -68,7 +68,7 @@ async def create_location(request: HttpRequest, data: LocationCreateSchema):
     ):
         msg = f"Subdivision {data.subdivision_code} is not in country {data.country_code}"
         logger.error(msg)
-        raise Http400Error(msg)
+        raise HttpBadRequestError(msg)
 
     instance, created = await RoughLocation.objects.aget_or_create(
         country_code=data.country_code,
@@ -79,7 +79,7 @@ async def create_location(request: HttpRequest, data: LocationCreateSchema):
     if not created:
         msg = "RoughLocation with provided fields already exists"
         logger.error(msg)
-        raise Http409Error(msg)
+        raise HttpConflictError(msg)
 
     return HTTPStatus.CREATED, instance
 
@@ -101,7 +101,7 @@ async def update_location(request: HttpRequest, location_id: int, data: Location
     if not any([data.country_code, data.subdivision_code, data.city, data.sub_location]):
         msg = "At least one of the fields must be provided"
         logger.error(msg)
-        raise Http400Error(msg)
+        raise HttpBadRequestError(msg)
 
     # Retrieve the location object from the database
     instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)

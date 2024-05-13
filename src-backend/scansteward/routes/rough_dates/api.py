@@ -7,7 +7,8 @@ from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http409Error
+from scansteward.common.errors import HttpConflictError
+from scansteward.common.errors import HttpUnprocessableEntityError
 from scansteward.models import RoughDate
 from scansteward.routes.rough_dates.schema import RoughDateCreateSchema
 from scansteward.routes.rough_dates.schema import RoughDateReadSchema
@@ -65,7 +66,7 @@ async def create_rough_date(request: HttpRequest, data: RoughDateCreateSchema):
     if rough_date_exists:
         msg = f"Date at {data.date} already exists"
         logger.error(msg)
-        raise Http409Error(msg)
+        raise HttpConflictError(msg)
     instance: RoughDate = await RoughDate.objects.acreate(
         date=data.date,
         month_valid=data.month_valid,
@@ -94,6 +95,10 @@ async def update_rough_date(request: HttpRequest, date_id: int, data: RoughDateU
         instance.month_valid = data.month_valid
     if data.day_valid is not None:
         instance.day_valid = data.day_valid
+    if instance.day_valid and not instance.month_valid:
+        msg = "Cannot set a valid day without a valid month"
+        logger.error(msg)
+        raise HttpUnprocessableEntityError(msg)
     await instance.asave()
     await instance.arefresh_from_db()
     return instance

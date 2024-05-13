@@ -8,7 +8,7 @@ from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http409Error
+from scansteward.common.errors import HttpConflictError
 from scansteward.models import Person
 from scansteward.routes.people.schemas import PersonCreateSchema
 from scansteward.routes.people.schemas import PersonNameFilter
@@ -63,7 +63,7 @@ async def create_person(request: HttpRequest, data: PersonCreateSchema):
     if person_name_exists:
         msg = f"Person named {data.name} already exists"
         logger.error(msg)
-        raise Http409Error(msg)
+        raise HttpConflictError(msg)
     instance: Person = await Person.objects.acreate(
         name=data.name,
         description=data.description,

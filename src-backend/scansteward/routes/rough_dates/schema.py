@@ -19,6 +19,12 @@ class RoughDateCreateSchema(Schema):
     month_valid: bool = False
     day_valid: bool = False
 
+    @model_validator(mode="after")
+    def check_one_or_other(self) -> Self:
+        if self.day_valid and not self.month_valid:
+            raise ValueError("A day cannot be valid if the month is not valid")  # noqa: TRY003, EM101
+        return self
+
 
 class RoughDateReadSchema(RoughDateCreateSchema):
     """

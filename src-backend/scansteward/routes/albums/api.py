@@ -16,7 +16,7 @@ from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http400Error
+from scansteward.common.errors import HttpBadRequestError
 from scansteward.models import Album
 from scansteward.models import Image
 from scansteward.models import ImageInAlbum
@@ -167,7 +167,7 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
         msg = f"Album contains {album_instance.images.count()} images, "
         f"but {len(data.sorting)} sorting values were provided."
         logger.error(msg)
-        raise Http400Error(msg)
+        raise HttpBadRequestError(msg)
 
     with transaction.atomic():
         # For a moment, reset the sorting order to be above the current largest
@@ -236,7 +236,7 @@ def download_album(request: HttpRequest, album_id: int, zip_originals: bool = Fa
     if album_instance.images.count() == 0:
         msg = f"Album {album_instance.name} has no images"
         logger.error(msg)
-        raise Http400Error(msg)
+        raise HttpBadRequestError(msg)
 
     zip_name = slugify(album_instance.name)
     # TODO: Track and clean these up on a schedule?

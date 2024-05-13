@@ -7,7 +7,7 @@ from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http409Error
+from scansteward.common.errors import HttpConflictError
 from scansteward.models import Pet
 from scansteward.routes.pets.schemas import PetCreateSchema
 from scansteward.routes.pets.schemas import PetReadSchema
@@ -61,7 +61,7 @@ async def create_pet(request: HttpRequest, data: PetCreateSchema):
     if pet_name_exists:
         msg = f"Pet named {data.name} already exists"
         logger.warning(msg)
-        raise Http409Error(msg)
+        raise HttpConflictError(msg)
     instance: Pet = await Pet.objects.acreate(
         name=data.name,
         description=data.description,

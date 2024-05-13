@@ -7,6 +7,7 @@ from faker import Faker
 from scansteward.models import Image
 from scansteward.models import Person
 from scansteward.models import Pet
+from scansteward.models import RoughDate
 from scansteward.models import Tag
 
 if TYPE_CHECKING:
@@ -143,3 +144,18 @@ class GenerateImagesMixin(FakerMixin):
                 ),
             )
         assert Image.objects.count() == count
+
+
+class GenerateRoughDateMixin(FakerMixin):
+    def setUp(self) -> None:
+        self.dates: list[RoughDate] = []
+        return super().setUp()
+
+    def generate_rough_dates(self, count: int) -> None:
+        for _ in range(count):
+            date = self.faker.date_this_century()
+            month_valid = self.faker.pybool()
+            day_valid = self.faker.pybool() if month_valid else False
+            self.dates.append(
+                RoughDate.objects.create(date=date, month_valid=month_valid, day_valid=day_valid),
+            )

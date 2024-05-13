@@ -7,7 +7,7 @@ from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
-from scansteward.common.errors import Http409Error
+from scansteward.common.errors import HttpConflictError
 from scansteward.models import ImageSource
 from scansteward.routes.sources.schema import ImageSourceCreate
 from scansteward.routes.sources.schema import ImageSourceRead
@@ -58,7 +58,7 @@ async def create_source(request: HttpRequest, data: ImageSourceCreate):
     if source_name_exists:
         msg = f"Image source named {data.name} already exists"
         logger.error(msg)
-        raise Http409Error(msg)
+        raise HttpConflictError(msg)
 
     instance: ImageSource = await ImageSource.objects.acreate(
         name=data.name,
