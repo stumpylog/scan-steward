@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 from django.db import transaction
 from django.db.models import Max
 from django.http import FileResponse
-from django.http import Http404
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
@@ -103,17 +102,18 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSch
 )
 def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
-    image_instance: Image = get_object_or_404(Image, id=data.image_id)
 
     sort_order = (
         ImageInAlbum.objects.filter(album=album_instance).aggregate(Max("sort_order", default=0))["sort_order__max"] + 1
     )
 
-    _ = ImageInAlbum.objects.get_or_create(
-        album=album_instance,
-        image=image_instance,
-        sort_order=sort_order,
-    )
+    for image in Image.objects.filter(id__in=data.image_ids).all():
+        _ = ImageInAlbum.objects.get_or_create(
+            album=album_instance,
+            image=image,
+            sort_order=sort_order,
+        )
+        sort_order += 1
     album_instance.refresh_from_db()
 
     return album_instance
@@ -133,14 +133,12 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageS
 )
 def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
-    image_instance: Image = get_object_or_404(Image, id=data.image_id)
 
-    if not album_instance.images.filter(pk=data.image_id).exists():
-        msg = f"Image {data.image_id} not in album"
-        logger.error(msg)
-        raise Http404(msg)
-
-    album_instance.images.remove(image_instance)
+    for image in Image.objects.filter(id__in=data.image_ids).all():
+        if album_instance.images.filter(pk=image.pk).exists():
+            album_instance.images.remove(image)
+        else:
+            logger.warn(f"Image {image.pk} not in album {album_instance.pk}")
 
     album_instance.refresh_from_db()
 

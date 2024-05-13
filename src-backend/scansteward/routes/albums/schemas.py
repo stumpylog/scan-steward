@@ -39,10 +39,34 @@ class AlbumSortUpdate(Schema):
         description="The new order of the images, with the index being the new position in the album",
     )
 
+    @model_validator(mode="after")
+    def check_list_with_items(self) -> Self:
+        if self.sorting is not None and not len(self.sorting):
+            raise ValueError("No sorting order was defined")  # noqa: TRY003, EM101
+        return self
+
 
 class AlbumAddImageSchema(Schema):
-    image_id: int = Field(default=None, description="The id of the image to add to the album")
+    image_ids: list[int] = Field(
+        default=None,
+        description="The id of the image to add to the album",
+    )
+
+    @model_validator(mode="after")
+    def check_list_with_items(self) -> Self:
+        if self.image_ids is not None and not len(self.image_ids):
+            raise ValueError("No image IDs were provided")  # noqa: TRY003, EM101
+        return self
 
 
 class AlbumRemoveImageSchema(Schema):
-    image_id: int = Field(default=None, description="The id of the image to remove from the album")
+    image_ids: list[int] = Field(
+        default=None,
+        description="The id of the image to remove from the album",
+    )
+
+    @model_validator(mode="after")
+    def check_list_with_items(self) -> Self:
+        if self.image_ids is not None and not len(self.image_ids):
+            raise ValueError("No image IDs were provided")  # noqa: TRY003, EM101
+        return self

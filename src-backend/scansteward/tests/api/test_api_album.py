@@ -204,7 +204,7 @@ class TestApiAlbumImages(GenerateImagesMixin, DirectoriesMixin, TestCase):
         resp = self.client.patch(
             f"/api/album/{album_id}/add/",
             content_type="application/json",
-            data={"image_id": img.pk},
+            data={"image_ids": [img.pk]},
         )
 
         assert resp.status_code == HTTPStatus.OK
@@ -230,21 +230,7 @@ class TestApiAlbumImages(GenerateImagesMixin, DirectoriesMixin, TestCase):
         resp = self.client.patch(
             f"/api/album/{album_id}/add/",
             content_type="application/json",
-            data={"image_id": img_one.pk},
-        )
-
-        assert resp.status_code == HTTPStatus.OK
-        assert {
-            "name": album_name,
-            "description": None,
-            "id": album_id,
-            "image_ids": [img_one.pk],
-        } == resp.json()
-
-        resp = self.client.patch(
-            f"/api/album/{album_id}/add/",
-            content_type="application/json",
-            data={"image_id": img_two.pk},
+            data={"image_ids": [img_one.pk, img_two.pk]},
         )
 
         assert resp.status_code == HTTPStatus.OK
@@ -268,19 +254,18 @@ class TestApiAlbumImages(GenerateImagesMixin, DirectoriesMixin, TestCase):
 
         count = 5
         self.generate_image_objects(count)
-        for img in self.images:
-            resp = self.client.patch(
-                f"/api/album/{album_id}/add/",
-                content_type="application/json",
-                data={"image_id": img.pk},
-            )
-            assert resp.status_code == HTTPStatus.OK
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [img.pk for img in self.images]},
+        )
+        assert resp.status_code == HTTPStatus.OK
 
         test_img = self.images[0]
         resp = self.client.patch(
             f"/api/album/{album_id}/remove/",
             content_type="application/json",
-            data={"image_id": test_img.pk},
+            data={"image_ids": [test_img.pk]},
         )
         assert resp.status_code == HTTPStatus.OK
         assert {
@@ -300,24 +285,25 @@ class TestApiAlbumImages(GenerateImagesMixin, DirectoriesMixin, TestCase):
         count = 5
         self.generate_image_objects(count)
         dont_add = 4
-        for img in self.images:
-            if img.pk == dont_add:
-                continue
-            resp = self.client.patch(
-                f"/api/album/{album_id}/add/",
-                content_type="application/json",
-                data={"image_id": img.pk},
-            )
-            assert resp.status_code == HTTPStatus.OK
-
-        img = Image.objects.get(pk=dont_add)
-
         resp = self.client.patch(
-            f"/api/album/{album_id}/remove/",
+            f"/api/album/{album_id}/add/",
             content_type="application/json",
-            data={"image_id": dont_add},
+            data={"image_ids": [img.pk for img in self.images if img.pk != dont_add]},
         )
-        assert resp.status_code == HTTPStatus.NOT_FOUND
+        assert resp.status_code == HTTPStatus.OK
+
+        not_added_image = Image.objects.get(pk=dont_add)
+
+        with self.assertLogs() as cm:
+            resp = self.client.patch(
+                f"/api/album/{album_id}/remove/",
+                content_type="application/json",
+                data={"image_ids": [not_added_image.pk]},
+            )
+            assert len(cm.records) == 1
+            record = cm.records[0]
+            assert record.message == f"Image {not_added_image.pk} not in album {album_id}"
+        assert resp.status_code == HTTPStatus.OK
 
         resp = self.client.get(f"/api/album/{album_id}/")
         assert resp.status_code == HTTPStatus.OK
@@ -338,19 +324,18 @@ class TestApiAlbumImages(GenerateImagesMixin, DirectoriesMixin, TestCase):
         count = 5
         self.generate_image_objects(count)
 
-        for img in self.images:
-            resp = self.client.patch(
-                f"/api/album/{album_id}/add/",
-                content_type="application/json",
-                data={"image_id": img.pk},
-            )
-            assert resp.status_code == HTTPStatus.OK
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [img.pk for img in self.images]},
+        )
+        assert resp.status_code == HTTPStatus.OK
 
         test_img = self.images[-1]
         resp = self.client.patch(
             f"/api/album/{album_id}/remove/",
             content_type="application/json",
-            data={"image_id": test_img.pk},
+            data={"image_ids": [test_img.pk]},
         )
         assert resp.status_code == HTTPStatus.OK
         assert {
@@ -359,6 +344,39 @@ class TestApiAlbumImages(GenerateImagesMixin, DirectoriesMixin, TestCase):
             "id": album_id,
             "image_ids": [x.pk for x in self.images[0:-1]],
         } == resp.json()
+
+    def test_add_remove_no_items(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [img.pk for img in self.images]},
+        )
+        assert resp.status_code == HTTPStatus.OK
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/remove/",
+            content_type="application/json",
+            data={"image_ids": []},
+        )
+
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": []},
+        )
+
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
@@ -371,13 +389,12 @@ class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
 
         count = 5
         self.generate_image_objects(count)
-        for img in self.images:
-            resp = self.client.patch(
-                f"/api/album/{album_id}/add/",
-                content_type="application/json",
-                data={"image_id": img.pk},
-            )
-            assert resp.status_code == HTTPStatus.OK
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [img.pk for img in self.images]},
+        )
+        assert resp.status_code == HTTPStatus.OK
 
         resp = self.client.get(f"/api/album/{album_id}/")
         assert resp.status_code == HTTPStatus.OK
@@ -419,13 +436,12 @@ class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
 
         count = 5
         self.generate_image_objects(count)
-        for img in self.images:
-            resp = self.client.patch(
-                f"/api/album/{album_id}/add/",
-                content_type="application/json",
-                data={"image_id": img.pk},
-            )
-            assert resp.status_code == HTTPStatus.OK
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [x.pk for x in self.images]},
+        )
+        assert resp.status_code == HTTPStatus.OK
 
         resp = self.client.patch(
             f"/api/album/{album_id}/sort/",
@@ -468,13 +484,12 @@ class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
 
         count = 5
         self.generate_image_objects(count)
-        for img in self.images:
-            resp = self.client.patch(
-                f"/api/album/{album_id}/add/",
-                content_type="application/json",
-                data={"image_id": img.pk},
-            )
-            assert resp.status_code == HTTPStatus.OK
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [x.pk for x in self.images]},
+        )
+        assert resp.status_code == HTTPStatus.OK
 
         resp = self.client.patch(
             f"/api/album/{album_id}/sort/",
@@ -488,6 +503,32 @@ class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
         )
 
         assert resp.status_code == HTTPStatus.BAD_REQUEST
+
+    def test_update_sorting_with_no_sorting_defined(self):
+        album_name = self.faker.unique.name()
+        resp = create_single_album(self.client, album_name)
+
+        assert resp.status_code == HTTPStatus.CREATED
+        album_id = resp.json()["id"]
+
+        count = 5
+        self.generate_image_objects(count)
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [x.pk for x in self.images]},
+        )
+        assert resp.status_code == HTTPStatus.OK
+
+        resp = self.client.patch(
+            f"/api/album/{album_id}/sort/",
+            content_type="application/json",
+            data={
+                "sorting": [],
+            },
+        )
+
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCase):
@@ -506,13 +547,12 @@ class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCas
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
 
-        for image in Image.objects.all():
-            resp = self.client.patch(
-                f"/api/album/{album_id}/add/",
-                content_type="application/json",
-                data={"image_id": image.pk},
-            )
-            assert resp.status_code == HTTPStatus.OK
+        resp = self.client.patch(
+            f"/api/album/{album_id}/add/",
+            content_type="application/json",
+            data={"image_ids": [image.pk for image in Image.objects.all()]},
+        )
+        assert resp.status_code == HTTPStatus.OK
 
         # Download album
         if not use_original_download:
