@@ -6,7 +6,6 @@ from simpleiso3166.countries.types import CountryCodeAlpha2Type
 from simpleiso3166.subdivisions.types import SubdivisionCodeType
 
 from scansteward.imageops.models import RotationEnum
-from scansteward.routes.tags.schemas import TagRead
 
 
 class Album(Schema):
@@ -48,15 +47,13 @@ class ImageDate(Schema):
     day_valid: bool = Field(description="Whether the day is valid")
 
 
-class ImageDetailsRead(Schema):
+class ImageMetadataRead(Schema):
     orientation: RotationEnum
-    face_boxes: list[PersonWithBox] | None = None
-    pet_boxes: list[PetWithBox] | None = None
-    tags: list[TagRead] | None = None
-    albums: list[Album] | None = None
     description: str | None = None
-    location: ImageLocation | None = None
-    date: ImageDate | None = None
+    location_id: int | None = None
+    date_id: int | None = None
+    tag_ids: list[int] | None = None
+    album_ids: list[int] | None = None
 
 
 class ImageUpdateSchema(Schema):

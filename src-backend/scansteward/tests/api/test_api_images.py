@@ -4,7 +4,6 @@ from http import HTTPStatus
 from django.core.management import call_command
 from django.test import TestCase
 
-from scansteward.imageops.models import RotationEnum
 from scansteward.models import Image
 from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import FileSystemAssertsMixin
@@ -77,44 +76,68 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
 
         self.temp_sample_one = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
 
+        # TODO: This is fixed data and could be done purely in the database instead of indexing each time
+
         call_command("index", str(tmp_dir))
 
-    def test_get_image_details(self):
+    def test_get_image_faces(self):
         self.util_index_one_file()
 
         img = Image.objects.first()
         assert img is not None
 
-        resp = self.client.get(f"/api/image/{img.pk}/details/")
+        resp = self.client.get(f"/api/image/{img.pk}/faces/")
         assert resp.status_code == HTTPStatus.OK
-        assert {
-            "albums": [],
-            "orientation": RotationEnum.HORIZONTAL.value,
-            "description": (
-                "President Barack Obama throws a ball for Bo, the family dog, "
-                "in the Rose Garden of the White House, Sept. 9, 2010.  "
-                "(Official White House Photo by Pete Souza)"
-            ),
-            "face_boxes": [
-                {
-                    "box": {
-                        "center_x": 0.317383,
-                        "center_y": 0.303075,
-                        "height": 0.0585652,
-                        "width": 0.0292969,
-                    },
-                    "person_id": 1,
+
+        data = resp.json()
+
+        assert [
+            {
+                "box": {
+                    "center_x": 0.317383,
+                    "center_y": 0.303075,
+                    "height": 0.0585652,
+                    "width": 0.0292969,
                 },
-            ],
-            "pet_boxes": [],
-            "tags": [
-                {"applied": True, "description": None, "id": 3, "name": "Bo", "parent_id": 2},
-            ],
-            "location": {
-                "city": "WASHINGTON",
-                "country_code": "US",
-                "sub_location": None,
-                "subdivision_code": "US-DC",
+                "person_id": 1,
             },
-            "date": None,
-        } == resp.json()
+        ] == data
+
+    def test_get_image_pets(self):
+        # TODO: Digikam does not support put boxes as of yet.  Need to create the manually with exiftool
+
+        self.util_index_one_file()
+
+        img = Image.objects.first()
+        assert img is not None
+
+        resp = self.client.get(f"/api/image/{img.pk}/pets/")
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert [] == data
+
+    def test_get_image_metadata(self):
+        # TODO: Digikam does not support put boxes as of yet.  Need to create the manually with exiftool
+
+        self.util_index_one_file()
+
+        img = Image.objects.first()
+        assert img is not None
+
+        resp = self.client.get(f"/api/image/{img.pk}/metadata/")
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert {
+            "album_ids": None,
+            "date_id": None,
+            "description": "President Barack Obama throws a ball for Bo, the family dog, "
+            "in the Rose Garden of the White House, Sept. 9, 2010.  "
+            "(Official White House Photo by Pete Souza)",
+            "location_id": 1,
+            "orientation": 1,
+            "tag_ids": [3],
+        } == data

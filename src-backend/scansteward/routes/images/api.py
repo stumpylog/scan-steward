@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from mimetypes import guess_type
+from typing import TYPE_CHECKING
 
-from django.db import transaction
 from django.http import FileResponse
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
@@ -13,18 +13,16 @@ from ninja.decorators import decorate_view
 
 from scansteward.common.constants import WEBP_CONTENT_TYPE
 from scansteward.models import Image
-from scansteward.models import Person
 from scansteward.models import PersonInImage
-from scansteward.models import Pet
 from scansteward.models import PetInImage
-from scansteward.models import RoughDate
-from scansteward.models import RoughLocation
 from scansteward.routes.images.conditionals import full_size_etag
 from scansteward.routes.images.conditionals import image_last_modified
 from scansteward.routes.images.conditionals import original_image_etag
 from scansteward.routes.images.conditionals import thumbnail_etag
-from scansteward.routes.images.schemas import ImageDetailsRead
-from scansteward.routes.images.schemas import ImageUpdateSchema
+from scansteward.routes.images.schemas import BoundingBox
+from scansteward.routes.images.schemas import ImageMetadataRead
+from scansteward.routes.images.schemas import PersonWithBox
+from scansteward.routes.images.schemas import PetWithBox
 
 router = Router(tags=["images"])
 
@@ -104,8 +102,8 @@ def get_image_original(request: HttpRequest, image_id: int):
 
 
 @router.get(
-    "/{image_id}/details/",
-    response={HTTPStatus.OK: ImageDetailsRead},
+    "/{image_id}/faces/",
+    response={HTTPStatus.OK: list[PersonWithBox]},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -113,23 +111,41 @@ def get_image_original(request: HttpRequest, image_id: int):
             },
         },
     },
-    operation_id="get_image_details",
+    operation_id="get_faces_in_images",
 )
-def get_image_details(request: HttpRequest, image_id: int):
-    return get_object_or_404(
-        Image.objects.prefetch_related("people")
-        .prefetch_related("albums")
-        .prefetch_related("tags")
-        .prefetch_related("pets")
-        .prefetch_related("location")
-        .prefetch_related("date"),
-        id=image_id,
-    )
+async def get_faces_in_images(request: HttpRequest, image_id: int):
+    # TODO: I bet there's some clever SQL to grab this more efficiently
+
+    img: Image = await aget_object_or_404(Image.objects.prefetch_related("people"), id=image_id)
+
+    all_people_in_image = img.people.prefetch_related("images").all()
+
+    boxes: list[PersonWithBox] = []
+    async for person in all_people_in_image:
+        bounding_box: PersonInImage = await person.images.aget(image=img)
+
+        if TYPE_CHECKING:
+            assert bounding_box is not None
+            assert isinstance(bounding_box, PersonInImage)
+
+        boxes.append(
+            PersonWithBox(
+                person_id=person.pk,
+                box=BoundingBox(
+                    center_x=bounding_box.center_x,
+                    center_y=bounding_box.center_y,
+                    height=bounding_box.height,
+                    width=bounding_box.width,
+                ),
+            ),
+        )
+
+    return boxes
 
 
-@router.patch(
-    "/{image_id}/details/",
-    response={HTTPStatus.OK: ImageDetailsRead},
+@router.get(
+    "/{image_id}/pets/",
+    response={HTTPStatus.OK: list[PetWithBox]},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -137,78 +153,69 @@ def get_image_details(request: HttpRequest, image_id: int):
             },
         },
     },
-    operation_id="update_image_details",
+    operation_id="get_pets_in_images",
 )
-async def update_image_details(request: HttpRequest, image_id: int, data: ImageUpdateSchema):
-    instance: Image = await aget_object_or_404(
-        Image.objects.prefetch_related("people")
-        .prefetch_related("albums")
+async def get_pets_in_images(request: HttpRequest, image_id: int):
+    # TODO: I bet there's some clever SQL to grab this more efficiently
+
+    img: Image = await aget_object_or_404(Image.objects.prefetch_related("pets"), id=image_id)
+
+    all_pets_in_image = img.pets.prefetch_related("images").all()
+
+    boxes: list[PetWithBox] = []
+    async for pet in all_pets_in_image:
+        bounding_box: PetInImage = await pet.images.aget(image=img)
+
+        if TYPE_CHECKING:
+            assert bounding_box is not None
+            assert isinstance(bounding_box, PetInImage)
+
+        boxes.append(
+            PersonWithBox(
+                person_id=pet.pk,
+                box=BoundingBox(
+                    center_x=bounding_box.center_x,
+                    center_y=bounding_box.center_y,
+                    height=bounding_box.height,
+                    width=bounding_box.width,
+                ),
+            ),
+        )
+
+    return boxes
+
+
+@router.get(
+    "/{image_id}/metadata/",
+    response={HTTPStatus.OK: ImageMetadataRead},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+    operation_id="get_image_metadata",
+)
+async def get_image_metadata(request: HttpRequest, image_id: int):
+    # TODO: I bet there's some clever SQL to grab this more efficiently
+
+    img: Image = await aget_object_or_404(
+        Image.objects.prefetch_related("albums")
         .prefetch_related("tags")
-        .prefetch_related("pets")
         .prefetch_related("location")
         .prefetch_related("date"),
         id=image_id,
     )
 
-    with transaction.atomic():
-        if data.description:
-            instance.description = data.description
-        if data.orientation:
-            instance.orientation = data.orientation
+    tags = [pk async for pk in img.tags.all().only("pk").values_list("pk", flat=True)]
+    albums = [pk async for pk in img.albums.all().only("pk").values_list("pk", flat=True)]
 
-        if data.location_id:
-            location: RoughLocation = await aget_object_or_404(RoughLocation, id=data.location_id)
-            instance.location = location
-
-        if data.date_id:
-            date: RoughDate = await aget_object_or_404(RoughDate, id=data.date_id)
-            instance.date = date
-
-        if data.add_faces:
-            for face_box in data.add_faces:
-                person: Person = await aget_object_or_404(Person, id=face_box.person_id)
-                _ = await PersonInImage.objects.acreate(
-                    person=person,
-                    image=instance,
-                    center_x=face_box.box.center_x,
-                    center_y=face_box.box.center_y,
-                    height=face_box.box.height,
-                    width=face_box.box.width,
-                )
-        if data.remove_faces:
-            for face_box in data.remove_faces:
-                person: Person = await aget_object_or_404(Person, id=face_box.person_id)
-                await PersonInImage.objects.filter(
-                    person=person,
-                    image=instance,
-                    center_x=face_box.box.center_x,
-                    center_y=face_box.box.center_y,
-                    height=face_box.box.height,
-                    width=face_box.box.width,
-                ).adelete()
-
-        if data.add_pets:
-            for pet_box in data.add_pets:
-                pet: Pet = await aget_object_or_404(Pet, id=pet_box.pet_id)
-                _ = await PetInImage.objects.acreate(
-                    pet=pet,
-                    image=instance,
-                    center_x=pet_box.box.center_x,
-                    center_y=pet_box.box.center_y,
-                    height=pet_box.box.height,
-                    width=pet_box.box.width,
-                )
-        if data.remove_pets:
-            for pet_box in data.remove_pets:
-                pet: Pet = await aget_object_or_404(Pet, id=pet_box.pet_id)
-                await PetInImage.objects.filter(
-                    pet=pet,
-                    image=instance,
-                    center_x=pet_box.box.center_x,
-                    center_y=pet_box.box.center_y,
-                    height=pet_box.box.height,
-                    width=pet_box.box.width,
-                ).adelete()
-
-        await instance.arefresh_from_db()
-        return instance
+    return ImageMetadataRead(
+        orientation=img.orientation,
+        description=img.description,
+        location_id=img.location.pk if img.location else None,
+        date_id=img.date.pk if img.date else None,
+        tag_ids=tags if tags else None,
+        album_ids=albums if albums else None,
+    )

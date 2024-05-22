@@ -33,7 +33,7 @@ router = Router(tags=["albums"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_albums")
+@router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_all_albums")
 @paginate(PageNumberPagination)
 def get_albums(request: HttpRequest):
     return Album.objects.all()
@@ -49,7 +49,7 @@ def get_albums(request: HttpRequest):
             },
         },
     },
-    operation_id="get_album",
+    operation_id="get_single_album_info",
 )
 def get_album(request: HttpRequest, album_id: int):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
@@ -76,7 +76,7 @@ async def create_album(request: HttpRequest, data: AlbumCreateSchema):
             },
         },
     },
-    operation_id="update_album",
+    operation_id="update_album_info",
 )
 async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSchema):
     instance: Album = await aget_object_or_404(Album, id=album_id)
@@ -98,7 +98,7 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSch
             },
         },
     },
-    operation_id="add_album_image",
+    operation_id="add_image_to_album",
 )
 def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
@@ -129,7 +129,7 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageS
             },
         },
     },
-    operation_id="delete_album_image",
+    operation_id="delete_image_from_album",
 )
 def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)

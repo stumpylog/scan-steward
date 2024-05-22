@@ -523,29 +523,6 @@ class Image(TimestampMixin, models.Model):
         return (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
 
     @property
-    def face_boxes(self) -> list[PersonWithBox]:
-        boxes = []
-        for person in self.people.all():
-            bounding_box = PersonInImage.objects.filter(
-                image=self,
-                person=person,
-            ).first()
-            if TYPE_CHECKING:
-                assert bounding_box is not None
-            boxes.append(
-                PersonWithBox(
-                    person_id=person.pk,
-                    box=BoundingBox(
-                        center_x=bounding_box.center_x,
-                        center_y=bounding_box.center_y,
-                        height=bounding_box.height,
-                        width=bounding_box.width,
-                    ),
-                ),
-            )
-        return boxes
-
-    @property
     def pet_boxes(self) -> list[PetReadSchema]:
         boxes = []
         for pet in self.pets.all():
