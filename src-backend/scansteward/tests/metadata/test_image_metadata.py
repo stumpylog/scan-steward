@@ -11,6 +11,7 @@ from scansteward.imageops.metadata import bulk_write_image_metadata
 from scansteward.imageops.metadata import clear_existing_metadata
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.metadata import write_image_metadata
+from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
 from scansteward.imageops.models import KeywordStruct
 from scansteward.imageops.models import XmpAreaStruct
@@ -18,16 +19,13 @@ from scansteward.tests.mixins import SampleDirMixin
 from scansteward.tests.mixins import SampleMetadataMixin
 
 
-class TestReadImageMetadata(
-    SampleMetadataMixin,
-    SampleDirMixin,
-):
+class TestReadImageMetadata(SampleMetadataMixin, SampleDirMixin):
     def test_read_single_image_metadata(self):
         metadata = read_image_metadata(self.SAMPLE_ONE)
 
         self.verify_sample_one_metadata(self.SAMPLE_ONE, metadata)
 
-    def test_bulk_read_image_faces(self):
+    def test_bulk_read_image_metadata(self):
         metadata = bulk_read_image_metadata(
             [self.SAMPLE_ONE, self.SAMPLE_TWO],
         )
@@ -37,6 +35,8 @@ class TestReadImageMetadata(
         self.verify_sample_one_metadata(self.SAMPLE_ONE, metadata[0])
         self.verify_sample_two_metadata(self.SAMPLE_TWO, metadata[1])
 
+
+class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
     def test_change_single_image_metadata(self, temporary_directory: Path):
         new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
 
@@ -129,6 +129,25 @@ class TestReadImageMetadata(
         changed_metadata = read_image_metadata(new_sample_one)
 
         self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+
+
+class TestUpdateImageMetadata(SampleMetadataMixin, SampleDirMixin):
+    def test_update_single_value(self, temporary_directory: Path):
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
+
+        new_metadata = ImageMetadata(SourceFile=new_sample_one, Title="This is a new Title")
+        other_metadata = self.sample_one_metadata(self.SAMPLE_ONE)
+
+        write_image_metadata(new_metadata)
+
+        changed_metadata = read_image_metadata(new_sample_one)
+
+        assert new_metadata.SourceFile == changed_metadata.SourceFile
+        # Only the title changed
+        assert new_metadata.Title == changed_metadata.Title
+        assert other_metadata.Description == changed_metadata.Description
+        assert other_metadata.City == changed_metadata.City
+        assert other_metadata.Country == changed_metadata.Country
 
 
 class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):

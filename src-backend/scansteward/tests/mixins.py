@@ -218,6 +218,8 @@ class SampleMetadataMixin:
                     ],
                 },
             ),
+            City="WASHINGTON",
+            Country="USA",
         )
 
     def sample_two_metadata(self, sample_two_jpeg: Path) -> ImageMetadata:

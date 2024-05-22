@@ -183,7 +183,7 @@ def bulk_read_image_metadata(
         "-XMP-digiKam:TagsList",
         "-XMP-lr:HierarchicalSubject",
         "-XMP-mediapro:CatalogSets",
-        "-MWG:Title",
+        "-Title",
         "-MWG:Description",
         "-MWG:Country",
         "-MWG:State",
@@ -249,6 +249,9 @@ def bulk_write_image_metadata(
     with tempfile.TemporaryDirectory() as json_dir:
         json_path = Path(json_dir).resolve() / "temp.json"
         data = [expand_keyword_structures(x).model_dump(exclude_none=True, exclude_unset=True) for x in metadata]
+        from pprint import pprint
+
+        pprint(data)
         json_path.write_bytes(json.dumps(data))
         cmd = [
             EXIF_TOOL_EXE,

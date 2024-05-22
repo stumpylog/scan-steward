@@ -70,6 +70,9 @@ class Command(TyperCommand):
                     self.handle_single_image(filename)
 
     def handle_single_image(self, image_path: Path) -> None:
+        """
+        Handles indexing a single image, either existing or new
+        """
         # Duplicate check
         image_hash = blake3(
             image_path.read_bytes(),
@@ -89,6 +92,9 @@ class Command(TyperCommand):
         existing_image: ImageModel,
         image_path: Path,
     ) -> None:
+        """
+        Handles an image that has already been indexed, either updating its source or changing the location
+        """
         self.stdout.write(self.style.NOTICE("  Image already indexed"))
         # Set the source if requested
         if self.source is not None and (existing_image.source is None or existing_image.source != self.source):
@@ -107,6 +113,9 @@ class Command(TyperCommand):
         self.stdout.write(self.style.SUCCESS(f"  {image_path.name} indexing completed"))
 
     def handle_new_image(self, image_path: Path, image_hash: str) -> None:
+        """
+        Handles a completely new image
+        """
         metadata = read_image_metadata(image_path)
 
         with Image.open(image_path) as im_file:
@@ -167,6 +176,9 @@ class Command(TyperCommand):
         self.stdout.write(self.style.SUCCESS("  indexing completed"))
 
     def parse_region_info(self, new_image: ImageModel, metadata: ImageMetadata):
+        """
+        Parses the MWG regions into people and pets
+        """
         self.stdout.write(self.style.SUCCESS("  Parsing regions"))
         if metadata.RegionInfo:
             for region in metadata.RegionInfo.RegionList:
@@ -212,6 +224,9 @@ class Command(TyperCommand):
                     )
 
     def parse_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
+        """
+        Creates database Tags from the MWG keyword struct
+        """
         self.stdout.write(self.style.SUCCESS("  Parsing keywords"))
         if metadata.KeywordInfo:
 
@@ -253,6 +268,9 @@ class Command(TyperCommand):
             self.stdout.write(self.style.SUCCESS("  No keywords"))
 
     def parse_location(self, new_image: ImageModel, metadata: ImageMetadata):
+        """
+        Creates a RoughLocation from a given ImageMetadata object and adds it to the given image.
+        """
         if metadata.Country:
             country_alpha_2 = get_country_code_from_name(metadata.Country)
             if country_alpha_2:
@@ -290,6 +308,19 @@ class Command(TyperCommand):
             self.stdout.write(self.style.SUCCESS("  No country set, will try keywords"))
 
     def parse_location_from_keywords(self, new_image: ImageModel, metadata: ImageMetadata):
+        """
+        If the MWG location information is not set, attempts to parse from the keywords
+
+        Looks for a keyword structure like:
+        - Locations
+          - Country Name
+            - Subdivision Name
+                - City Name
+                    - Sub-location Name
+
+        If the subdivison doesn't match anything within the country, it is assumed to be a city instead
+
+        """
         if (
             metadata.KeywordInfo
             and (location_tree := metadata.KeywordInfo.get_root_by_name(self.LOCATION_KEYWORD))
