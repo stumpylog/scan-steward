@@ -15,8 +15,8 @@ from django.db import models
 from simpleiso3166.countries import Country
 
 from scansteward.imageops.models import RotationEnum
-from scansteward.routes.images.schemas import BoundingBox
-from scansteward.routes.images.schemas import PersonWithBox
+from scansteward.routes.images.schemas import BoundingBoxSchema
+from scansteward.routes.images.schemas import PersonWithBoxSchema
 
 
 class TimestampMixin(models.Model):
@@ -530,9 +530,9 @@ class Image(TimestampMixin, models.Model):
             if TYPE_CHECKING:
                 assert bounding_box is not None
             boxes.append(
-                PersonWithBox(
+                PersonWithBoxSchema(
                     pet_id=pet.pk,
-                    box=BoundingBox(
+                    box=BoundingBoxSchema(
                         center_x=bounding_box.center_x,
                         center_y=bounding_box.center_y,
                         height=bounding_box.height,

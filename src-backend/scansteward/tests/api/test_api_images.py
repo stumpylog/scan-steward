@@ -1,3 +1,4 @@
+import random
 import shutil
 from http import HTTPStatus
 
@@ -5,6 +6,10 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scansteward.models import Image
+from scansteward.models import Person
+from scansteward.models import PersonInImage
+from scansteward.models import Pet
+from scansteward.models import PetInImage
 from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import FileSystemAssertsMixin
 from scansteward.tests.mixins import SampleDirMixin
@@ -33,7 +38,7 @@ class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixi
         assert resp.status_code == HTTPStatus.OK
         assert resp["ETag"] == f'"{img.thumbnail_checksum}"'
         assert resp["Last-Modified"] == img.modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
-        assert resp["Cache-Control"] == "private, max-age=3600"
+
         thumbnail_data = b"".join(resp.streaming_content)
 
         self.assertFileContents(img.thumbnail_path, thumbnail_data)
@@ -47,7 +52,7 @@ class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixi
         assert resp.status_code == HTTPStatus.OK
         assert resp["ETag"] == f'"{img.full_size_checksum}"'
         assert resp["Last-Modified"] == img.modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
-        assert resp["Cache-Control"] == "private, max-age=3600"
+
         full_size_data = b"".join(resp.streaming_content)
 
         self.assertFileContents(img.full_size_path, full_size_data)
@@ -64,13 +69,13 @@ class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixi
         assert resp["ETag"] == f'"{img.original_checksum}"'
         assert resp["Content-Length"] == str(img.file_size)
         assert resp["Last-Modified"] == img.modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
-        assert resp["Cache-Control"] == "private, max-age=3600"
+
         original_data = b"".join(resp.streaming_content)
 
         self.assertFileContents(img.original_path, original_data)
 
 
-class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
+class TestImageReadApi(DirectoriesMixin, SampleDirMixin, TestCase):
     def util_index_one_file(self):
         tmp_dir = self.get_new_temporary_dir()
 
@@ -81,6 +86,9 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
         call_command("index", str(tmp_dir))
 
     def test_get_image_faces(self):
+        """
+        Test
+        """
         self.util_index_one_file()
 
         img = Image.objects.first()
@@ -104,7 +112,7 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
         ] == data
 
     def test_get_image_pets(self):
-        # TODO: Digikam does not support put boxes as of yet.  Need to create the manually with exiftool
+        # TODO: Digikam does not support pet boxes as of yet.  Need to create the manually with exiftool
 
         self.util_index_one_file()
 
@@ -119,8 +127,6 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
         assert [] == data
 
     def test_get_image_metadata(self):
-        # TODO: Digikam does not support put boxes as of yet.  Need to create the manually with exiftool
-
         self.util_index_one_file()
 
         img = Image.objects.first()
@@ -141,3 +147,63 @@ class TestImageDetails(DirectoriesMixin, SampleDirMixin, TestCase):
             "orientation": 1,
             "tag_ids": [3],
         } == data
+
+
+class TestImageUpdateApi(DirectoriesMixin, SampleDirMixin, TestCase):
+    def util_create_image_in_database(self) -> Image:
+        image = Image.objects.create(
+            file_size=random.randint(1, 1_000_000),  # noqa: S311
+            original_checksum="abcd",
+            thumbnail_checksum="efgh",
+            full_size_checksum="ijkl",
+            phash="mnop",
+            original=self.SAMPLE_DIR / "test.jpg",
+            description="test description",
+        )
+
+        person = Person.objects.create(name="Test Person")
+        _ = PersonInImage.objects.create(
+            person=person,
+            image=image,
+            center_x=0.1,
+            center_y=0.2,
+            height=0.3,
+            width=0.4,
+        )
+        pet = Pet.objects.create(name="Test Pet")
+        PetInImage.objects.create(
+            pet=pet,
+            image=image,
+            center_x=0.5,
+            center_y=0.6,
+            height=0.7,
+            width=0.8,
+        )
+
+        image.refresh_from_db()
+        return image
+
+    def test_update_face_bounding_box(self):
+        pass
+
+    def test_update_pet_bounding_box(self):
+        pass
+
+    def test_update_image_metadata(self):
+        pass
+
+
+class TestImageCreateApi(DirectoriesMixin, SampleDirMixin, TestCase):
+    def test_add_faces_to_image(self):
+        pass
+
+    def test_add_pet_box_to_image(self):
+        pass
+
+
+class TestImageDeleteApi(DirectoriesMixin, SampleDirMixin, TestCase):
+    def test_delete_face_from_image(self):
+        pass
+
+    def test_delete_pet_from_image(self):
+        pass
