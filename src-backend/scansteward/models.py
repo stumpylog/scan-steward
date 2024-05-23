@@ -202,7 +202,8 @@ class AbstractBoxInImage(TimestampMixin, models.Model):
 class PersonInImage(AbstractBoxInImage):
     person = models.ForeignKey(
         Person,
-        on_delete=models.SET_NULL,
+        # TODO: This would need to update if we allow boxes without a name/person attached
+        on_delete=models.CASCADE,
         related_name="images",
         help_text="Person is in this Image at the given location",
         null=True,
@@ -223,7 +224,7 @@ class PersonInImage(AbstractBoxInImage):
 class PetInImage(AbstractBoxInImage):
     pet = models.ForeignKey(
         Pet,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="images",
         help_text="Pet is in this Image at the given location",
         null=True,

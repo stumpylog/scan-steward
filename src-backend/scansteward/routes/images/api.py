@@ -1,3 +1,4 @@
+import logging
 from http import HTTPStatus
 from mimetypes import guess_type
 
@@ -26,10 +27,13 @@ from scansteward.routes.images.conditionals import original_image_etag
 from scansteward.routes.images.conditionals import thumbnail_etag
 from scansteward.routes.images.schemas import ImageMetadataReadSchema
 from scansteward.routes.images.schemas import ImageMetadataUpdateSchema
+from scansteward.routes.images.schemas import PersonFaceDeleteSchema
 from scansteward.routes.images.schemas import PersonWithBoxSchema
+from scansteward.routes.images.schemas import PetBoxDeleteSchema
 from scansteward.routes.images.schemas import PetWithBoxSchema
 
 router = Router(tags=["images"])
+logger = logging.getLogger(__name__)
 
 
 @router.get(
@@ -150,6 +154,28 @@ async def update_faces_in_image(request: HttpRequest, image_id: int, data: list[
     return await get_faces_from_image(img)
 
 
+@router.delete(
+    "/{image_id}/faces/",
+    response={HTTPStatus.OK: list[PersonWithBoxSchema]},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+    operation_id="delete_faces_in_image",
+)
+async def delete_faces_in_image(request: HttpRequest, image_id: int, data: PersonFaceDeleteSchema):
+    img: Image = await aget_object_or_404(Image.objects.prefetch_related("people"), id=image_id)
+
+    to_delete = img.people.filter(pk__in=data.people_ids)
+    await to_delete.adelete()
+    await img.arefresh_from_db()
+
+    return await get_faces_from_image(img)
+
+
 @router.get(
     "/{image_id}/pets/",
     response={HTTPStatus.OK: list[PetWithBoxSchema]},
@@ -172,7 +198,7 @@ async def get_pets_in_images(request: HttpRequest, image_id: int):
 
 @router.patch(
     "/{image_id}/pets/",
-    response={HTTPStatus.OK: list[PersonWithBoxSchema]},
+    response={HTTPStatus.OK: list[PetWithBoxSchema]},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -197,6 +223,28 @@ async def update_pet_boxes_in_image(request: HttpRequest, image_id: int, data: l
     return await get_pet_boxes_from_image(img)
 
 
+@router.delete(
+    "/{image_id}/pets/",
+    response={HTTPStatus.OK: list[PetWithBoxSchema]},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+    operation_id="delete_pets_from_image",
+)
+async def delete_pets_from_image(request: HttpRequest, image_id: int, data: PetBoxDeleteSchema):
+    img: Image = await aget_object_or_404(Image.objects.prefetch_related("pets"), id=image_id)
+
+    to_delete = img.pets.filter(pk__in=data.pet_ids)
+    await to_delete.adelete()
+    await img.arefresh_from_db()
+
+    return await get_pet_boxes_from_image(img)
+
+
 @router.get(
     "/{image_id}/metadata/",
     response={HTTPStatus.OK: ImageMetadataReadSchema},
@@ -213,10 +261,7 @@ async def get_image_metadata(request: HttpRequest, image_id: int):
     # TODO: I bet there's some clever SQL to grab this more efficiently
 
     img: Image = await aget_object_or_404(
-        Image.objects.prefetch_related("albums")
-        .prefetch_related("tags")
-        .prefetch_related("location")
-        .prefetch_related("date"),
+        Image.objects.select_related("location").select_related("date"),
         id=image_id,
     )
 
@@ -237,10 +282,7 @@ async def get_image_metadata(request: HttpRequest, image_id: int):
 )
 async def update_image_metadata(request: HttpRequest, image_id: int, data: ImageMetadataUpdateSchema):
     img: Image = await aget_object_or_404(
-        Image.objects.prefetch_related("albums")
-        .prefetch_related("tags")
-        .prefetch_related("location")
-        .prefetch_related("date"),
+        Image.objects.select_related("location").select_related("date"),
         id=image_id,
     )
     if data.orientation is not None:
@@ -253,6 +295,5 @@ async def update_image_metadata(request: HttpRequest, image_id: int, data: Image
         img.date = await aget_object_or_404(RoughDate, pk=data.location_id)
 
     await img.asave()
-    await img.arefresh_from_db()
 
     return await get_image_metadata_common(img)
