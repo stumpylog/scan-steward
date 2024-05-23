@@ -19,14 +19,18 @@ slides, etc and then share with more users to view, remember and enjoy a little 
 
 ## Features
 
-- Tag one or more people who appear in photographs and filter by only images including those people
-- Tag multiple locations, letting you go from general ("Georgia") to specific ("Atlanta") to really specific ("Coke Headquarters")
-  and then find other photographs in same location
-- Create trips, with attached descriptions of where the trip went and when it happened and any memories of the trip
-- Attach memories to a trip or photograph, ranging from just text descriptions, to voice files or postcards or diary entires, to help
-  record the experiences the trip brought to everyone
-- Mark exact duplicates so you don't need to keep seeing the same image again and again
-- Mark similar shots and choose the best one to display to the family
+- Create and manage people and descriptions of them using Markdown formatted for rich text descriptions
+- Add images to rough locations, letting you go from general ("Georgia") to specific ("Atlanta") to really specific ("Coke Headquarters")
+- Add a rough date to images, so even if you only know the year, you can still filter to those images
+- Add images into multiple albums, each with distinct sort ordering, so you can sort trip images differently than the images of Grandma
+
+## Roadmap
+
+- View, add, edit and delete boxes for faces and pets in images
+- Sync the database into the image file, using [Metadata Working Group](https://en.wikipedia.org/wiki/Metadata_Working_Group) standard tags
+  - Including region boxes, tags, rough location and rough dates
+- Text based searching over description and captions
+- Filter on images containing any people or all people
 
 ## Installation
 
@@ -40,8 +44,8 @@ Installation is via Docker.
 
 ## Links
 
-- https://exiftool.org/struct.html
-- https://exiftool.org/TagNames/MWG.html
+- <https://exiftool.org/struct.html>
+- <https://exiftool.org/TagNames/MWG.html>
 
 ## Code
 
