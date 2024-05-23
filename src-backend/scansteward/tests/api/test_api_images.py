@@ -124,7 +124,17 @@ class TestImageReadApi(DirectoriesMixin, SampleDirMixin, TestCase):
 
         data = resp.json()
 
-        assert [] == data
+        assert [
+            {
+                "pet_id": 1,
+                "box": {
+                    "center_x": 0.616699,
+                    "center_y": 0.768668,
+                    "height": 0.284041,
+                    "width": 0.202148,
+                },
+            },
+        ] == data
 
     def test_get_image_metadata(self):
         self.util_index_one_file()
@@ -139,10 +149,12 @@ class TestImageReadApi(DirectoriesMixin, SampleDirMixin, TestCase):
 
         assert {
             "album_ids": None,
-            "date_id": None,
-            "description": "President Barack Obama throws a ball for Bo, the family dog, "
-            "in the Rose Garden of the White House, Sept. 9, 2010.  "
-            "(Official White House Photo by Pete Souza)",
+            "date_id": 1,
+            "description": (
+                "President Barack Obama throws a ball for Bo, the family dog, "
+                "in the Rose Garden of the White House, Sept. 9, 2010.  "
+                "(Official White House Photo by Pete Souza)"
+            ),
             "location_id": 1,
             "orientation": 1,
             "tag_ids": [3],

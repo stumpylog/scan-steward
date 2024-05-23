@@ -124,32 +124,41 @@ class SampleMetadataMixin:
     Utilities for verifing sample image metadata and metadata in general against itself
     """
 
-    def assert_count_equal(self, first: list | None, second: list | None) -> None:
+    def assert_count_equal(self, expected: list | None, actual: list | None) -> None:
         """
         https://github.com/python/cpython/blob/17d31bf3843c384873999a15ce683cc3654f46ae/Lib/unittest/case.py#L1186
         """
-        first_seq, second_seq = list(first or []), list(second or [])
-        first_counter = collections.Counter(first_seq)
-        second_counter = collections.Counter(second_seq)
-        assert first_counter == second_counter
+        expected_seq, actual_seq = list(expected or []), list(actual or [])
+        expected_counter = collections.Counter(expected_seq)
+        actual_counter = collections.Counter(actual_seq)
+        assert expected_counter == actual_counter
 
     def verify_expected_vs_actual_metadata(self, expected: ImageMetadata, actual: ImageMetadata):
         assert expected.SourceFile == actual.SourceFile
         assert expected.Title == actual.Title
         assert expected.Description == actual.Description
-        assert expected.RegionInfo == actual.RegionInfo
+
+        if expected.RegionInfo is None or actual.RegionInfo is None:
+            assert expected.RegionInfo == actual.RegionInfo
+        else:
+            assert expected.RegionInfo.model_dump() == actual.RegionInfo.model_dump()
+
         assert expected.Orientation == actual.Orientation
         self.assert_count_equal(expected.LastKeywordXMP, actual.LastKeywordXMP)
         self.assert_count_equal(expected.TagsList, actual.TagsList)
         self.assert_count_equal(expected.CatalogSets, actual.CatalogSets)
         self.assert_count_equal(expected.HierarchicalSubject, actual.HierarchicalSubject)
-        assert expected.KeywordInfo == actual.KeywordInfo
+        if expected.KeywordInfo is None or actual.KeywordInfo is None:
+            assert expected.KeywordInfo == actual.KeywordInfo
+        else:
+            assert expected.KeywordInfo.model_dump() == actual.KeywordInfo.model_dump()
 
     def sample_one_metadata(self, sample_one_jpeg: Path) -> ImageMetadata:
         list_of_tags = [
-            ["Locations", "United States", "Washington DC"],
+            ["Locations", "United States", "District of Columbia", "Washington DC"],
             ["People", "Barack Obama"],
             ["Pets", "Dogs", "Bo"],
+            ["Dates", "2010", "09 - September", "9"],
         ]
         return ImageMetadata(
             SourceFile=sample_one_jpeg,
@@ -175,6 +184,19 @@ class SampleMetadataMixin:
                         Type="Face",
                         Description=None,
                     ),
+                    RegionStruct(
+                        Area=XmpAreaStruct(
+                            H=0.284041,
+                            W=0.202148,
+                            X=0.616699,
+                            Y=0.768668,
+                            Unit="normalized",
+                            D=None,
+                        ),
+                        Name="Bo",
+                        Type="Pet",
+                        Description="Bo was a pet dog of the Obama family",
+                    ),
                 ],
             ),
             Orientation=None,
@@ -187,33 +209,60 @@ class SampleMetadataMixin:
                 {
                     "Hierarchy": [
                         {
-                            "Applied": None,
-                            "Children": [
-                                {
-                                    "Applied": None,
-                                    "Children": [{"Applied": None, "Children": [], "Keyword": "Bo"}],
-                                    "Keyword": "Dogs",
-                                },
-                            ],
-                            "Keyword": "Pets",
-                        },
-                        {
-                            "Applied": None,
-                            "Children": [
-                                {
-                                    "Applied": None,
-                                    "Children": [
-                                        {"Applied": None, "Children": [], "Keyword": "Washington DC"},
-                                    ],
-                                    "Keyword": "United States",
-                                },
-                            ],
-                            "Keyword": "Locations",
-                        },
-                        {
+                            "Keyword": "People",
                             "Applied": None,
                             "Children": [{"Applied": None, "Children": [], "Keyword": "Barack Obama"}],
-                            "Keyword": "People",
+                        },
+                        {
+                            "Keyword": "Locations",
+                            "Applied": None,
+                            "Children": [
+                                {
+                                    "Keyword": "United States",
+                                    "Applied": None,
+                                    "Children": [
+                                        {
+                                            "Keyword": "District of Columbia",
+                                            "Applied": None,
+                                            "Children": [
+                                                {
+                                                    "Keyword": "Washington DC",
+                                                    "Applied": None,
+                                                    "Children": [],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            "Keyword": "Dates",
+                            "Applied": None,
+                            "Children": [
+                                {
+                                    "Keyword": "2010",
+                                    "Applied": None,
+                                    "Children": [
+                                        {
+                                            "Keyword": "09 - September",
+                                            "Applied": None,
+                                            "Children": [{"Applied": None, "Children": [], "Keyword": "9"}],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            "Keyword": "Pets",
+                            "Applied": None,
+                            "Children": [
+                                {
+                                    "Keyword": "Dogs",
+                                    "Applied": None,
+                                    "Children": [{"Applied": None, "Children": [], "Keyword": "Bo"}],
+                                },
+                            ],
                         },
                     ],
                 },

@@ -138,7 +138,7 @@ def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemo
         if album_instance.images.filter(pk=image.pk).exists():
             album_instance.images.remove(image)
         else:
-            logger.warn(f"Image {image.pk} not in album {album_instance.pk}")
+            logger.warning(f"Image {image.pk} not in album {album_instance.pk}")
 
     album_instance.refresh_from_db()
 

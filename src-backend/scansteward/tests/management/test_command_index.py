@@ -6,8 +6,6 @@ from django.test import TestCase
 
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.metadata import write_image_metadata
-from scansteward.imageops.models import RegionStruct
-from scansteward.imageops.models import XmpAreaStruct
 from scansteward.models import Image
 from scansteward.models import Person
 from scansteward.models import PersonInImage
@@ -150,32 +148,12 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
     def test_index_command_with_pets(self):
         tmp_dir = self.get_new_temporary_dir()
 
-        result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
-
-        metdata = read_image_metadata(result)
-
-        metdata.RegionInfo.RegionList.append(
-            RegionStruct(
-                Area=XmpAreaStruct(
-                    H=0.0585652,
-                    W=0.0292969,
-                    X=0.317383,
-                    Y=0.303075,
-                    Unit="normalized",
-                    D=None,
-                ),
-                Name="Some Pet",
-                Type="Pet",
-                Description="This was a pet",
-            ),
-        )
-
-        write_image_metadata(metdata)
+        shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
 
         call_command("index", str(tmp_dir))
 
         assert Pet.objects.count() == 1
-        instance = Pet.objects.filter(name="Some Pet").first()
+        instance = Pet.objects.filter(name="Bo").first()
         assert instance is not None
-        assert instance.name == "Some Pet"
-        assert instance.description == "This was a pet"
+        assert instance.name == "Bo"
+        assert instance.description == "Bo was a pet dog of the Obama family"
