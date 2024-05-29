@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def now_string() -> str:
+    """
+    Formats the current time how exiftool likes to see it
+    """
     return datetime.now(tz=timezone.utc).strftime("%Y:%m:%d %H:%M:%S.%fZ")
 
 
@@ -173,7 +176,7 @@ def bulk_read_image_metadata(
         "MWG",
         "-struct",
         "-json",
-        "-n",  # Disable print conversion, use machine readable
+        "-n",  # Disable print conversion, use machine readable formats
         # Face regions
         "-RegionInfo",
         "-MWG:Orientation",
@@ -183,8 +186,10 @@ def bulk_read_image_metadata(
         "-XMP-digiKam:TagsList",
         "-XMP-lr:HierarchicalSubject",
         "-XMP-mediapro:CatalogSets",
-        "-Title",
+        # Other
         "-MWG:Description",
+        "-Title",
+        # Location
         "-MWG:Country",
         "-MWG:State",
         "-MWG:City",
@@ -249,9 +254,7 @@ def bulk_write_image_metadata(
     with tempfile.TemporaryDirectory() as json_dir:
         json_path = Path(json_dir).resolve() / "temp.json"
         data = [expand_keyword_structures(x).model_dump(exclude_none=True, exclude_unset=True) for x in metadata]
-        from pprint import pprint
 
-        pprint(data)
         json_path.write_bytes(json.dumps(data))
         cmd = [
             EXIF_TOOL_EXE,
@@ -293,6 +296,7 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
         "-v1",
         # Face regions
         "-XMP-mwg-rs:RegionInfo=",
+        # Obvious
         "-MWG:Orientation=",
         # Tags
         "-XMP-mwg-kw:KeywordInfo=",
@@ -302,6 +306,7 @@ def bulk_clear_existing_metadata(images: list[Path]) -> None:
         "-XMP-digiKam:TagsList=",
         "-XMP-lr:HierarchicalSubject=",
         "-XMP-mediapro:CatalogSets=",
+        # Other metadata
         "-Title=",
         "-MWG:Description=",
         "-XMP-dc:Description=",

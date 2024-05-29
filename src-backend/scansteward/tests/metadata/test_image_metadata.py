@@ -151,19 +151,11 @@ class TestUpdateImageMetadata(SampleMetadataMixin, SampleDirMixin):
 
 
 class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):
-    @pytest.mark.xfail(reason="Despite best efforts, the description is not cleared")
     def test_clear_existing_metadata(self, temporary_directory: Path):
         new_sample_one = Path(shutil.copy(self.SAMPLE_TWO, temporary_directory / self.SAMPLE_TWO.name))
 
-        # Everything should be cleared
-        expected = self.sample_two_metadata(new_sample_one).model_copy(deep=True)
-        expected.RegionInfo = None
-        expected.LastKeywordXMP = None
-        expected.CatalogSets = None
-        expected.TagsList = None
-        expected.HierarchicalSubject = None
-        expected.KeywordInfo = None
-        expected.Description = None
+        # Everything should be cleared (except SourceFile, obviously)
+        expected = ImageMetadata(SourceFile=new_sample_one)
 
         clear_existing_metadata(new_sample_one)
 

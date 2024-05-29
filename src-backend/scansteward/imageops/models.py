@@ -78,9 +78,15 @@ class KeywordStruct(BaseModel):
     Children: list[KeywordStruct] = Field(default_factory=list)
 
     def __hash__(self) -> int:
+        """
+        Don't has the children, consider this unique if the keyword and applied state are the same
+        """
         return hash(self.Keyword) + hash(self.Applied)
 
     def get_child_by_name(self, name: str) -> KeywordStruct | None:
+        """
+        Helper to retrieve a child by the given name, if it exists
+        """
         name = name.lower()
         for child in self.Children:
             if child.Keyword.lower() == name:
@@ -88,6 +94,7 @@ class KeywordStruct(BaseModel):
         return None
 
 
+# Recursive, so rebuild
 KeywordStruct.model_rebuild()
 
 
@@ -99,6 +106,9 @@ class KeywordInfoModel(BaseModel):
     Hierarchy: list[KeywordStruct]
 
     def get_root_by_name(self, name: str) -> KeywordStruct | None:
+        """
+        Locates the given root node by the given name, if it exists
+        """
         name = name.lower()
         for keyword in self.Hierarchy:
             if keyword.Keyword.lower() == name:
@@ -107,24 +117,44 @@ class KeywordInfoModel(BaseModel):
 
 
 class ImageMetadata(BaseModel):
-    SourceFile: FilePath
+    """
+    Defines the possible fields which can be read or set from an image using exiftool
+    at this point
+    """
+
+    SourceFile: FilePath = Field(description="The source or destination of the metadata")
     Title: str | None = None
-    Description: str | None = None
-    RegionInfo: RegionInfoStruct | None = None
-    Orientation: RotationEnum | None = None
-    LastKeywordXMP: list[str] | None = None
-    TagsList: list[str] | None = None
-    CatalogSets: list[str] | None = None
-    HierarchicalSubject: list[str] | None = None
-    KeywordInfo: KeywordInfoModel | None = None
-    Country: str | None = None
-    City: str | None = None
-    State: str | None = None
-    Location: str | None = None
+    Description: str | None = Field(default=None, description="Reads or sets the MWG:Description")
+    RegionInfo: RegionInfoStruct | None = Field(
+        default=None,
+        description="Reads or sets the XMP-mwg-rs:RegionInfo",
+    )
+    Orientation: RotationEnum | None = Field(default=None, description="Reads or sets the MWG:Orientation")
+    LastKeywordXMP: list[str] | None = Field(
+        default=None,
+        description="Reads or sets the XMP-microsoft:LastKeywordXMP",
+    )
+    TagsList: list[str] | None = Field(default=None, description="Reads or sets the XMP-digiKam:TagsList")
+    CatalogSets: list[str] | None = Field(
+        default=None,
+        description="Reads or sets the IPTC:CatalogSets or XMP-mediapro:CatalogSets",
+    )
+    HierarchicalSubject: list[str] | None = Field(
+        default=None,
+        description="Reads or sets the XMP-lr:HierarchicalSubject",
+    )
+    KeywordInfo: KeywordInfoModel | None = Field(
+        default=None,
+        description="Reads or sets the XMP-mwg-kw:KeywordInfo.  This is the preferred method to set keywords and will override other values",
+    )
+    Country: str | None = Field(default=None, description="Reads or sets the MWG:Country")
+    City: str | None = Field(default=None, description="Reads or sets the MWG:City")
+    State: str | None = Field(default=None, description="Reads or sets the MWG:State")
+    Location: str | None = Field(default=None, description="Reads or sets the MWG:Location")
 
     @field_serializer("SourceFile")
     def serialize_source_file(self, source_file: FilePath, _info) -> str:
         """
-        Somethings fails to understand Path
+        Somethings fails to understand Path, so return the fully resolved path as a string
         """
         return str(source_file.resolve())

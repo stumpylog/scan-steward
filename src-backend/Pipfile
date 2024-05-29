@@ -7,8 +7,9 @@ name = "pypi"
 django-ninja = "*"
 django-typer = "*"
 # Task Queue
-taskiq = "*"
-taskiq-redis = "*"
+#taskiq = "*"
+#taskiq-redis = "*"
+huey = "*"
 redis = { version = "*", extras = ["hiredis"] }
 # Other
 blake3 = "*"

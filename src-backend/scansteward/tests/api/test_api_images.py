@@ -261,12 +261,7 @@ class TestImageDeleteApi(DirectoriesMixin, SampleDirMixin, TestCase):
         image.refresh_from_db()
 
         assert image.people.count() == 0
-        assert PersonInImage.objects.count() == 1
-
-        face_box = PersonInImage.objects.first()
-        assert face_box is not None
-        assert face_box.person is None
-
+        assert PersonInImage.objects.count() == 0
         assert image.pets.count() == 1
 
     def test_delete_face_from_image_not_in_image(self):

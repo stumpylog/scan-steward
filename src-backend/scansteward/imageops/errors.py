@@ -1,18 +1,22 @@
 class ImageOperationError(Exception):
-    pass
-
-
-class ImageOperationMissingRequiredDataError(ImageOperationError):
-    pass
+    """
+    Base exception for all errors which arise from this library
+    """
 
 
 class NoImagePathsError(ImageOperationError):
-    pass
+    """
+    A metadata read operation did not include an images to read
+    """
 
 
 class NoImageMetadataError(ImageOperationError):
-    pass
+    """
+    No metadata was provided to a metadata write operation
+    """
 
 
 class ImagePathNotFileError(ImageOperationError):
-    pass
+    """
+    A provided image path is not a file
+    """
