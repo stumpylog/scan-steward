@@ -13,4 +13,4 @@ class Command(TyperCommand):
         self,
         synchronous: Annotated[bool, Option(help="The paths to index for new images")] = True,
     ):
-        dirty_images = ImageModel.objects.filter(is_dirty=True)
+        ImageModel.objects.filter(is_dirty=True)

@@ -1,0 +1,173 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from django.conf import settings
+from django.db import models
+
+from scansteward.imageops.models import RotationEnum
+from scansteward.models.abstract import AbstractTimestampMixin
+from scansteward.models.metadata import ImageSource
+from scansteward.models.metadata import Person
+from scansteward.models.metadata import PersonInImage
+from scansteward.models.metadata import Pet
+from scansteward.models.metadata import PetInImage
+from scansteward.models.metadata import RoughDate
+from scansteward.models.metadata import RoughLocation
+from scansteward.models.metadata import Tag
+
+
+class Image(AbstractTimestampMixin, models.Model):
+    """
+    Holds the information about an Image.  Basically everything relates to an image somehow
+    """
+
+    class OrientationChoices(models.IntegerChoices):
+        HORIZONTAL = RotationEnum.HORIZONTAL.value
+        MIRROR_HORIZONTAL = RotationEnum.MIRROR_HORIZONTAL.value
+        ROTATE_180 = RotationEnum.ROTATE_180.value
+        MIRROR_VERTICAL = RotationEnum.MIRROR_VERTICAL.value
+        MIRROR_HORIZONTAL_AND_ROTATE_270_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_270_CW.value
+        ROTATE_90_CW = RotationEnum.ROTATE_90_CW.value
+        MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
+        ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
+
+    original_checksum = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        verbose_name="blake3 hex digest",
+        help_text="The BLAKE3 checksum of the original file",
+    )
+
+    thumbnail_checksum = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        verbose_name="blake3 hex digest",
+        help_text="The BLAKE3 checksum of the image thumbnail",
+    )
+
+    full_size_checksum = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        verbose_name="blake3 hex digest",
+        help_text="The BLAKE3 checksum of the full size image",
+    )
+
+    phash = models.CharField(
+        max_length=32,
+        db_index=True,
+        verbose_name="perceptual average hash of the image",
+        help_text="The pHash (average) of the original file",
+    )
+
+    file_size = models.PositiveBigIntegerField(
+        verbose_name="file size in bytes",
+        help_text="Size of the original file in bytes",
+    )
+
+    orientation = models.SmallIntegerField(
+        choices=OrientationChoices.choices,
+        default=OrientationChoices.HORIZONTAL,
+        help_text="MWG Orientation flag",
+    )
+
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text="MWG Description tag",
+    )
+
+    original = models.CharField(
+        max_length=1024,
+        unique=True,
+        verbose_name="Path to the original image",
+    )
+
+    is_dirty = models.BooleanField(
+        default=False,
+        help_text="The metadata is dirty and needs to be synced to the file",
+    )
+
+    in_trash = models.BooleanField(
+        default=False,
+        help_text="The image is in the trash and needs to be deleted from the file system on scheduled run",
+    )
+
+    is_starred = models.BooleanField(
+        default=False,
+        help_text="The image has been starred",
+    )
+
+    source = models.ForeignKey(
+        ImageSource,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="images",
+        help_text="Source of the original image (box, deck, carousel, etc)",
+    )
+
+    location = models.ForeignKey(
+        RoughLocation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="images",
+        help_text="Location where the image was taken, with as much refinement as possible",
+    )
+
+    date = models.ForeignKey(
+        RoughDate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="images",
+        help_text="RoughDate when the image was taken, with as much refinement as possible",
+    )
+
+    people = models.ManyToManyField(
+        Person,
+        through=PersonInImage,
+        help_text="These people are in the image",
+    )
+
+    pets = models.ManyToManyField(
+        Pet,
+        through=PetInImage,
+        help_text="These pets are in the image",
+    )
+
+    tags = models.ManyToManyField(
+        Tag,
+        related_name="images",
+        help_text="These tags apply to the image",
+    )
+
+    @property
+    def original_path(self) -> Path:
+        return Path(self.original).resolve()
+
+    @original_path.setter
+    def original_path(self, path: Path | str) -> None:
+        self.original = str(Path(path).resolve())
+
+    @property
+    def thumbnail_path(self) -> Path:
+        if TYPE_CHECKING:
+            assert hasattr(settings, "THUMBNAIL_DIR")
+            assert isinstance(settings.THUMBNAIL_DIR, Path)
+        return (settings.THUMBNAIL_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+
+    @property
+    def full_size_path(self) -> Path:
+        if TYPE_CHECKING:
+            assert isinstance(settings.FULL_SIZE_DIR, Path)
+        return (settings.FULL_SIZE_DIR / self.image_fs_id).with_suffix(".webp").resolve()
+
+    @property
+    def image_fs_id(self) -> str:
+        return f"{self.pk:010}"
