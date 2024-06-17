@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from scansteward.models.image import Image  # noqa: F401
+
 
 from django.db import models
 

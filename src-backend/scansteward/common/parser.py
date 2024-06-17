@@ -11,7 +11,12 @@ class OrjsonParser(Parser):
     def parse_body(self, request: HttpRequest) -> DictStrAny:
         return cast(DictStrAny, orjson.loads(request.body))
 
-    def parse_querydict(self, data: MultiValueDict, list_fields: list[str], _: HttpRequest) -> DictStrAny:
+    def parse_querydict(
+        self,
+        data: MultiValueDict,  # type:ignore[type-arg]
+        list_fields: list[str],
+        _: HttpRequest,
+    ) -> DictStrAny:
         result: DictStrAny = {}
         for key in data:
             if key in list_fields:  # pragma: no cover

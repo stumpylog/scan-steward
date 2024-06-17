@@ -1,6 +1,11 @@
+from typing import TYPE_CHECKING
+
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
+
+if TYPE_CHECKING:
+    from scansteward.models.image import Image  # noqa: F401
 
 
 class AbstractTimestampMixin(models.Model):

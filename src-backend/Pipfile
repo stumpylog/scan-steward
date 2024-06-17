@@ -7,8 +7,6 @@ name = "pypi"
 django-ninja = "*"
 django-typer = "*"
 # Task Queue
-#taskiq = "*"
-#taskiq-redis = "*"
 huey = "*"
 redis = { version = "*", extras = ["hiredis"] }
 # Other
@@ -32,6 +30,7 @@ pytest-cov = "*"
 pytest-django = "*"
 pytest-env = "*"
 pytest-xdist = "*"
+pytest-randomly = "*"
 coverage = "*"
 faker = "*"
 # Linting

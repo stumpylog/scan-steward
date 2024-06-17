@@ -1,4 +1,5 @@
 [build-system]
+# These are dummy values
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
@@ -152,3 +153,4 @@ directory = "coverage_html_report"
 django_settings_module = "scansteward.settings"
 
 [tool.pytest_env]
+SCAN_STEWARD_UNDER_TEST = 1

@@ -46,7 +46,7 @@ class DirectoriesMixin(TemporaryDirectoryMixin):
     """
 
     def setUp(self) -> None:
-        super().setUp()
+        super().setUp()  # type: ignore[misc] - This is defined for TestCase
         base_dir = self.get_new_temporary_dir()
         data = base_dir / "data"
         logs = data / "logs"
@@ -66,7 +66,7 @@ class DirectoriesMixin(TemporaryDirectoryMixin):
         self._overrides.enable()
 
     def tearDown(self) -> None:
-        super().tearDown()  # type: ignore[misc]
+        super().tearDown()  # type: ignore[misc] - This is defined for TestCase
         self._overrides.disable()
 
 
@@ -124,7 +124,7 @@ class SampleMetadataMixin:
     Utilities for verifing sample image metadata and metadata in general against itself
     """
 
-    def assert_count_equal(self, expected: list | None, actual: list | None) -> None:
+    def assert_count_equal(self, expected: list[str | int] | None, actual: list[str | int] | None) -> None:
         """
         https://github.com/python/cpython/blob/17d31bf3843c384873999a15ce683cc3654f46ae/Lib/unittest/case.py#L1186
         """
