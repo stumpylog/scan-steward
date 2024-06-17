@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  dev-virtualenv:
+    cmds:
+      - pipenv sync
+
+  serve:
+    deps:
+      - dev-virtualenv
+    cmds:
+      - pipenv run mkdocs serve
