@@ -125,6 +125,7 @@ class Command(TyperCommand):
             file_size=image_path.stat().st_size,
             original_checksum=image_hash,
             original=str(image_path.resolve()),
+            # These are placeholders
             thumbnail_checksum="A",
             full_size_checksum="B",
             source=self.source,
