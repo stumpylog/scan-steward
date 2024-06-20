@@ -19,6 +19,10 @@
         {
             "name": "Documentation",
             "path": "src-docs/"
+        },
+        {
+            "name": "Actions",
+            "path": ".github/workflows/"
         }
     ],
     "settings": {

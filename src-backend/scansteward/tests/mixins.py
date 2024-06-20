@@ -1,24 +1,27 @@
 import collections
+import shutil
 import tempfile
 from collections.abc import Sequence
 from contextlib import ExitStack
 from pathlib import Path
+from typing import Final
 
+from django.core.management import call_command
 from django.test import override_settings
 
-from scansteward.imageops.models import DimensionsStruct
 from scansteward.imageops.models import ImageMetadata
-from scansteward.imageops.models import KeywordInfoModel
-from scansteward.imageops.models import RegionInfoStruct
-from scansteward.imageops.models import RegionStruct
-from scansteward.imageops.models import RotationEnum
-from scansteward.imageops.models import XmpAreaStruct
+from scansteward.models import Image
 
 
 class TemporaryDirectoryMixin:
     """
     Provides a helper which will generate new temporary directories as needed,
     which will all be removed when the class is torn down
+
+    Test functions can also use the temporary_directory fixture, but this is
+    not accessible in the setup/teardown methods or other utility type functions.
+
+    It also does not work with Django's TestCase
     """
 
     @classmethod
@@ -47,21 +50,21 @@ class DirectoriesMixin(TemporaryDirectoryMixin):
 
     def setUp(self) -> None:
         super().setUp()  # type: ignore[misc] - This is defined for TestCase
-        base_dir = self.get_new_temporary_dir()
-        data = base_dir / "data"
-        logs = data / "logs"
-        media = base_dir / "media"
-        thumbnail = media / "thumbnails"
-        fullsize = media / "fullsize"
-        for x in [data, logs, media, thumbnail, fullsize]:
+        self.BASE_DIR = self.get_new_temporary_dir()
+        self.DATA_DIR = self.BASE_DIR / "data"
+        self.LOGS_DIR = self.DATA_DIR / "logs"
+        self.MEDIA_DIR = self.BASE_DIR / "media"
+        self.THUMBNAIL_DIR = self.MEDIA_DIR / "thumbnails"
+        self.FULL_SIZE_DIR = self.MEDIA_DIR / "fullsize"
+        for x in [self.DATA_DIR, self.LOGS_DIR, self.MEDIA_DIR, self.THUMBNAIL_DIR, self.FULL_SIZE_DIR]:
             x.mkdir(parents=True)
         self._overrides = override_settings(
-            BASE_DIR=base_dir,
-            DATA_DIR=data,
-            LOGGING_DIR=logs,
-            MEDIA_ROOT=media,
-            THUMBNAIL_DIR=thumbnail,
-            FULL_SIZE_DIR=fullsize,
+            BASE_DIR=self.BASE_DIR,
+            DATA_DIR=self.DATA_DIR,
+            LOGGING_DIR=self.LOGS_DIR,
+            MEDIA_ROOT=self.MEDIA_DIR,
+            THUMBNAIL_DIR=self.THUMBNAIL_DIR,
+            FULL_SIZE_DIR=self.FULL_SIZE_DIR,
         )
         self._overrides.enable()
 
@@ -110,18 +113,33 @@ class FileSystemAssertsMixin:
 
 
 class SampleDirMixin:
-    SAMPLE_DIR = Path(__file__).parent / "samples"
-    IMAGE_SAMPLE_DIR = SAMPLE_DIR / "images"
-    SAMPLE_ONE = IMAGE_SAMPLE_DIR / "sample1.jpg"
-    SAMPLE_TWO = IMAGE_SAMPLE_DIR / "sample2.jpg"
-    SAMPLE_THREE = IMAGE_SAMPLE_DIR / "sample3.jpg"
-    SAMPLE_FOUR = IMAGE_SAMPLE_DIR / "sample4.jpg"
-    ALL_SAMPLE_IMAGES: Sequence[Path] = [SAMPLE_ONE, SAMPLE_TWO, SAMPLE_THREE, SAMPLE_FOUR]
+    SAMPLE_DIR: Final = Path(__file__).parent / "samples"
+
+    IMAGE_SAMPLE_DIR: Final = SAMPLE_DIR / "images"
+
+    SAMPLE_ORIGINALS_IMAGE_DIR: Final = IMAGE_SAMPLE_DIR / "originals"
+    SAMPLE_THUMBNAIL_IMAGE_DIR: Final = IMAGE_SAMPLE_DIR / "thumbnails"
+    SAMPLE_FULLSIZE_IMAGE_DIR: Final = IMAGE_SAMPLE_DIR / "fullsize"
+
+    SAMPLE_ONE: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample1.jpg"
+    SAMPLE_TWO: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample2.jpg"
+    SAMPLE_THREE: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample3.jpg"
+    SAMPLE_FOUR: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample4.jpg"
+
+    ALL_SAMPLE_IMAGES: Final[Sequence[Path]] = [SAMPLE_ONE, SAMPLE_TWO, SAMPLE_THREE, SAMPLE_FOUR]
 
 
-class SampleMetadataMixin:
+class FixtureDirMixin:
+    FIXTURE_DIR = Path(__file__).parent / "fixtures"
+    SAMPLE_IMAGE_DB_FIXTURE = FIXTURE_DIR / "indexed_sample_database.json"
+
+
+class SampleMetadataMixin(FixtureDirMixin):
     """
-    Utilities for verifing sample image metadata and metadata in general against itself
+    Utilities for verifying sample image metadata and metadata in general against itself
+
+
+    The expected metadata is loaded once from a fixture file which was dumped via Pydantic
     """
 
     def assert_count_equal(self, expected: list[str | int] | None, actual: list[str | int] | None) -> None:
@@ -154,189 +172,40 @@ class SampleMetadataMixin:
             assert expected.KeywordInfo.model_dump() == actual.KeywordInfo.model_dump()
 
     def sample_one_metadata(self, sample_one_jpeg: Path) -> ImageMetadata:
-        list_of_tags = [
-            ["Locations", "United States", "District of Columbia", "Washington DC"],
-            ["People", "Barack Obama"],
-            ["Pets", "Dogs", "Bo"],
-            ["Dates", "2010", "09 - September", "9"],
-        ]
-        return ImageMetadata(
-            SourceFile=sample_one_jpeg,
-            ImageHeight=683,
-            ImageWidth=1024,
-            Title=None,
-            Description=(
-                "President Barack Obama throws a ball for Bo, the family dog,"
-                " in the Rose Garden of the White House, Sept. 9, 2010. "
-                " (Official White House Photo by Pete Souza)"
-            ),
-            RegionInfo=RegionInfoStruct(
-                AppliedToDimensions=DimensionsStruct(H=683.0, W=1024.0, Unit="pixel"),
-                RegionList=[
-                    RegionStruct(
-                        Area=XmpAreaStruct(
-                            H=0.0585652,
-                            W=0.0292969,
-                            X=0.317383,
-                            Y=0.303075,
-                            Unit="normalized",
-                            D=None,
-                        ),
-                        Name="Barack Obama",
-                        Type="Face",
-                        Description=None,
-                    ),
-                    RegionStruct(
-                        Area=XmpAreaStruct(
-                            H=0.284041,
-                            W=0.202148,
-                            X=0.616699,
-                            Y=0.768668,
-                            Unit="normalized",
-                            D=None,
-                        ),
-                        Name="Bo",
-                        Type="Pet",
-                        Description="Bo was a pet dog of the Obama family",
-                    ),
-                ],
-            ),
-            Orientation=None,
-            LastKeywordXMP=["/".join(x) for x in list_of_tags],
-            TagsList=["/".join(x) for x in list_of_tags],
-            CatalogSets=["|".join(x) for x in list_of_tags],
-            HierarchicalSubject=["|".join(x) for x in list_of_tags],
-            # This is the expected tree from the tags
-            KeywordInfo=KeywordInfoModel.model_validate(
-                {
-                    "Hierarchy": [
-                        {
-                            "Keyword": "People",
-                            "Applied": None,
-                            "Children": [{"Applied": None, "Children": [], "Keyword": "Barack Obama"}],
-                        },
-                        {
-                            "Keyword": "Locations",
-                            "Applied": None,
-                            "Children": [
-                                {
-                                    "Keyword": "United States",
-                                    "Applied": None,
-                                    "Children": [
-                                        {
-                                            "Keyword": "District of Columbia",
-                                            "Applied": None,
-                                            "Children": [
-                                                {
-                                                    "Keyword": "Washington DC",
-                                                    "Applied": None,
-                                                    "Children": [],
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                        {
-                            "Keyword": "Dates",
-                            "Applied": None,
-                            "Children": [
-                                {
-                                    "Keyword": "2010",
-                                    "Applied": None,
-                                    "Children": [
-                                        {
-                                            "Keyword": "09 - September",
-                                            "Applied": None,
-                                            "Children": [{"Applied": None, "Children": [], "Keyword": "9"}],
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                        {
-                            "Keyword": "Pets",
-                            "Applied": None,
-                            "Children": [
-                                {
-                                    "Keyword": "Dogs",
-                                    "Applied": None,
-                                    "Children": [{"Applied": None, "Children": [], "Keyword": "Bo"}],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ),
-            City="WASHINGTON",
-            Country="USA",
-        )
+        if not hasattr(self, "SAMPLE_ONE_METADATA"):
+            self.SAMPLE_ONE_METADATA = ImageMetadata.model_validate_json(
+                (self.FIXTURE_DIR / "sample1.jpg.json").read_text(),
+            )
+        cpy = self.SAMPLE_ONE_METADATA.model_copy(deep=True)
+        cpy.SourceFile = sample_one_jpeg
+        return cpy
 
     def sample_two_metadata(self, sample_two_jpeg: Path) -> ImageMetadata:
-        list_of_tags = [["Locations", "United States", "Washington DC"], ["People", "Barack Obama"]]
-        return ImageMetadata(
-            SourceFile=sample_two_jpeg,
-            ImageHeight=2333,
-            ImageWidth=3500,
-            Title=None,
-            Description=(
-                "President Barack Obama signs a letter to a Cuban letter writer, in the Oval Office, March 14, 2016."
-                " (Official White House Photo by Pete Souza)\n\nThis official White House photograph is being made"
-                " available only for publication by news organizations and/or for personal use printing by the"
-                " subject(s) of the photograph. The photograph may not be manipulated in any way and may not be"
-                " used in commercial or political materials, advertisements, emails, products, promotions that"
-                " in any way suggests approval or endorsement of the President, the First Family, or the White House."
-            ),
-            RegionInfo=RegionInfoStruct(
-                AppliedToDimensions=DimensionsStruct(H=2333.0, W=3500.0, Unit="pixel"),
-                RegionList=[
-                    RegionStruct(
-                        Area=XmpAreaStruct(
-                            H=0.216459,
-                            Unit="normalized",
-                            W=0.129714,
-                            X=0.492857,
-                            Y=0.277968,
-                            D=None,
-                        ),
-                        Name="Barack Obama",
-                        Type="Face",
-                        Description=None,
-                    ),
-                ],
-            ),
-            Orientation=RotationEnum.HORIZONTAL,
-            LastKeywordXMP=["/".join(x) for x in list_of_tags],
-            TagsList=["/".join(x) for x in list_of_tags],
-            CatalogSets=["|".join(x) for x in list_of_tags],
-            HierarchicalSubject=["|".join(x) for x in list_of_tags],
-            # This is the expected tree from the tags
-            KeywordInfo=KeywordInfoModel.model_validate(
-                {
-                    "Hierarchy": [
-                        {
-                            "Applied": None,
-                            "Children": [
-                                {
-                                    "Applied": None,
-                                    "Children": [
-                                        {"Applied": None, "Children": [], "Keyword": "Washington DC"},
-                                    ],
-                                    "Keyword": "United States",
-                                },
-                            ],
-                            "Keyword": "Locations",
-                        },
-                        {
-                            "Applied": None,
-                            "Children": [{"Applied": None, "Children": [], "Keyword": "Barack Obama"}],
-                            "Keyword": "People",
-                        },
-                    ],
-                },
-            ),
-        )
+        if not hasattr(self, "SAMPLE_TWO_METADATA"):
+            self.SAMPLE_TWO_METADATA = ImageMetadata.model_validate_json(
+                (self.FIXTURE_DIR / "sample2.jpg.json").read_text(),
+            )
+        cpy = self.SAMPLE_TWO_METADATA.model_copy(deep=True)
+        cpy.SourceFile = sample_two_jpeg
+        return cpy
+
+    def sample_three_metadata(self, sample_three_jpeg: Path) -> ImageMetadata:
+        if not hasattr(self, "SAMPLE_THREE_METADATA"):
+            self.SAMPLE_THREE_METADATA = ImageMetadata.model_validate_json(
+                (self.FIXTURE_DIR / "sample3.jpg.json").read_text(),
+            )
+        cpy = self.SAMPLE_THREE_METADATA.model_copy(deep=True)
+        cpy.SourceFile = sample_three_jpeg
+        return cpy
+
+    def sample_four_metadata(self, sample_four_jpeg: Path) -> ImageMetadata:
+        if not hasattr(self, "SAMPLE_FOUR_METADATA"):
+            self.SAMPLE_FOUR_METADATA = ImageMetadata.model_validate_json(
+                (self.FIXTURE_DIR / "sample4.jpg.json").read_text(),
+            )
+        cpy = self.SAMPLE_FOUR_METADATA.model_copy(deep=True)
+        cpy.SourceFile = sample_four_jpeg
+        return cpy
 
     def verify_sample_one_metadata(self, sample_one_jpeg: Path, actual: ImageMetadata) -> None:
         expected = self.sample_one_metadata(sample_one_jpeg)
@@ -345,3 +214,48 @@ class SampleMetadataMixin:
     def verify_sample_two_metadata(self, sample_two_jpeg: Path, actual: ImageMetadata) -> None:
         expected = self.sample_two_metadata(sample_two_jpeg)
         self.verify_expected_vs_actual_metadata(expected=expected, actual=actual)
+
+
+class IndexedEnvironmentMixin(SampleDirMixin, FixtureDirMixin, DirectoriesMixin):
+    """
+    Constructs the environment for an already indexed directory of all the sample files.
+
+    This does the following:
+      - Load a pre-constructed JSON fixture to the database
+      - Copy sample original file to correct (overridden) directory
+      - Copy sample fullsize file to correct (overridden) directory
+      - Copy sample thumbnail file to correct (overridden) directory
+
+    For speed, this does not actually call index, but rather just constructs the environment with fixed,
+    known values.
+    """
+
+    SAMPLE_ONE_PK: Final[int] = 1
+
+    def setUp(self) -> None:
+        # Create directories and override settings
+        super().setUp()
+
+        # Load the database
+        call_command("loaddata", str(self.SAMPLE_IMAGE_DB_FIXTURE))
+
+        # Copy the files
+        for pk in range(1, 5):
+            img = Image.objects.get(pk=pk)
+
+            # The original needs to be updated
+            img.original_path = shutil.copy(
+                self.SAMPLE_ORIGINALS_IMAGE_DIR / img.original_path.name,
+                self.BASE_DIR / img.original_path.name,
+            )
+            img.save()
+            img.mark_as_clean()
+
+            shutil.copy(
+                self.SAMPLE_FULLSIZE_IMAGE_DIR / img.full_size_path.name,
+                img.full_size_path,
+            )
+            shutil.copy(
+                self.SAMPLE_THUMBNAIL_IMAGE_DIR / img.thumbnail_path.name,
+                img.thumbnail_path,
+            )

@@ -1,9 +1,7 @@
-import shutil
 import zipfile
 from http import HTTPStatus
 
 import pytest
-from django.core.management import call_command
 from django.http import HttpResponse
 from django.test import TestCase
 from django.test.client import Client
@@ -13,7 +11,7 @@ from scansteward.models import Image
 from scansteward.tests.api.utils import FakerMixin
 from scansteward.tests.api.utils import GenerateImagesMixin
 from scansteward.tests.mixins import DirectoriesMixin
-from scansteward.tests.mixins import SampleDirMixin
+from scansteward.tests.mixins import IndexedEnvironmentMixin
 
 
 def create_single_album(client: Client, name: str, description: str | None = None) -> HttpResponse:
@@ -531,16 +529,8 @@ class TestApiAlbumSorting(GenerateImagesMixin, DirectoriesMixin, TestCase):
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCase):
+class TestApiAlbumDownload(IndexedEnvironmentMixin, FakerMixin, TestCase):
     def download_test_common(self, *, use_original_download=False):
-        # Create album with images
-        tmp_dir = self.get_new_temporary_dir()
-
-        for file in self.ALL_SAMPLE_IMAGES:
-            shutil.copy(file, tmp_dir / file.name)
-
-        call_command("index", str(tmp_dir))
-
         album_name = self.faker.unique.name()
         resp = create_single_album(self.client, album_name)
 
@@ -561,7 +551,7 @@ class TestApiAlbumDownload(SampleDirMixin, DirectoriesMixin, FakerMixin, TestCas
             resp = self.client.get(f"/api/album/{album_id}/download/?zip_originals=True")
         assert resp.status_code == HTTPStatus.OK
 
-        zipped_album = tmp_dir / "test.zip"
+        zipped_album = self.get_new_temporary_dir() / "test.zip"
         zipped_album.write_bytes(b"".join(resp.streaming_content))
 
         with zipfile.ZipFile(zipped_album) as downloaded_zip:

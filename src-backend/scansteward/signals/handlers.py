@@ -10,6 +10,9 @@ from scansteward.models import RoughLocation
 
 @receiver(models.signals.post_delete, sender=Image)
 def cleanup_files_on_delete(sender, instance: Image, using, **kwargs):
+    """
+    Removes files associated with the image when it is deleted.
+    """
     if instance.full_size_path.exists():
         instance.full_size_path.unlink()
     if instance.thumbnail_path.exists():
@@ -23,7 +26,10 @@ def cleanup_files_on_delete(sender, instance: Image, using, **kwargs):
 @receiver(models.signals.m2m_changed, sender=Image.pets.through)
 @receiver(models.signals.post_save, sender=Image)
 def mark_image_as_dirty(sender, instance: Image, **kwargs):
-    # Mark the image as dirty, ie, requiring a metadata sync to the file
+    """
+    Mark the image as dirty, ie, requiring a metadata sync to the file
+    """
+
     # Use update so this doesn't loop
     Image.objects.filter(pk=instance.pk).update(is_dirty=True)
 
@@ -40,6 +46,10 @@ def mark_images_as_dirty_on_m2m_change(
     *args,
     **kwargs,
 ):
+    """
+    Mark the image as dirty, ie, requiring a metadata sync to the file when various m2m relationships are changed
+    """
+
     if isinstance(instance, Person):
         Image.objects.filter(people__pk=instance.pk).update(is_dirty=True)
     elif isinstance(instance, Pet):
@@ -58,4 +68,7 @@ def mark_images_as_dirty_on_fk_change(
     *args,
     **kwargs,
 ):
+    """
+    Mark the image as dirty, ie, requiring a metadata sync to the file when various foreign key relationships are changed
+    """
     instance.images.all().update(is_dirty=True)
