@@ -177,6 +177,8 @@ def bulk_read_image_metadata(
         "-struct",
         "-json",
         "-n",  # Disable print conversion, use machine readable formats
+        "-ImageHeight",
+        "-ImageWidth",
         # Face regions
         "-RegionInfo",
         "-MWG:Orientation",

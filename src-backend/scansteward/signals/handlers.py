@@ -9,9 +9,13 @@ from scansteward.models import RoughLocation
 
 
 @receiver(models.signals.post_delete, sender=Image)
-def cleanup_image_deletion(sender, instance, using, **kwargs):
-    # TODO: Maybe delete the fullsize, etc?
-    pass
+def cleanup_files_on_delete(sender, instance: Image, using, **kwargs):
+    if instance.full_size_path.exists():
+        instance.full_size_path.unlink()
+    if instance.thumbnail_path.exists():
+        instance.thumbnail_path.unlink()
+    if instance.original_path.exists():
+        instance.original_path.unlink()
 
 
 @receiver(models.signals.m2m_changed, sender=Image.tags.through)
@@ -21,23 +25,37 @@ def cleanup_image_deletion(sender, instance, using, **kwargs):
 def mark_image_as_dirty(sender, instance: Image, **kwargs):
     # Mark the image as dirty, ie, requiring a metadata sync to the file
     # Use update so this doesn't loop
-    Image.objects.filter(pk=instance.pk).update(is_dirty=False)
+    Image.objects.filter(pk=instance.pk).update(is_dirty=True)
 
 
 # On change
 @receiver(models.signals.post_save, sender=Pet)
 @receiver(models.signals.post_save, sender=Person)
-@receiver(models.signals.post_save, sender=RoughLocation)
-@receiver(models.signals.post_save, sender=RoughDate)
 # On delete
 @receiver(models.signals.pre_delete, sender=Pet)
 @receiver(models.signals.pre_delete, sender=Person)
-@receiver(models.signals.pre_delete, sender=RoughLocation)
-@receiver(models.signals.pre_delete, sender=RoughDate)
-def mark_images_as_dirty_on_fk_change(
-    sender: type[Pet | Person | RoughLocation | RoughDate],
-    instance: Pet | Person | RoughLocation | RoughDate,
+def mark_images_as_dirty_on_m2m_change(
+    sender: type[Pet | Person],
+    instance: Pet | Person,
     *args,
     **kwargs,
 ):
-    sender.objects.filter(people__id=instance.pk).update(is_dirty=True)
+    if isinstance(instance, Person):
+        Image.objects.filter(people__pk=instance.pk).update(is_dirty=True)
+    elif isinstance(instance, Pet):
+        Image.objects.filter(pets__pk=instance.pk).update(is_dirty=True)
+
+
+# On change
+@receiver(models.signals.post_save, sender=RoughLocation)
+@receiver(models.signals.post_save, sender=RoughDate)
+# On delete
+@receiver(models.signals.pre_delete, sender=RoughLocation)
+@receiver(models.signals.pre_delete, sender=RoughDate)
+def mark_images_as_dirty_on_fk_change(
+    sender: type[RoughLocation | RoughDate],
+    instance: RoughLocation | RoughDate,
+    *args,
+    **kwargs,
+):
+    instance.images.all().update(is_dirty=True)

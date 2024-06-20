@@ -1,14 +1,11 @@
 from datetime import date
 from pathlib import Path
-from typing import TYPE_CHECKING
 from typing import Annotated
 from typing import Final
 from typing import Optional
 
-from blake3 import blake3
 from django.db import transaction
 from django_typer import TyperCommand
-from imagehash import average_hash
 from PIL import Image
 from typer import Argument
 from typer import Option
@@ -16,6 +13,8 @@ from typer import Option
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordStruct
+from scansteward.management.commands.mixins import ImageHasherMixin
+from scansteward.management.commands.mixins import KeywordNameMixin
 from scansteward.models import Image as ImageModel
 from scansteward.models import ImageSource
 from scansteward.models import Person
@@ -29,7 +28,7 @@ from scansteward.routes.locations.utils import get_country_code_from_name
 from scansteward.routes.locations.utils import get_subdivision_code_from_name
 
 
-class Command(TyperCommand):
+class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
     help = "Indexes the given path(s) for new Images"
 
     IMAGE_EXTENSIONS: Final[set[str]] = {
@@ -40,10 +39,6 @@ class Command(TyperCommand):
         ".tif",
         ".webp",
     }
-
-    DATE_KEYWORD: Final[str] = "Dates"
-    PEOPLE_KEYWORD: Final[str] = "People"
-    LOCATION_KEYWORD: Final[str] = "Locations"
 
     def handle(
         self,
@@ -62,8 +57,6 @@ class Command(TyperCommand):
         self.hash_threads = hash_threads
 
         for path in paths:
-            if TYPE_CHECKING:
-                assert isinstance(path, Path)
             for file_generator in [path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS]:
                 for filename in file_generator:
                     self.stdout.write(self.style.SUCCESS(f"Indexing {filename.name}"))
@@ -74,10 +67,7 @@ class Command(TyperCommand):
         Handles indexing a single image, either existing or new
         """
         # Duplicate check
-        image_hash = blake3(
-            image_path.read_bytes(),
-            max_threads=self.hash_threads,
-        ).hexdigest()
+        image_hash = self.hash_file(image_path, hash_threads=self.hash_threads)
 
         # Update or create
         with transaction.atomic():
@@ -85,7 +75,7 @@ class Command(TyperCommand):
             if existing_image is not None:
                 self.handle_existing_image(existing_image, image_path)
             else:
-                self.handle_new_image(image_path, image_hash)
+                self.handle_new_image(image_path)
 
     def handle_existing_image(
         self,
@@ -112,26 +102,25 @@ class Command(TyperCommand):
             existing_image.save()
         self.stdout.write(self.style.SUCCESS(f"  {image_path.name} indexing completed"))
 
-    def handle_new_image(self, image_path: Path, image_hash: str) -> None:
+    def handle_new_image(self, image_path: Path) -> None:
         """
         Handles a completely new image
         """
         metadata = read_image_metadata(image_path)
 
-        with Image.open(image_path) as im_file:
-            p_hash = average_hash(im_file)
-
         new_img = ImageModel.objects.create(
             file_size=image_path.stat().st_size,
-            original_checksum=image_hash,
             original=str(image_path.resolve()),
-            # These are placeholders
-            thumbnail_checksum="A",
-            full_size_checksum="B",
             source=self.source,
             orientation=metadata.Orientation or ImageModel.OrientationChoices.HORIZONTAL,
             description=metadata.Description,
-            phash=str(p_hash),
+            height=metadata.ImageHeight,
+            width=metadata.ImageWidth,
+            # These are placeholders
+            original_checksum="A",
+            thumbnail_checksum="B",
+            full_size_checksum="C",
+            phash="D",
             # This time cannot be dirty
             is_dirty=False,
         )
@@ -142,21 +131,12 @@ class Command(TyperCommand):
             img_copy.thumbnail((500, 500))
             img_copy.save(new_img.thumbnail_path)
 
-        new_img.thumbnail_checksum = blake3(
-            new_img.thumbnail_path.read_bytes(),
-            max_threads=self.hash_threads,
-        ).hexdigest()
-
         self.stdout.write(self.style.SUCCESS("  Creating WebP version"))
         with Image.open(image_path) as im_file:
             im_file.save(new_img.full_size_path, quality=90)
 
-        new_img.full_size_checksum = blake3(
-            new_img.full_size_path.read_bytes(),
-            max_threads=self.hash_threads,
-        ).hexdigest()
-
-        new_img.save()
+        # Update the file hashes, now that the files exist
+        self.update_image_hash(new_img, hash_threads=self.hash_threads)
 
         # Parse Faces/pets/regions
         self.parse_region_info(new_img, metadata)
@@ -173,7 +153,7 @@ class Command(TyperCommand):
         self.parse_dates_from_keywords(new_img, metadata)
 
         # And done.  Image cannot be dirty, use update to avoid getting marked as such
-        ImageModel.objects.filter(pk=new_img.pk).update(is_dirty=False)
+        new_img.mark_as_clean()
         self.stdout.write(self.style.SUCCESS("  indexing completed"))
 
     def parse_region_info(self, new_image: ImageModel, metadata: ImageMetadata):

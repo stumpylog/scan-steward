@@ -29,6 +29,8 @@ def util_create_image_in_database(sample_dir: Path) -> tuple[Image, Person, Pet]
         phash="mnop",
         original=sample_dir / "test.jpg",
         description="test description",
+        height=random.randint(100, 200),  # noqa: S311
+        width=random.randint(100, 200),  # noqa: S311
     )
 
     person = Person.objects.create(name="Test Person")

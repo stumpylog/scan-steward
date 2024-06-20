@@ -65,5 +65,12 @@ class AbstractBoxInImage(AbstractTimestampMixin, models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
 
+    description = models.CharField(
+        verbose_name="Optional description of the region",
+        max_length=2048,
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         abstract = True

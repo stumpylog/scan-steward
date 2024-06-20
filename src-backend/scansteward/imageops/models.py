@@ -123,13 +123,19 @@ class ImageMetadata(BaseModel):
     """
 
     SourceFile: FilePath = Field(description="The source or destination of the metadata")
+
+    ImageHeight: int = Field(description="Height of the image in pixel", default=-1)
+    ImageWidth: int = Field(description="Width of the image in pixel", default=-1)
+
     Title: str | None = None
     Description: str | None = Field(default=None, description="Reads or sets the MWG:Description")
+
     RegionInfo: RegionInfoStruct | None = Field(
         default=None,
         description="Reads or sets the XMP-mwg-rs:RegionInfo",
     )
     Orientation: RotationEnum | None = Field(default=None, description="Reads or sets the MWG:Orientation")
+
     LastKeywordXMP: list[str] | None = Field(
         default=None,
         description="Reads or sets the XMP-microsoft:LastKeywordXMP",
@@ -145,8 +151,12 @@ class ImageMetadata(BaseModel):
     )
     KeywordInfo: KeywordInfoModel | None = Field(
         default=None,
-        description="Reads or sets the XMP-mwg-kw:KeywordInfo.  This is the preferred method to set keywords and will override other values",
+        description=(
+            "Reads or sets the XMP-mwg-kw:KeywordInfo.  This is the preferred method to set keywords"
+            " and will override other values"
+        ),
     )
+
     Country: str | None = Field(default=None, description="Reads or sets the MWG:Country")
     City: str | None = Field(default=None, description="Reads or sets the MWG:City")
     State: str | None = Field(default=None, description="Reads or sets the MWG:State")

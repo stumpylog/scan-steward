@@ -162,6 +162,8 @@ class SampleMetadataMixin:
         ]
         return ImageMetadata(
             SourceFile=sample_one_jpeg,
+            ImageHeight=683,
+            ImageWidth=1024,
             Title=None,
             Description=(
                 "President Barack Obama throws a ball for Bo, the family dog,"
@@ -275,6 +277,8 @@ class SampleMetadataMixin:
         list_of_tags = [["Locations", "United States", "Washington DC"], ["People", "Barack Obama"]]
         return ImageMetadata(
             SourceFile=sample_two_jpeg,
+            ImageHeight=2333,
+            ImageWidth=3500,
             Title=None,
             Description=(
                 "President Barack Obama signs a letter to a Cuban letter writer, in the Oval Office, March 14, 2016."

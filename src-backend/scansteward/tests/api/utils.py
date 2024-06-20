@@ -141,6 +141,8 @@ class GenerateImagesMixin(FakerMixin):
                     full_size_checksum=self.faker.sha1()[:64],
                     phash=self.faker.sha1()[:64],
                     original=self.faker.file_path(category="image"),
+                    height=random.randint(100, 200),  # noqa: S311
+                    width=random.randint(100, 200),  # noqa: S311
                 ),
             )
         assert Image.objects.count() == count

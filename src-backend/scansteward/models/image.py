@@ -69,6 +69,9 @@ class Image(AbstractTimestampMixin, models.Model):
         help_text="Size of the original file in bytes",
     )
 
+    height = models.PositiveIntegerField(verbose_name="height in pixels")
+    width = models.PositiveIntegerField(verbose_name="width in pixels")
+
     orientation = models.SmallIntegerField(
         choices=OrientationChoices.choices,
         default=OrientationChoices.HORIZONTAL,
@@ -171,3 +174,9 @@ class Image(AbstractTimestampMixin, models.Model):
     @property
     def image_fs_id(self) -> str:
         return f"{self.pk:010}"
+
+    def mark_as_clean(self) -> None:
+        """
+        Helper to mark an image as clean
+        """
+        Image.objects.filter(pk=self.pk).update(is_dirty=False)
