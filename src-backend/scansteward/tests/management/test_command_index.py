@@ -125,11 +125,11 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
 
         result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
 
-        metdata = read_image_metadata(result)
+        metadata = read_image_metadata(result)
 
-        metdata.RegionInfo.RegionList[0].Description = "This is a description of a region"
+        metadata.RegionInfo.RegionList[0].Description = "This is a description of a region"
 
-        write_image_metadata(metdata)
+        write_image_metadata(metadata)
 
         call_command("index", str(tmp_dir))
 

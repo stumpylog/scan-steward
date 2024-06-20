@@ -36,6 +36,7 @@ faker = "*"
 # Linting
 black = "*"
 ruff = "*"
+codespell = "*"
 # Typing
 mypy = "*"
 django-stubs = {version = "*", extras = ["compatible-mypy"]}
