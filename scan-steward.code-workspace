@@ -37,8 +37,11 @@
             "**/.coverage": true,
             "**/coverage.json": true
         },
-        "python.analysis.extraPaths": [
+        "python.analysis.include": [
             "src-backend/scansteward"
+        ],
+        "python.analysis.exclude": [
+            "src-backend/.venv/Lib/site-packages/simpleiso3166"
         ],
         "python.defaultInterpreterPath": "src-backend/.venv/bin/python3.exe",
         "css.styleSheets": [
