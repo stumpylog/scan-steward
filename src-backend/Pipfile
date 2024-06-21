@@ -9,6 +9,8 @@ django-typer = "*"
 # Task Queue
 huey = "*"
 redis = { version = "*", extras = ["hiredis"] }
+# Settings
+pydantic_settings = "*"
 # Other
 blake3 = "*"
 orjson = "*"

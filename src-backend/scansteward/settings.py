@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
+from scansteward.config import get_django_settings
+from scansteward.config import get_path_settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = get_path_settings().base_dir
 DATA_DIR = BASE_DIR / "data"
 MEDIA_ROOT = BASE_DIR / "media"
 THUMBNAIL_DIR = MEDIA_ROOT / "thumbnails"
@@ -21,20 +22,14 @@ FULL_SIZE_DIR = MEDIA_ROOT / "fullsize"
 
 LOGGING_DIR = DATA_DIR / "logs"
 
-DATA_DIR.mkdir(exist_ok=True, parents=True)
-MEDIA_ROOT.mkdir(exist_ok=True, parents=True)
-THUMBNAIL_DIR.mkdir(exist_ok=True, parents=True)
-FULL_SIZE_DIR.mkdir(exist_ok=True, parents=True)
-LOGGING_DIR.mkdir(exist_ok=True, parents=True)
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-sy01il8rqt#832c6nx#2^a5@n_l(wy3v*dl&8-_*yu=1(=e%iv"
+SECRET_KEY = get_django_settings().secret_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = get_django_settings().debug
 
 ALLOWED_HOSTS: list[str] = []
 
@@ -119,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = get_django_settings().timezone
 
 USE_I18N = True
 
@@ -166,5 +161,39 @@ LOGGING = {
     "root": {"handlers": ["console"]},
     "loggers": {
         "scansteward": {"handlers": ["file"], "level": "DEBUG"},
+    },
+}
+
+#
+# Task Queue
+#
+HUEY = {
+    "huey_class": "huey.RedisHuey",  # Huey implementation to use.
+    "name": "huey-task-queue",  # Use db name for huey.
+    "results": True,  # Store return values of tasks.
+    "store_none": True,  # If a task returns None, do save to results.
+    "immediate": DEBUG,  # If DEBUG=True, run synchronously.
+    "utc": True,  # Use UTC for all times internally.
+    "blocking": True,  # Perform blocking pop rather than poll Redis.
+    "connection": {
+        "host": "localhost",
+        "port": 6379,
+        "db": 0,
+        "connection_pool": None,  # Definitely you should use pooling!
+        # ... tons of other options, see redis-py for details.
+        # huey-specific connection parameters.
+        "read_timeout": 1,  # If not polling (blocking pop), use timeout.
+        "url": None,  # Allow Redis config via a DSN.
+    },
+    "consumer": {
+        "workers": 1,
+        "worker_type": "thread",
+        "initial_delay": 0.1,  # Smallest polling interval, same as -d.
+        "backoff": 1.15,  # Exponential backoff using this rate, -b.
+        "max_delay": 10.0,  # Max possible polling interval, -m.
+        "scheduler_interval": 1,  # Check schedule every second, -s.
+        "periodic": True,  # Enable crontab feature.
+        "check_worker_health": True,  # Enable worker health checks.
+        "health_check_interval": 1,  # Check worker health every second.
     },
 }

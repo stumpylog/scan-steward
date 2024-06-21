@@ -79,7 +79,7 @@ class KeywordStruct(BaseModel):
 
     def __hash__(self) -> int:
         """
-        Don't has the children, consider this unique if the keyword and applied state are the same
+        Don't hash the children, consider this unique if the keyword and applied state are the same
         """
         return hash(self.Keyword) + hash(self.Applied)
 

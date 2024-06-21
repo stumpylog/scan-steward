@@ -1,7 +1,14 @@
-from scansteward.models import Image
+import logging
+
+from huey.contrib.djhuey import task
+
+from scansteward.models import Image as ImageModel
+
+logger = logging.getLogger(__name__)
 
 
-async def sync_image_metadata_to_image_file(image: Image) -> None:
+@task()
+def sync_metadata_to_files(images: list[ImageModel]) -> None:
     pass
 
 
