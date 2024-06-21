@@ -114,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = get_django_settings().timezone
+TIME_ZONE = get_django_settings().timezone.value
 
 USE_I18N = True
 

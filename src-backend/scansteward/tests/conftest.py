@@ -1,6 +1,57 @@
+import dataclasses
 import random
+import shutil
+from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
+from django.core.management import call_command
+from django.db import models
+
+from scansteward.models import Image
+from scansteward.models import Person
+from scansteward.models import Pet
+from scansteward.models import RoughDate
+from scansteward.models import RoughLocation
+from scansteward.signals.handlers import mark_image_as_dirty
+from scansteward.signals.handlers import mark_images_as_dirty_on_fk_change
+from scansteward.signals.handlers import mark_images_as_dirty_on_m2m_change
+
+
+@contextmanager
+def disable_signal(sig, receiver, sender):
+    try:
+        sig.disconnect(receiver=receiver, sender=sender)
+        yield
+    finally:
+        sig.connect(receiver=receiver, sender=sender)
+
+
+@dataclasses.dataclass(slots=True)
+class DjangoDirectories:
+    base_dir: Path
+    data_dir: Path = dataclasses.field(init=False)
+    logs_dir: Path = dataclasses.field(init=False)
+    media_dir: Path = dataclasses.field(init=False)
+    thumbnail_dir: Path = dataclasses.field(init=False)
+    full_size_dir: Path = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self.data_dir = self.base_dir / "data"
+        self.logs_dir = self.data_dir / "logs"
+        self.media_dir = self.base_dir / "media"
+        self.thumbnail_dir = self.media_dir / "thumbnails"
+        self.full_size_dir = self.media_dir / "fullsize"
+
+        for x in [self.data_dir, self.logs_dir, self.media_dir, self.thumbnail_dir, self.full_size_dir]:
+            x.mkdir(parents=True, exist_ok=True)
+
+
+@dataclasses.dataclass(slots=True)
+class SampleFile:
+    original: Path
+    full_size: Path
+    thumbnail: Path
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -11,3 +62,205 @@ def faker_seed():
 @pytest.fixture(scope="session", autouse=True)
 def _seed_random():
     random.seed(0)
+
+
+@pytest.fixture(scope="session")
+def fixture_directory() -> Path:
+    return Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture(scope="session")
+def sample_db_fixture_file(fixture_directory: Path) -> Path:
+    return fixture_directory / "indexed_sample_database.json"
+
+
+@pytest.fixture(scope="session")
+def sample_directory() -> Path:
+    return Path(__file__).parent / "samples"
+
+
+@pytest.fixture(scope="session")
+def image_sample_directory(sample_directory: Path) -> Path:
+    return sample_directory / "images"
+
+
+@pytest.fixture(scope="session")
+def image_originals_directory(image_sample_directory: Path) -> Path:
+    return image_sample_directory / "originals"
+
+
+@pytest.fixture(scope="session")
+def image_full_size_directory(image_sample_directory: Path) -> Path:
+    return image_sample_directory / "fullsize"
+
+
+@pytest.fixture(scope="session")
+def image_thumbnail_directory(image_sample_directory: Path) -> Path:
+    return image_sample_directory / "thumbnails"
+
+
+@pytest.fixture(scope="session")
+def sample_one_original_file(image_originals_directory: Path) -> Path:
+    return image_originals_directory / "sample1.jpg"
+
+
+@pytest.fixture(scope="session")
+def sample_one_full_size_file(image_full_size_directory: Path) -> Path:
+    return image_full_size_directory / "0000000001.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_one_thumbnail_file(image_thumbnail_directory: Path) -> Path:
+    return image_thumbnail_directory / "0000000001.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_one_info(
+    sample_one_original_file: Path,
+    sample_one_full_size_file: Path,
+    sample_one_thumbnail_file: Path,
+) -> SampleFile:
+    return SampleFile(sample_one_original_file, sample_one_full_size_file, sample_one_thumbnail_file)
+
+
+@pytest.fixture(scope="session")
+def sample_two_original_file(image_originals_directory: Path) -> Path:
+    return image_originals_directory / "sample2.jpg"
+
+
+@pytest.fixture(scope="session")
+def sample_two_full_size_file(image_full_size_directory: Path) -> Path:
+    return image_full_size_directory / "0000000002.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_two_thumbnail_file(image_thumbnail_directory: Path) -> Path:
+    return image_thumbnail_directory / "0000000002.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_two_info(
+    sample_two_original_file: Path,
+    sample_two_full_size_file: Path,
+    sample_two_thumbnail_file: Path,
+) -> SampleFile:
+    return SampleFile(sample_two_original_file, sample_two_full_size_file, sample_two_thumbnail_file)
+
+
+@pytest.fixture(scope="session")
+def sample_three_original_file(image_originals_directory: Path) -> Path:
+    return image_originals_directory / "sample3.jpg"
+
+
+@pytest.fixture(scope="session")
+def sample_three_full_size_file(image_full_size_directory: Path) -> Path:
+    return image_full_size_directory / "0000000003.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_three_thumbnail_file(image_thumbnail_directory: Path) -> Path:
+    return image_thumbnail_directory / "0000000003.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_three_info(
+    sample_three_original_file: Path,
+    sample_three_full_size_file: Path,
+    sample_three_thumbnail_file: Path,
+) -> SampleFile:
+    return SampleFile(sample_three_original_file, sample_three_full_size_file, sample_three_thumbnail_file)
+
+
+@pytest.fixture(scope="session")
+def sample_four_original_file(image_originals_directory: Path) -> Path:
+    return image_originals_directory / "sample4.jpg"
+
+
+@pytest.fixture(scope="session")
+def sample_four_full_size_file(image_full_size_directory: Path) -> Path:
+    return image_full_size_directory / "0000000004.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_four_thumbnail_file(image_thumbnail_directory: Path) -> Path:
+    return image_thumbnail_directory / "0000000004.webp"
+
+
+@pytest.fixture(scope="session")
+def sample_four_info(
+    sample_four_original_file: Path,
+    sample_four_full_size_file: Path,
+    sample_four_thumbnail_file: Path,
+) -> SampleFile:
+    return SampleFile(sample_four_original_file, sample_four_full_size_file, sample_four_thumbnail_file)
+
+
+@pytest.fixture()
+def django_directories(tmp_path: Path) -> DjangoDirectories:
+    """
+    Configures an object with the directories used by Django for testing purposes.
+
+    Child directories will be created automatically if they do not exist.
+    """
+    return DjangoDirectories(base_dir=tmp_path)
+
+
+@pytest.fixture(name="django_directories_override")
+def _django_directories_settings_override(django_directories: DjangoDirectories, settings):
+    """
+    Configures Django settings for testing purposes
+    """
+    settings.BASE_DIR = django_directories.base_dir
+    settings.DATA_DIR = django_directories.data_dir
+    settings.LOGGING_DIR = django_directories.logs_dir
+    settings.MEDIA_ROOT = django_directories.media_dir
+    settings.THUMBNAIL_DIR = django_directories.thumbnail_dir
+    settings.FULL_SIZE_DIR = django_directories.full_size_dir
+
+
+@pytest.fixture(name="sample_image_database")
+def _sample_image_database(sample_db_fixture_file: Path) -> None:
+    """
+    Configures a partial environment of samples, including only the database loaded from fixture
+    """
+    with (
+        disable_signal(models.signals.post_save, mark_image_as_dirty, Image),
+        disable_signal(models.signals.post_save, mark_images_as_dirty_on_m2m_change, Pet),
+        disable_signal(models.signals.post_save, mark_images_as_dirty_on_m2m_change, Person),
+        disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughLocation),
+        disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughDate),
+    ):
+        call_command("loaddata", sample_db_fixture_file)
+
+
+@pytest.fixture(name="sample_image_environment")
+def _sample_image_environment(
+    sample_image_database,
+    django_directories_override,
+    django_directories: DjangoDirectories,
+    sample_one_info: SampleFile,
+    sample_two_info: SampleFile,
+    sample_three_info: SampleFile,
+    sample_four_info: SampleFile,
+) -> None:
+    """
+    Configures a full environment of samples, include data base and image files in the proper directories.
+    """
+
+    pk_to_image = {
+        1: sample_one_info,
+        2: sample_two_info,
+        3: sample_three_info,
+        4: sample_four_info,
+    }
+
+    for img in Image.objects.order_by("pk").all():
+        sample_info = pk_to_image[img.pk]
+
+        # The original needs to be updated
+        img.original_path = shutil.copy(sample_info.original, django_directories.base_dir)
+        img.save()
+        img.mark_as_clean()
+
+        shutil.copy(sample_info.full_size, django_directories.full_size_dir)
+        shutil.copy(sample_info.thumbnail, django_directories.thumbnail_dir)

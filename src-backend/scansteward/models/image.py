@@ -17,6 +17,9 @@ from scansteward.models.metadata import RoughDate
 from scansteward.models.metadata import RoughLocation
 from scansteward.models.metadata import Tag
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 
 class Image(AbstractTimestampMixin, models.Model):
     """
@@ -32,6 +35,9 @@ class Image(AbstractTimestampMixin, models.Model):
         ROTATE_90_CW = RotationEnum.ROTATE_90_CW.value
         MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
         ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
+
+    class Meta:
+        ordering: Sequence[str] = ["pk"]
 
     original_checksum = models.CharField(
         max_length=64,
