@@ -3,14 +3,32 @@ import shutil
 import tempfile
 from collections.abc import Sequence
 from contextlib import ExitStack
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Final
 
 from django.core.management import call_command
+from django.db import models
 from django.test import override_settings
 
 from scansteward.imageops.models import ImageMetadata
 from scansteward.models import Image
+from scansteward.models import Person
+from scansteward.models import Pet
+from scansteward.models import RoughDate
+from scansteward.models import RoughLocation
+from scansteward.signals.handlers import mark_image_as_dirty
+from scansteward.signals.handlers import mark_images_as_dirty_on_fk_change
+from scansteward.signals.handlers import mark_images_as_dirty_on_m2m_change
+
+
+@contextmanager
+def disable_signal(sig, receiver, sender):
+    try:
+        sig.disconnect(receiver=receiver, sender=sender)
+        yield
+    finally:
+        sig.connect(receiver=receiver, sender=sender)
 
 
 class TemporaryDirectoryMixin:
@@ -237,7 +255,14 @@ class IndexedEnvironmentMixin(SampleDirMixin, FixtureDirMixin, DirectoriesMixin)
         super().setUp()
 
         # Load the database
-        call_command("loaddata", str(self.SAMPLE_IMAGE_DB_FIXTURE))
+        with (
+            disable_signal(models.signals.post_save, mark_image_as_dirty, Image),
+            disable_signal(models.signals.post_save, mark_images_as_dirty_on_m2m_change, Pet),
+            disable_signal(models.signals.post_save, mark_images_as_dirty_on_m2m_change, Person),
+            disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughLocation),
+            disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughDate),
+        ):
+            call_command("loaddata", str(self.SAMPLE_IMAGE_DB_FIXTURE))
 
         # Copy the files
         for pk in range(1, 5):

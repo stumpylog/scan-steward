@@ -21,9 +21,6 @@ def cleanup_files_on_delete(sender, instance: Image, using, **kwargs):
         instance.original_path.unlink()
 
 
-@receiver(models.signals.m2m_changed, sender=Image.tags.through)
-@receiver(models.signals.m2m_changed, sender=Image.people.through)
-@receiver(models.signals.m2m_changed, sender=Image.pets.through)
 @receiver(models.signals.post_save, sender=Image)
 def mark_image_as_dirty(sender, instance: Image, **kwargs):
     """

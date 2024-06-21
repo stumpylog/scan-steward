@@ -7,10 +7,10 @@ from typer import Option
 
 from scansteward.imageops.metadata import bulk_write_image_metadata
 from scansteward.imageops.models import ImageMetadata
+from scansteward.imageops.sync import fill_image_metadata_from_db
 from scansteward.management.commands.mixins import ImageHasherMixin
 from scansteward.management.commands.mixins import KeywordNameMixin
 from scansteward.models import Image as ImageModel
-from scansteward.syncoperations import fill_image_metadata_from_db
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,7 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
         paginator = Paginator(
             ImageModel.objects.filter(is_dirty=True)
             .filter(in_trash=False)
+            .order_by("pk")
             .prefetch_related("location", "date", "people", "pets", "tags")
             .all(),
             10,
