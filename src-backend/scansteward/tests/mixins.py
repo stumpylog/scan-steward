@@ -36,7 +36,7 @@ class TemporaryDirectoryMixin:
     Provides a helper which will generate new temporary directories as needed,
     which will all be removed when the class is torn down
 
-    Test functions can also use the temporary_directory fixture, but this is
+    Test functions can also use the tmp_path fixture, but this is
     not accessible in the setup/teardown methods or other utility type functions.
 
     It also does not work with Django's TestCase

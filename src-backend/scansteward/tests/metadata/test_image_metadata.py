@@ -37,8 +37,8 @@ class TestReadImageMetadata(SampleMetadataMixin, SampleDirMixin):
 
 
 class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
-    def test_change_single_image_metadata(self, temporary_directory: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
+    def test_change_single_image_metadata(self, tmp_path: Path):
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
 
         # Change something
         new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
@@ -51,9 +51,9 @@ class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
 
         self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
-    def test_bulk_write_faces(self, temporary_directory: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
-        new_sample_two = Path(shutil.copy(self.SAMPLE_TWO, temporary_directory / self.SAMPLE_TWO.name))
+    def test_bulk_write_faces(self, tmp_path: Path):
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
+        new_sample_two = Path(shutil.copy(self.SAMPLE_TWO, tmp_path / self.SAMPLE_TWO.name))
 
         old_one_metadata = self.sample_one_metadata(self.SAMPLE_ONE)
         old_two_metadata = self.sample_two_metadata(self.SAMPLE_TWO)
@@ -81,8 +81,8 @@ class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
         self.verify_expected_vs_actual_metadata(new_one_metadata, changed_metadata[0])
         self.verify_expected_vs_actual_metadata(new_two_metadata, changed_metadata[1])
 
-    def test_write_change_keywords(self, temporary_directory: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
+    def test_write_change_keywords(self, tmp_path: Path):
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
 
         new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
         new_metadata.SourceFile = new_sample_one
@@ -111,8 +111,8 @@ class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
 
         self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
 
-    def test_write_change_no_keywords(self, temporary_directory: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
+    def test_write_change_no_keywords(self, tmp_path: Path):
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
 
         new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
         new_metadata.SourceFile = new_sample_one
@@ -132,8 +132,8 @@ class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
 
 
 class TestUpdateImageMetadata(SampleMetadataMixin, SampleDirMixin):
-    def test_update_single_value(self, temporary_directory: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, temporary_directory / self.SAMPLE_ONE.name))
+    def test_update_single_value(self, tmp_path: Path):
+        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
 
         new_metadata = ImageMetadata(SourceFile=new_sample_one, Title="This is a new Title")
         other_metadata = self.sample_one_metadata(self.SAMPLE_ONE)
@@ -151,8 +151,8 @@ class TestUpdateImageMetadata(SampleMetadataMixin, SampleDirMixin):
 
 
 class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):
-    def test_clear_existing_metadata(self, temporary_directory: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_TWO, temporary_directory / self.SAMPLE_TWO.name))
+    def test_clear_existing_metadata(self, tmp_path: Path):
+        new_sample_one = Path(shutil.copy(self.SAMPLE_TWO, tmp_path / self.SAMPLE_TWO.name))
 
         # Everything should be cleared (except SourceFile, obviously)
         expected = ImageMetadata(SourceFile=new_sample_one)
@@ -177,6 +177,6 @@ class TestErrorCases:
         with pytest.raises(FileNotFoundError):
             bulk_read_image_metadata([Path("not-a-path")])
 
-    def test_is_a_dir(self, temporary_directory: Path):
+    def test_is_a_dir(self, tmp_path: Path):
         with pytest.raises(ImagePathNotFileError):
-            bulk_read_image_metadata([temporary_directory])
+            bulk_read_image_metadata([tmp_path])
