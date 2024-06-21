@@ -1,7 +1,5 @@
-import dataclasses
 import random
 import shutil
-from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -16,42 +14,9 @@ from scansteward.models import RoughLocation
 from scansteward.signals.handlers import mark_image_as_dirty
 from scansteward.signals.handlers import mark_images_as_dirty_on_fk_change
 from scansteward.signals.handlers import mark_images_as_dirty_on_m2m_change
-
-
-@contextmanager
-def disable_signal(sig, receiver, sender):
-    try:
-        sig.disconnect(receiver=receiver, sender=sender)
-        yield
-    finally:
-        sig.connect(receiver=receiver, sender=sender)
-
-
-@dataclasses.dataclass(slots=True)
-class DjangoDirectories:
-    base_dir: Path
-    data_dir: Path = dataclasses.field(init=False)
-    logs_dir: Path = dataclasses.field(init=False)
-    media_dir: Path = dataclasses.field(init=False)
-    thumbnail_dir: Path = dataclasses.field(init=False)
-    full_size_dir: Path = dataclasses.field(init=False)
-
-    def __post_init__(self) -> None:
-        self.data_dir = self.base_dir / "data"
-        self.logs_dir = self.data_dir / "logs"
-        self.media_dir = self.base_dir / "media"
-        self.thumbnail_dir = self.media_dir / "thumbnails"
-        self.full_size_dir = self.media_dir / "fullsize"
-
-        for x in [self.data_dir, self.logs_dir, self.media_dir, self.thumbnail_dir, self.full_size_dir]:
-            x.mkdir(parents=True, exist_ok=True)
-
-
-@dataclasses.dataclass(slots=True)
-class SampleFile:
-    original: Path
-    full_size: Path
-    thumbnail: Path
+from scansteward.tests.types import DjangoDirectories
+from scansteward.tests.types import SampleFile
+from scansteward.tests.utils import disable_signal
 
 
 @pytest.fixture(scope="session", autouse=True)

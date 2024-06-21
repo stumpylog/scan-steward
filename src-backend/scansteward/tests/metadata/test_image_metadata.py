@@ -19,51 +19,52 @@ from scansteward.tests.mixins import SampleDirMixin
 from scansteward.tests.mixins import SampleMetadataMixin
 
 
-class TestReadImageMetadata(SampleMetadataMixin, SampleDirMixin):
-    def test_read_single_image_metadata(self):
-        metadata = read_image_metadata(self.SAMPLE_ONE)
+class TestReadImageMetadata(SampleMetadataMixin):
+    def test_read_single_image_metadata(self, sample_one_original_file: Path, sample_one_metadata_copy: ImageMetadata):
+        metadata = read_image_metadata(sample_one_original_file)
 
-        self.verify_sample_one_metadata(self.SAMPLE_ONE, metadata)
+        sample_one_metadata_copy.SourceFile = sample_one_original_file
 
-    def test_bulk_read_image_metadata(self):
+        self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, metadata)
+
+    def test_bulk_read_image_metadata(
+        self,
+        sample_one_original_file: Path,
+        sample_two_original_file: Path,
+        sample_one_metadata_copy: ImageMetadata,
+        sample_two_metadata_copy: ImageMetadata,
+    ):
         metadata = bulk_read_image_metadata(
-            [self.SAMPLE_ONE, self.SAMPLE_TWO],
+            [sample_one_original_file, sample_two_original_file],
         )
+
+        sample_one_metadata_copy.SourceFile = sample_one_original_file
+        sample_two_metadata_copy.SourceFile = sample_two_original_file
 
         assert len(metadata) == 2
 
-        self.verify_sample_one_metadata(self.SAMPLE_ONE, metadata[0])
-        self.verify_sample_two_metadata(self.SAMPLE_TWO, metadata[1])
+        self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, metadata[0])
+        self.verify_expected_vs_actual_metadata(sample_two_metadata_copy, metadata[1])
 
 
-class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
-    def test_change_single_image_metadata(self, tmp_path: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
-
+class TestWriteImageMetadata(SampleMetadataMixin):
+    def test_change_single_image_metadata(self, sample_one_metadata_copy: ImageMetadata):
         # Change something
-        new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
-        new_metadata.SourceFile = new_sample_one
-        new_metadata.RegionInfo.RegionList[0].Name = "Billy Bob"
+        sample_one_metadata_copy.RegionInfo.RegionList[0].Name = "Billy Bob"
 
-        write_image_metadata(new_metadata)
+        write_image_metadata(sample_one_metadata_copy)
 
-        changed_metadata = read_image_metadata(new_sample_one)
+        changed_metadata = read_image_metadata(sample_one_metadata_copy.SourceFile)
 
-        self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+        self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, changed_metadata)
 
-    def test_bulk_write_faces(self, tmp_path: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
-        new_sample_two = Path(shutil.copy(self.SAMPLE_TWO, tmp_path / self.SAMPLE_TWO.name))
+    def test_bulk_write_faces(self, sample_one_metadata_copy: ImageMetadata, sample_two_metadata_copy: ImageMetadata):
+        # Change the name of the first face in sample one
+        sample_one_metadata_copy.RegionInfo.RegionList[0].Name = "Billy Bob"
 
-        old_one_metadata = self.sample_one_metadata(self.SAMPLE_ONE)
-        old_two_metadata = self.sample_two_metadata(self.SAMPLE_TWO)
-
-        new_one_metadata = old_one_metadata.model_copy(deep=True)
-        new_one_metadata.SourceFile = new_sample_one
-
-        new_two_metadata = old_two_metadata.model_copy(deep=True)
-        new_two_metadata.SourceFile = new_sample_two
-        new_two_metadata.RegionInfo.RegionList[0].Area = XmpAreaStruct(
+        # Change the name and location of the first face in sample two
+        sample_two_metadata_copy.RegionInfo.RegionList[0].Name = "Sally Sue"
+        sample_two_metadata_copy.RegionInfo.RegionList[0].Area = XmpAreaStruct(
             H=0.1,
             Unit="normalized",
             W=0.2,
@@ -72,28 +73,29 @@ class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
             D=None,
         )
 
-        bulk_write_image_metadata([new_one_metadata, new_two_metadata])
+        bulk_write_image_metadata([sample_one_metadata_copy, sample_two_metadata_copy])
 
-        changed_metadata = bulk_read_image_metadata([new_sample_one, new_sample_two])
+        changed_metadata = bulk_read_image_metadata(
+            [sample_one_metadata_copy.SourceFile, sample_two_metadata_copy.SourceFile],
+        )
 
         assert len(changed_metadata) == 2
 
-        self.verify_expected_vs_actual_metadata(new_one_metadata, changed_metadata[0])
-        self.verify_expected_vs_actual_metadata(new_two_metadata, changed_metadata[1])
+        self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, changed_metadata[0])
+        self.verify_expected_vs_actual_metadata(sample_two_metadata_copy, changed_metadata[1])
 
-    def test_write_change_keywords(self, tmp_path: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
-
-        new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
-        new_metadata.SourceFile = new_sample_one
+    def test_write_change_keywords(
+        self,
+        sample_one_metadata_copy: ImageMetadata,
+    ):
         # Clear all the old style tags
-        new_metadata.RegionInfo = None
-        new_metadata.HierarchicalSubject = None
-        new_metadata.CatalogSets = None
-        new_metadata.TagsList = None
-        new_metadata.LastKeywordXMP = None
+        sample_one_metadata_copy.RegionInfo = None
+        sample_one_metadata_copy.HierarchicalSubject = None
+        sample_one_metadata_copy.CatalogSets = None
+        sample_one_metadata_copy.TagsList = None
+        sample_one_metadata_copy.LastKeywordXMP = None
         # Construct a new tree
-        new_metadata.KeywordInfo = KeywordInfoModel(
+        sample_one_metadata_copy.KeywordInfo = KeywordInfoModel(
             Hierarchy=[
                 KeywordStruct(
                     Keyword="New Root Tag",
@@ -102,64 +104,51 @@ class TestWriteImageMetadata(SampleMetadataMixin, SampleDirMixin):
             ],
         )
 
-        write_image_metadata(new_metadata, clear_existing_metadata=True)
+        write_image_metadata(sample_one_metadata_copy, clear_existing_metadata=True)
 
-        changed_metadata = read_image_metadata(new_sample_one)
+        changed_metadata = read_image_metadata(sample_one_metadata_copy.SourceFile)
 
         # TODO: CatalogSets is returned empty for some reason
-        new_metadata.CatalogSets = None
+        sample_one_metadata_copy.CatalogSets = None
 
-        self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+        self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, changed_metadata)
 
-    def test_write_change_no_keywords(self, tmp_path: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
-
-        new_metadata = self.sample_one_metadata(self.SAMPLE_ONE).model_copy(deep=True)
-        new_metadata.SourceFile = new_sample_one
+    def test_write_change_no_keywords(
+        self,
+        sample_one_metadata_copy: ImageMetadata,
+    ):
         # Clear all the tags
-        new_metadata.RegionInfo = None
-        new_metadata.HierarchicalSubject = None
-        new_metadata.CatalogSets = None
-        new_metadata.TagsList = None
-        new_metadata.LastKeywordXMP = None
-        new_metadata.KeywordInfo = None
+        sample_one_metadata_copy.RegionInfo = None
+        sample_one_metadata_copy.HierarchicalSubject = None
+        sample_one_metadata_copy.CatalogSets = None
+        sample_one_metadata_copy.TagsList = None
+        sample_one_metadata_copy.LastKeywordXMP = None
+        sample_one_metadata_copy.KeywordInfo = None
 
-        write_image_metadata(new_metadata, clear_existing_metadata=True)
+        write_image_metadata(sample_one_metadata_copy, clear_existing_metadata=True)
 
-        changed_metadata = read_image_metadata(new_sample_one)
+        changed_metadata = read_image_metadata(sample_one_metadata_copy.SourceFile)
 
-        self.verify_expected_vs_actual_metadata(new_metadata, changed_metadata)
+        self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, changed_metadata)
 
+    def test_update_single_value(self, sample_one_metadata_copy: ImageMetadata):
+        sample_one_metadata_copy.Title = "This is a new Title"
 
-class TestUpdateImageMetadata(SampleMetadataMixin, SampleDirMixin):
-    def test_update_single_value(self, tmp_path: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_ONE, tmp_path / self.SAMPLE_ONE.name))
+        write_image_metadata(sample_one_metadata_copy)
 
-        new_metadata = ImageMetadata(SourceFile=new_sample_one, Title="This is a new Title")
-        other_metadata = self.sample_one_metadata(self.SAMPLE_ONE)
+        changed_metadata = read_image_metadata(sample_one_metadata_copy.SourceFile)
 
-        write_image_metadata(new_metadata)
-
-        changed_metadata = read_image_metadata(new_sample_one)
-
-        assert new_metadata.SourceFile == changed_metadata.SourceFile
-        # Only the title changed
-        assert new_metadata.Title == changed_metadata.Title
-        assert other_metadata.Description == changed_metadata.Description
-        assert other_metadata.City == changed_metadata.City
-        assert other_metadata.Country == changed_metadata.Country
+        self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, changed_metadata)
 
 
-class TestMetadataClear(SampleMetadataMixin, SampleDirMixin):
-    def test_clear_existing_metadata(self, tmp_path: Path):
-        new_sample_one = Path(shutil.copy(self.SAMPLE_TWO, tmp_path / self.SAMPLE_TWO.name))
-
+class TestMetadataClear(SampleMetadataMixin):
+    def test_clear_existing_metadata(self, sample_three_metadata_copy: ImageMetadata):
         # Everything should be cleared (except SourceFile, obviously)
-        expected = ImageMetadata(SourceFile=new_sample_one)
+        expected = ImageMetadata(SourceFile=sample_three_metadata_copy.SourceFile)
 
-        clear_existing_metadata(new_sample_one)
+        clear_existing_metadata(sample_three_metadata_copy.SourceFile)
 
-        changed_metadata = read_image_metadata(new_sample_one)
+        changed_metadata = read_image_metadata(sample_three_metadata_copy.SourceFile)
 
         self.verify_expected_vs_actual_metadata(expected, changed_metadata)
 

@@ -1,13 +1,11 @@
 from http import HTTPStatus
 
-from django.test import TestCase
-
-from scansteward.tests.mixins import DirectoriesMixin
+from django.test.client import Client
 
 
-class TestCustom404(DirectoriesMixin, TestCase):
-    def test_custom_404_handle(self):
-        resp = self.client.get("/api/thisisnthere/")
+class TestCustom404:
+    def test_custom_404_handle(self, client: Client):
+        resp = client.get("/api/thisisnthere/")
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 

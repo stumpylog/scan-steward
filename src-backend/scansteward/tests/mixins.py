@@ -147,17 +147,9 @@ class SampleDirMixin:
     ALL_SAMPLE_IMAGES: Final[Sequence[Path]] = [SAMPLE_ONE, SAMPLE_TWO, SAMPLE_THREE, SAMPLE_FOUR]
 
 
-class FixtureDirMixin:
-    FIXTURE_DIR = Path(__file__).parent / "fixtures"
-    SAMPLE_IMAGE_DB_FIXTURE = FIXTURE_DIR / "indexed_sample_database.json"
-
-
-class SampleMetadataMixin(FixtureDirMixin):
+class SampleMetadataMixin:
     """
-    Utilities for verifying sample image metadata and metadata in general against itself
-
-
-    The expected metadata is loaded once from a fixture file which was dumped via Pydantic
+    Utilities for verifying sample image metadata and metadata in general against another version
     """
 
     def assert_count_equal(self, expected: list[str | int] | None, actual: list[str | int] | None) -> None:
@@ -189,52 +181,8 @@ class SampleMetadataMixin(FixtureDirMixin):
         else:
             assert expected.KeywordInfo.model_dump() == actual.KeywordInfo.model_dump()
 
-    def sample_one_metadata(self, sample_one_jpeg: Path) -> ImageMetadata:
-        if not hasattr(self, "SAMPLE_ONE_METADATA"):
-            self.SAMPLE_ONE_METADATA = ImageMetadata.model_validate_json(
-                (self.FIXTURE_DIR / "sample1.jpg.json").read_text(),
-            )
-        cpy = self.SAMPLE_ONE_METADATA.model_copy(deep=True)
-        cpy.SourceFile = sample_one_jpeg
-        return cpy
 
-    def sample_two_metadata(self, sample_two_jpeg: Path) -> ImageMetadata:
-        if not hasattr(self, "SAMPLE_TWO_METADATA"):
-            self.SAMPLE_TWO_METADATA = ImageMetadata.model_validate_json(
-                (self.FIXTURE_DIR / "sample2.jpg.json").read_text(),
-            )
-        cpy = self.SAMPLE_TWO_METADATA.model_copy(deep=True)
-        cpy.SourceFile = sample_two_jpeg
-        return cpy
-
-    def sample_three_metadata(self, sample_three_jpeg: Path) -> ImageMetadata:
-        if not hasattr(self, "SAMPLE_THREE_METADATA"):
-            self.SAMPLE_THREE_METADATA = ImageMetadata.model_validate_json(
-                (self.FIXTURE_DIR / "sample3.jpg.json").read_text(),
-            )
-        cpy = self.SAMPLE_THREE_METADATA.model_copy(deep=True)
-        cpy.SourceFile = sample_three_jpeg
-        return cpy
-
-    def sample_four_metadata(self, sample_four_jpeg: Path) -> ImageMetadata:
-        if not hasattr(self, "SAMPLE_FOUR_METADATA"):
-            self.SAMPLE_FOUR_METADATA = ImageMetadata.model_validate_json(
-                (self.FIXTURE_DIR / "sample4.jpg.json").read_text(),
-            )
-        cpy = self.SAMPLE_FOUR_METADATA.model_copy(deep=True)
-        cpy.SourceFile = sample_four_jpeg
-        return cpy
-
-    def verify_sample_one_metadata(self, sample_one_jpeg: Path, actual: ImageMetadata) -> None:
-        expected = self.sample_one_metadata(sample_one_jpeg)
-        self.verify_expected_vs_actual_metadata(expected=expected, actual=actual)
-
-    def verify_sample_two_metadata(self, sample_two_jpeg: Path, actual: ImageMetadata) -> None:
-        expected = self.sample_two_metadata(sample_two_jpeg)
-        self.verify_expected_vs_actual_metadata(expected=expected, actual=actual)
-
-
-class IndexedEnvironmentMixin(SampleDirMixin, FixtureDirMixin, DirectoriesMixin):
+class IndexedEnvironmentMixin(SampleDirMixin, DirectoriesMixin):
     """
     Constructs the environment for an already indexed directory of all the sample files.
 
