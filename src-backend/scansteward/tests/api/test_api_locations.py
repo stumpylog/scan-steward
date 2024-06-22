@@ -6,21 +6,6 @@ from django.test.client import Client
 from scansteward.models import RoughLocation
 
 
-def util_create_location_object(
-    country: str,
-    subdivision: str | None = None,
-    city: str | None = None,
-    location: str | None = None,
-) -> int:
-    instance = RoughLocation.objects.create(
-        country_code=country,
-        subdivision_code=subdivision,
-        city=city,
-        sub_location=location,
-    )
-    return instance.pk
-
-
 @pytest.mark.django_db()
 class TestCreateLocation:
     def test_location_create_country_only(

@@ -1,11 +1,8 @@
-import random
 from typing import TYPE_CHECKING
 
 from django.http import HttpResponse
 from faker import Faker
 
-from scansteward.models import Image
-from scansteward.models import Person
 from scansteward.models import Pet
 from scansteward.models import RoughDate
 from scansteward.models import Tag
@@ -50,39 +47,6 @@ class GenerateTagsMixin(FakerMixin):
             self.children.append(Tag.objects.create(name=name, description=description, parent=parent))
 
 
-class GeneratePeopleMixin(FakerMixin):
-    def setUp(self) -> None:
-        self.people: list[Person] = []
-        return super().setUp()
-
-    def create_single_person_via_api(self, name: str, description: str | None = None) -> HttpResponse:
-        """
-        Creates a Person via the API
-        """
-        data = {"name": name}
-        if description is not None:
-            data.update({"description": description})
-        if TYPE_CHECKING:
-            assert hasattr(self, "client")
-            assert isinstance(self.client, Client)
-        return self.client.post(
-            "/api/person/",
-            content_type="application/json",
-            data=data,
-        )
-
-    def generate_people_objects(self, count: int, *, with_description: bool = False) -> None:
-        """
-        Directly generate Person objects into the database
-        """
-        Person.objects.all().delete()
-        for _ in range(count):
-            name = self.faker.unique.name()
-            description = self.faker.sentence if with_description else None
-            self.people.append(Person.objects.create(name=name, description=description))
-        assert Person.objects.count() == count
-
-
 class GeneratePetsMixin(FakerMixin):
     def setUp(self) -> None:
         self.pets: list[Pet] = []
@@ -114,38 +78,6 @@ class GeneratePetsMixin(FakerMixin):
             description = self.faker.sentence if with_description else None
             self.pets.append(Pet.objects.create(name=name, description=description))
         assert Pet.objects.count() == count
-
-
-class GenerateImagesMixin(FakerMixin):
-    def setUp(self) -> None:
-        self.images: list[Image] = []
-        return super().setUp()
-
-    def create_single_image_via_api(self) -> HttpResponse:
-        """
-        Creates an Image via the API
-        """
-        raise NotImplementedError
-
-    def generate_image_objects(self, count: int) -> None:
-        """
-        Directly generate Image objects into the database
-        """
-        Image.objects.all().delete()
-        for _ in range(count):
-            self.images.append(
-                Image.objects.create(
-                    file_size=random.randint(1, 1_000_000),  # noqa: S311
-                    original_checksum=self.faker.sha1()[:64],
-                    thumbnail_checksum=self.faker.sha1()[:64],
-                    full_size_checksum=self.faker.sha1()[:64],
-                    phash=self.faker.sha1()[:64],
-                    original=self.faker.file_path(category="image"),
-                    height=random.randint(100, 200),  # noqa: S311
-                    width=random.randint(100, 200),  # noqa: S311
-                ),
-            )
-        assert Image.objects.count() == count
 
 
 class GenerateRoughDateMixin(FakerMixin):
