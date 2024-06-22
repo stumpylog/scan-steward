@@ -2,7 +2,7 @@ import logging
 from typing import Annotated
 
 from django.core.paginator import Paginator
-from django_typer import TyperCommand
+from django_typer.management import TyperCommand
 from typer import Option
 
 from scansteward.imageops.metadata import bulk_write_image_metadata

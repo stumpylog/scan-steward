@@ -17,7 +17,8 @@ from scansteward.models import RoughDate
 from scansteward.models import RoughLocation
 from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import FileSystemAssertsMixin
-from scansteward.tests.mixins import SampleDirMixin
+
+# from scansteward.tests.mixins import SampleDirMixin
 
 
 def util_create_image_in_database(sample_dir: Path) -> tuple[Image, Person, Pet]:
@@ -55,7 +56,7 @@ def util_create_image_in_database(sample_dir: Path) -> tuple[Image, Person, Pet]
     return image, person, pet
 
 
-class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixin, TestCase):
+class TestImageFileReads(DirectoriesMixin, FileSystemAssertsMixin, TestCase):
     def util_index_one_file(self):
         tmp_dir = self.get_new_temporary_dir()
 
@@ -115,7 +116,7 @@ class TestImageFileReads(DirectoriesMixin, SampleDirMixin, FileSystemAssertsMixi
         self.assertFileContents(img.original_path, original_data)
 
 
-class TestImageReadApi(DirectoriesMixin, SampleDirMixin, TestCase):
+class TestImageReadApi(DirectoriesMixin, TestCase):
     def test_get_image_faces(self):
         """
         Test
@@ -177,7 +178,7 @@ class TestImageReadApi(DirectoriesMixin, SampleDirMixin, TestCase):
         } == data
 
 
-class TestImageUpdateApi(DirectoriesMixin, SampleDirMixin, TestCase):
+class TestImageUpdateApi(DirectoriesMixin, TestCase):
     def test_update_face_bounding_box(self):
         image, person, _ = util_create_image_in_database(self.SAMPLE_DIR)
 
@@ -241,7 +242,7 @@ class TestImageUpdateApi(DirectoriesMixin, SampleDirMixin, TestCase):
         assert resp.status_code == HTTPStatus.OK
 
 
-class TestImageCreateApi(DirectoriesMixin, SampleDirMixin, TestCase):
+class TestImageCreateApi(DirectoriesMixin, TestCase):
     def test_add_faces_to_image(self):
         pass
 
@@ -249,7 +250,7 @@ class TestImageCreateApi(DirectoriesMixin, SampleDirMixin, TestCase):
         pass
 
 
-class TestImageDeleteApi(DirectoriesMixin, SampleDirMixin, TestCase):
+class TestImageDeleteApi(DirectoriesMixin, TestCase):
     def test_delete_face_from_image(self):
         image, person, _ = util_create_image_in_database(self.SAMPLE_DIR)
 

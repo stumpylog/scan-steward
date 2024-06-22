@@ -3,9 +3,30 @@ from typing import Protocol
 from django.http import HttpResponse
 
 
-class PersonGeneratorProtocol(Protocol):
-    def __call__(self, *, with_description: bool = False) -> int:  # type: ignore[return]
+class _BaseNamedItemGeneratorProtocol(Protocol):
+    def __call__(self, *, with_description: bool = False) -> int:
         pass
+
+
+class PersonGeneratorProtocol(_BaseNamedItemGeneratorProtocol):
+    pass
+
+
+class PetGeneratorProtocol(_BaseNamedItemGeneratorProtocol):
+    pass
+
+
+class _BaseNamedApiGeneratorProtocol(Protocol):
+    def __call__(self, name: str | None = None, description: str | None = None) -> HttpResponse:
+        pass
+
+
+class AlbumApiGeneratorProtocol(_BaseNamedApiGeneratorProtocol):
+    pass
+
+
+class PetApiGeneratorProtocol(_BaseNamedApiGeneratorProtocol):
+    pass
 
 
 class LocationGeneratorProtocol(Protocol):
@@ -15,10 +36,10 @@ class LocationGeneratorProtocol(Protocol):
         subdivision: str | None = None,
         city: str | None = None,
         location: str | None = None,
-    ) -> int:  # type: ignore[return]
+    ) -> int:
         pass
 
 
-class AlbumApiGeneratorProtocol(Protocol):
-    def __call__(self, name: str | None = None, description: str | None = None) -> HttpResponse:  # type: ignore[return]
+class DateGeneratorProtocol(Protocol):
+    def __call__(self) -> int:
         pass

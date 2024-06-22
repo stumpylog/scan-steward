@@ -5,7 +5,7 @@ from typing import Final
 from typing import Optional
 
 from django.db import transaction
-from django_typer import TyperCommand
+from django_typer.management import TyperCommand
 from PIL import Image
 from typer import Argument
 from typer import Option

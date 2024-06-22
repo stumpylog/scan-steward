@@ -1,19 +1,18 @@
 from http import HTTPStatus
 
-from django.test import TestCase
+import pytest
+from django.test.client import Client
+from faker import Faker
 
 from scansteward.models import Pet
-from scansteward.tests.api.utils import GeneratePetsMixin
-from scansteward.tests.mixins import DirectoriesMixin
+from scansteward.tests.api.types import PetApiGeneratorProtocol
+from scansteward.tests.api.types import PetGeneratorProtocol
 
 
-class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
-    def setUp(self) -> None:
-        return super().setUp()
-
-    def test_get_pets_with_no_pets(self):
-        Pet.objects.all().delete()
-        resp = self.client.get(
+@pytest.mark.django_db()
+class TestApiPetsRead:
+    def test_get_pets_with_no_pets(self, client: Client):
+        resp = client.get(
             "/api/pet/",
         )
 
@@ -24,32 +23,29 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert data["count"] == 0
         assert len(data["items"]) == 0
 
-    def test_get_pet_does_not_exist(self):
-        resp = self.client.get(
+    def test_get_pet_does_not_exist(self, client: Client):
+        resp = client.get(
             "/api/pet/1/",
         )
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
-    def test_get_pet_does_exist(self):
-        self.generate_pet_objects(1)
-        resp = self.client.get(
-            "/api/pet/1/",
+    def test_get_pet_does_exist(self, client: Client, pet_db_factory: PetGeneratorProtocol):
+        pet = Pet.objects.get(pk=pet_db_factory())
+
+        resp = client.get(
+            f"/api/pet/{pet.pk}/",
         )
 
         assert resp.status_code == HTTPStatus.OK
-        instance: Pet = self.pets[0]
-        data = resp.json()
-        assert "id" in data
-        assert data["id"] == instance.pk
-        assert "name" in data
-        assert data["name"] == instance.name
+        assert {"id": pet.pk, "name": pet.name, "description": None} == resp.json()
 
-    def test_list_pets(self):
+    def test_list_pets(self, client: Client, pet_db_factory: PetGeneratorProtocol):
         count = 5
-        self.generate_pet_objects(count)
+        for _ in range(count):
+            pet_db_factory()
 
-        resp = self.client.get(
+        resp = client.get(
             "/api/pet/",
         )
 
@@ -60,13 +56,13 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert data["count"] == count
         assert len(data["items"]) == count
 
-    def test_list_pet_page(self):
+    def test_list_pet_page(self, client: Client, pet_db_factory: PetGeneratorProtocol):
         count = 5
-
-        self.generate_pet_objects(count)
+        for _ in range(count):
+            pet_db_factory()
 
         page = 1
-        resp = self.client.get(
+        resp = client.get(
             f"/api/pet/?page={page}",
         )
 
@@ -78,7 +74,7 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert len(data["items"]) == count
 
         page = 10
-        resp = self.client.get(
+        resp = client.get(
             f"/api/pet/?page={page}",
         )
 
@@ -90,10 +86,11 @@ class TestApiPetsRead(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert len(data["items"]) == 0
 
 
-class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
-    def test_create_pet(self):
-        pet_name = self.faker.name()
-        resp = self.create_single_pet_via_api(pet_name)
+@pytest.mark.django_db()
+class TestApiPetsCreate:
+    def test_create_pet(self, faker: Faker, pet_api_create_factory: PetApiGeneratorProtocol):
+        pet_name = faker.name()
+        resp = pet_api_create_factory(pet_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -103,10 +100,10 @@ class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert Pet.objects.filter(id=data["id"]).exists()
         assert Pet.objects.get(id=data["id"]).name == pet_name
 
-    def test_create_pet_with_description(self):
-        pet_name = self.faker.name()
-        description = self.faker.sentence()
-        resp = self.create_single_pet_via_api(pet_name, description)
+    def test_create_pet_with_description(self, faker: Faker, pet_api_create_factory: PetApiGeneratorProtocol):
+        pet_name = faker.name()
+        description = faker.sentence()
+        resp = pet_api_create_factory(pet_name, description)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -117,12 +114,12 @@ class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert Pet.objects.get(id=data["id"]).name == pet_name
         assert Pet.objects.get(id=data["id"]).description == description
 
-    def test_create_multiple_pet(self):
+    def test_create_multiple_pet(self, faker: Faker, pet_api_create_factory: PetApiGeneratorProtocol):
         count = 5
 
         for _ in range(count):
-            pet_name = self.faker.name()
-            resp = self.create_single_pet_via_api(pet_name)
+            pet_name = faker.name()
+            resp = pet_api_create_factory(pet_name)
 
             assert resp.status_code == HTTPStatus.CREATED
             data = resp.json()
@@ -134,26 +131,25 @@ class TestApiPetsCreate(GeneratePetsMixin, DirectoriesMixin, TestCase):
 
         assert Pet.objects.count() == count
 
-    def test_create_pet_existing_name(self):
-        pet_name = self.faker.name()
-        resp = self.create_single_pet_via_api(pet_name)
+    def test_create_pet_existing_name(self, faker: Faker, pet_api_create_factory: PetApiGeneratorProtocol):
+        pet_name = faker.name()
+        resp = pet_api_create_factory(pet_name)
 
         assert resp.status_code == HTTPStatus.CREATED
 
-        resp = self.create_single_pet_via_api(pet_name)
+        resp = pet_api_create_factory(pet_name)
         assert resp.status_code == HTTPStatus.CONFLICT
         assert Pet.objects.count() == 1
 
 
-class TestApiPetsUpdate(GeneratePetsMixin, DirectoriesMixin, TestCase):
-    def test_update_pet_name(self):
-        self.generate_pet_objects(1)
+@pytest.mark.django_db()
+class TestApiPetsUpdate:
+    def test_update_pet_name(self, client: Client, faker: Faker, pet_db_factory: PetGeneratorProtocol):
+        instance: Pet = Pet.objects.get(pk=pet_db_factory())
 
-        instance: Pet = self.pets[0]
+        new_name = faker.name()
 
-        new_name = self.faker.name()
-
-        resp = self.client.patch(
+        resp = client.patch(
             f"/api/pet/{instance.pk}/",
             content_type="application/json",
             data={"name": new_name},
@@ -167,14 +163,17 @@ class TestApiPetsUpdate(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert Pet.objects.filter(id=created_id).exists()
         assert Pet.objects.get(id=created_id).name == new_name
 
-    def test_update_pet_description(self):
-        self.generate_pet_objects(1)
+    def test_update_pet_description(
+        self,
+        faker: Faker,
+        client: Client,
+        pet_db_factory: PetGeneratorProtocol,
+    ):
+        instance: Pet = Pet.objects.get(pk=pet_db_factory())
 
-        instance: Pet = self.pets[0]
+        new_desc = faker.sentence()
 
-        new_desc = self.faker.sentence()
-
-        resp = self.client.patch(
+        resp = client.patch(
             f"/api/pet/{instance.pk}/",
             content_type="application/json",
             data={"description": new_desc},
@@ -186,12 +185,11 @@ class TestApiPetsUpdate(GeneratePetsMixin, DirectoriesMixin, TestCase):
         assert data["description"] == new_desc
 
 
-class TestApiPetsDelete(GeneratePetsMixin, DirectoriesMixin, TestCase):
-    def test_delete_pet(self):
-        self.generate_pet_objects(1)
+@pytest.mark.django_db()
+class TestApiPetsDelete:
+    def test_delete_pet(self, client: Client, pet_db_factory: PetGeneratorProtocol):
+        instance: Pet = Pet.objects.get(pk=pet_db_factory())
 
-        instance: Pet = self.pets[0]
-
-        resp = self.client.delete(f"/api/pet/{instance.pk}/")
+        resp = client.delete(f"/api/pet/{instance.pk}/")
 
         assert resp.status_code == HTTPStatus.NO_CONTENT

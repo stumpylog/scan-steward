@@ -5,6 +5,7 @@ import pytest
 from django.test.client import Client
 
 from scansteward.models import RoughDate
+from scansteward.tests.api.types import DateGeneratorProtocol
 
 
 @pytest.mark.django_db()
@@ -87,20 +88,7 @@ class TestApiRoughDateCreate:
 
 @pytest.mark.django_db()
 class TestApiRoughDateRead:
-    def generate_rough_dates(self, count: int) -> None:
-        for _ in range(count):
-            date = self.faker.date_this_century()
-            month_valid = self.faker.pybool()
-            day_valid = self.faker.pybool() if month_valid else False
-            self.dates.append(
-                RoughDate.objects.create(date=date, month_valid=month_valid, day_valid=day_valid),
-            )
-
-    def setUp(self) -> None:
-        self.dates = []
-        return super().setUp()
-
-    def test_read_no_dates(self, client: Client, today: datetime.date):
+    def test_read_no_dates(self, client: Client):
         resp = client.get(
             "/api/date/",
             content_type="application/json",
@@ -111,8 +99,10 @@ class TestApiRoughDateRead:
         assert resp.json()["count"] == 0
         assert len(resp.json()["items"]) == 0
 
-    def test_read_dates(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(2)
+    def test_read_dates(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        count = 2
+        for _ in range(count):
+            date_db_factory()
 
         resp = client.get(
             "/api/date/",
@@ -123,9 +113,9 @@ class TestApiRoughDateRead:
 
         data = resp.json()
 
-        assert data["count"] == 2
-        assert len(data["items"]) == 2
-        for date in self.dates:
+        assert data["count"] == count
+        assert len(data["items"]) == count
+        for date in RoughDate.objects.order_by("pk").all():
             assert {
                 "id": date.pk,
                 "date": date.date.isoformat(),
@@ -133,10 +123,8 @@ class TestApiRoughDateRead:
                 "day_valid": date.day_valid,
             } in data["items"]
 
-    def test_read_single_date(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
-
-        date = self.dates[0]
+    def test_read_single_date(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
         resp = client.get(
             f"/api/date/{date.pk}/",
@@ -157,10 +145,8 @@ class TestApiRoughDateRead:
 
 @pytest.mark.django_db()
 class TestApiRoughDateUpdate:
-    def test_update_rough_date_date(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
-
-        date = self.dates[0]
+    def test_update_rough_date_date(self, client: Client, date_db_factory: DateGeneratorProtocol, today: datetime.date):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
         new_date = today + datetime.timedelta(days=1)
         resp = client.patch(
@@ -175,10 +161,9 @@ class TestApiRoughDateUpdate:
 
         assert date.date == new_date
 
-    def test_update_rough_date_month_valid(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
+    def test_update_rough_date_month_valid(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
-        date = self.dates[0]
         date.month_valid = False
         date.day_valid = False
         date.save()
@@ -195,10 +180,9 @@ class TestApiRoughDateUpdate:
 
         assert date.month_valid
 
-    def test_update_rough_date_day_valid(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
+    def test_update_rough_date_day_valid(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
-        date = self.dates[0]
         date.month_valid = True
         date.day_valid = False
         date.save()
@@ -215,10 +199,9 @@ class TestApiRoughDateUpdate:
 
         assert date.day_valid
 
-    def test_update_rough_date_invalid_combo(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
+    def test_update_rough_date_invalid_combo(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
-        date = self.dates[0]
         date.month_valid = False
         date.day_valid = False
         date.save()
@@ -235,10 +218,9 @@ class TestApiRoughDateUpdate:
 
         assert not date.day_valid
 
-    def test_update_rough_date_empty_data(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
+    def test_update_rough_date_empty_data(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
-        date = self.dates[0]
         date.month_valid = False
         date.day_valid = False
         date.save()
@@ -254,20 +236,16 @@ class TestApiRoughDateUpdate:
 
 @pytest.mark.django_db()
 class TestApiRoughDateDelete:
-    def test_delete_rough_date(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
-
-        date = self.dates[0]
+    def test_delete_rough_date(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
         resp = client.delete(f"/api/date/{date.pk}/")
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
         assert RoughDate.objects.count() == 0
 
-    def test_delete_rough_date_not_found(self, client: Client, today: datetime.date):
-        self.generate_rough_dates(1)
-
-        date = self.dates[0]
+    def test_delete_rough_date_not_found(self, client: Client, date_db_factory: DateGeneratorProtocol):
+        date = RoughDate.objects.get(pk=date_db_factory())
 
         resp = client.delete(f"/api/date/{date.pk + 2}/")
 

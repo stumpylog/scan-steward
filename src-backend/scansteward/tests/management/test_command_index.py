@@ -1,8 +1,8 @@
 import shutil
+from pathlib import Path
 
 import pytest
 from django.core.management import call_command
-from django.test import TestCase
 
 from scansteward.imageops.metadata import read_image_metadata
 from scansteward.imageops.metadata import write_image_metadata
@@ -11,27 +11,22 @@ from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
 from scansteward.models import Tag
-from scansteward.tests.mixins import DirectoriesMixin
-from scansteward.tests.mixins import SampleDirMixin
 
 
-class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
-    def test_call_command_no_files(self):
-        call_command("index", str(self.get_new_temporary_dir()))
+@pytest.mark.django_db()
+class TestIndexCommand:
+    def test_call_command_no_files(self, tmp_path: Path):
+        call_command("index", str(tmp_path))
 
-    def test_call_command_single_file(self):
-        tmp_dir = self.get_new_temporary_dir()
-
-        result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
-
-        call_command("index", str(tmp_dir))
+    def test_call_command_single_file(self, sample_one_original_copy: Path):
+        call_command("index", str(sample_one_original_copy.parent))
 
         assert Image.objects.count() == 1
         img = Image.objects.first()
         assert img is not None
 
         # Check the paths were read correctly
-        assert img.original == str(result)
+        assert img.original == str(sample_one_original_copy)
 
         assert img.original_path.exists()
         assert img.original_path.is_file()
@@ -74,24 +69,20 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         assert img.tags.filter(name="Bo").exists()
         assert img.tags.filter(name="Bo").first().parent == Tag.objects.filter(name="Dogs").first()
 
-    def test_index_command_file_moved(self):
-        tmp_dir = self.get_new_temporary_dir()
-
-        result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
-
-        call_command("index", str(tmp_dir))
+    def test_index_command_file_moved(self, sample_one_original_copy: Path, tmp_path_factory: pytest.TempPathFactory):
+        call_command("index", str(sample_one_original_copy.parent))
 
         assert Image.objects.count() == 1
         img = Image.objects.first()
         assert img is not None
 
-        assert img.original == str(result)
+        assert img.original == str(sample_one_original_copy)
 
-        new_tmp_dir = self.get_new_temporary_dir()
+        new_tmp_path = tmp_path_factory.mktemp("new")
 
-        new_result = shutil.copy(self.SAMPLE_ONE, new_tmp_dir / self.SAMPLE_ONE.name)
+        new_result = shutil.copy(sample_one_original_copy, new_tmp_path / sample_one_original_copy.name)
 
-        call_command("index", str(new_tmp_dir))
+        call_command("index", str(new_tmp_path))
 
         assert Image.objects.count() == 1
         img = Image.objects.first()
@@ -99,16 +90,13 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
 
         assert img.original == str(new_result)
 
-    def test_index_command_multiple_files(self):
-        tmp_dir = self.get_new_temporary_dir()
+    def test_index_command_multiple_files(self, all_samples_copy: tuple[Path, list[Path]]):
+        base_dir, sample_images = all_samples_copy
 
-        for file in self.ALL_SAMPLE_IMAGES:
-            shutil.copy(file, tmp_dir / file.name)
-
-        call_command("index", str(tmp_dir))
+        call_command("index", str(base_dir))
 
         # 4 images expected
-        assert Image.objects.count() == len(self.ALL_SAMPLE_IMAGES)
+        assert Image.objects.count() == len(sample_images)
         # No duplicated people
         assert Person.objects.count() == 4
         assert Person.objects.filter(name="Barack Obama").exists()
@@ -120,18 +108,14 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         # Only in 1 image
         assert Person.objects.filter(name="Hillary Clinton").first().images.count() == 1
 
-    def test_index_command_with_region_description(self):
-        tmp_dir = self.get_new_temporary_dir()
-
-        result = shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
-
-        metadata = read_image_metadata(result)
+    def test_index_command_with_region_description(self, sample_one_original_copy: Path):
+        metadata = read_image_metadata(sample_one_original_copy)
 
         metadata.RegionInfo.RegionList[0].Description = "This is a description of a region"
 
         write_image_metadata(metadata)
 
-        call_command("index", str(tmp_dir))
+        call_command("index", str(sample_one_original_copy.parent))
 
         assert Image.objects.count() == 1
         img = Image.objects.first()
@@ -145,12 +129,8 @@ class TestIndexCommand(DirectoriesMixin, SampleDirMixin, TestCase):
         assert person.name == "Barack Obama"
         assert person.description == "This is a description of a region"
 
-    def test_index_command_with_pets(self):
-        tmp_dir = self.get_new_temporary_dir()
-
-        shutil.copy(self.SAMPLE_ONE, tmp_dir / self.SAMPLE_ONE.name)
-
-        call_command("index", str(tmp_dir))
+    def test_index_command_with_pets(self, sample_one_original_copy: Path):
+        call_command("index", str(sample_one_original_copy.parent))
 
         assert Pet.objects.count() == 1
         instance = Pet.objects.filter(name="Bo").first()

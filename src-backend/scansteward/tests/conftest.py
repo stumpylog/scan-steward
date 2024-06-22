@@ -88,6 +88,11 @@ def sample_one_info(
     return SampleFile(sample_one_original_file, sample_one_full_size_file, sample_one_thumbnail_file)
 
 
+@pytest.fixture()
+def sample_one_original_copy(tmp_path: Path, sample_one_original_file: Path) -> Path:
+    return Path(shutil.copy(sample_one_original_file, tmp_path))
+
+
 @pytest.fixture(scope="session")
 def sample_two_original_file(image_originals_directory: Path) -> Path:
     return image_originals_directory / "sample2.jpg"
@@ -110,6 +115,11 @@ def sample_two_info(
     sample_two_thumbnail_file: Path,
 ) -> SampleFile:
     return SampleFile(sample_two_original_file, sample_two_full_size_file, sample_two_thumbnail_file)
+
+
+@pytest.fixture()
+def sample_two_original_copy(tmp_path: Path, sample_two_original_file: Path) -> Path:
+    return Path(shutil.copy(sample_two_original_file, tmp_path))
 
 
 @pytest.fixture(scope="session")
@@ -136,6 +146,11 @@ def sample_three_info(
     return SampleFile(sample_three_original_file, sample_three_full_size_file, sample_three_thumbnail_file)
 
 
+@pytest.fixture()
+def sample_three_original_copy(tmp_path: Path, sample_three_original_file: Path) -> Path:
+    return Path(shutil.copy(sample_three_original_file, tmp_path))
+
+
 @pytest.fixture(scope="session")
 def sample_four_original_file(image_originals_directory: Path) -> Path:
     return image_originals_directory / "sample4.jpg"
@@ -158,6 +173,27 @@ def sample_four_info(
     sample_four_thumbnail_file: Path,
 ) -> SampleFile:
     return SampleFile(sample_four_original_file, sample_four_full_size_file, sample_four_thumbnail_file)
+
+
+@pytest.fixture()
+def sample_four_original_copy(tmp_path: Path, sample_four_original_file: Path) -> Path:
+    return Path(shutil.copy(sample_four_original_file, tmp_path))
+
+
+@pytest.fixture()
+def all_samples_copy(
+    tmp_path: Path,
+    sample_one_original_file: Path,
+    sample_two_original_file: Path,
+    sample_three_original_file: Path,
+    sample_four_original_file: Path,
+) -> tuple[Path, list[Path]]:
+    return tmp_path, [
+        shutil.copy(sample_one_original_file, tmp_path),
+        shutil.copy(sample_two_original_file, tmp_path),
+        shutil.copy(sample_three_original_file, tmp_path),
+        shutil.copy(sample_four_original_file, tmp_path),
+    ]
 
 
 @pytest.fixture()

@@ -1,25 +1,12 @@
 import collections
-import shutil
 import tempfile
-from collections.abc import Sequence
 from contextlib import ExitStack
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Final
 
-from django.core.management import call_command
-from django.db import models
 from django.test import override_settings
 
 from scansteward.imageops.models import ImageMetadata
-from scansteward.models import Image
-from scansteward.models import Person
-from scansteward.models import Pet
-from scansteward.models import RoughDate
-from scansteward.models import RoughLocation
-from scansteward.signals.handlers import mark_image_as_dirty
-from scansteward.signals.handlers import mark_images_as_dirty_on_fk_change
-from scansteward.signals.handlers import mark_images_as_dirty_on_m2m_change
 
 
 @contextmanager
@@ -130,23 +117,6 @@ class FileSystemAssertsMixin:
         assert actual_content == content
 
 
-class SampleDirMixin:
-    SAMPLE_DIR: Final = Path(__file__).parent / "samples"
-
-    IMAGE_SAMPLE_DIR: Final = SAMPLE_DIR / "images"
-
-    SAMPLE_ORIGINALS_IMAGE_DIR: Final = IMAGE_SAMPLE_DIR / "originals"
-    SAMPLE_THUMBNAIL_IMAGE_DIR: Final = IMAGE_SAMPLE_DIR / "thumbnails"
-    SAMPLE_FULLSIZE_IMAGE_DIR: Final = IMAGE_SAMPLE_DIR / "fullsize"
-
-    SAMPLE_ONE: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample1.jpg"
-    SAMPLE_TWO: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample2.jpg"
-    SAMPLE_THREE: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample3.jpg"
-    SAMPLE_FOUR: Final = SAMPLE_ORIGINALS_IMAGE_DIR / "sample4.jpg"
-
-    ALL_SAMPLE_IMAGES: Final[Sequence[Path]] = [SAMPLE_ONE, SAMPLE_TWO, SAMPLE_THREE, SAMPLE_FOUR]
-
-
 class MetadataVerifyMixin:
     """
     Utilities for verifying sample image metadata and metadata in general against another version
@@ -180,55 +150,3 @@ class MetadataVerifyMixin:
             assert expected.KeywordInfo == actual.KeywordInfo
         else:
             assert expected.KeywordInfo.model_dump() == actual.KeywordInfo.model_dump()
-
-
-class IndexedEnvironmentMixin(SampleDirMixin, DirectoriesMixin):
-    """
-    Constructs the environment for an already indexed directory of all the sample files.
-
-    This does the following:
-      - Load a pre-constructed JSON fixture to the database
-      - Copy sample original file to correct (overridden) directory
-      - Copy sample fullsize file to correct (overridden) directory
-      - Copy sample thumbnail file to correct (overridden) directory
-
-    For speed, this does not actually call index, but rather just constructs the environment with fixed,
-    known values.
-    """
-
-    SAMPLE_ONE_PK: Final[int] = 1
-
-    def setUp(self) -> None:
-        # Create directories and override settings
-        super().setUp()
-
-        # Load the database
-        with (
-            disable_signal(models.signals.post_save, mark_image_as_dirty, Image),
-            disable_signal(models.signals.post_save, mark_images_as_dirty_on_m2m_change, Pet),
-            disable_signal(models.signals.post_save, mark_images_as_dirty_on_m2m_change, Person),
-            disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughLocation),
-            disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughDate),
-        ):
-            call_command("loaddata", str(self.SAMPLE_IMAGE_DB_FIXTURE))
-
-        # Copy the files
-        for pk in range(1, 5):
-            img = Image.objects.get(pk=pk)
-
-            # The original needs to be updated
-            img.original_path = shutil.copy(
-                self.SAMPLE_ORIGINALS_IMAGE_DIR / img.original_path.name,
-                self.BASE_DIR / img.original_path.name,
-            )
-            img.save()
-            img.mark_as_clean()
-
-            shutil.copy(
-                self.SAMPLE_FULLSIZE_IMAGE_DIR / img.full_size_path.name,
-                img.full_size_path,
-            )
-            shutil.copy(
-                self.SAMPLE_THUMBNAIL_IMAGE_DIR / img.thumbnail_path.name,
-                img.thumbnail_path,
-            )
