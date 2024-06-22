@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 
 import pytest
@@ -15,11 +14,10 @@ from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
 from scansteward.imageops.models import KeywordStruct
 from scansteward.imageops.models import XmpAreaStruct
-from scansteward.tests.mixins import SampleDirMixin
-from scansteward.tests.mixins import SampleMetadataMixin
+from scansteward.tests.mixins import MetadataVerifyMixin
 
 
-class TestReadImageMetadata(SampleMetadataMixin):
+class TestReadImageMetadata(MetadataVerifyMixin):
     def test_read_single_image_metadata(self, sample_one_original_file: Path, sample_one_metadata_copy: ImageMetadata):
         metadata = read_image_metadata(sample_one_original_file)
 
@@ -47,7 +45,7 @@ class TestReadImageMetadata(SampleMetadataMixin):
         self.verify_expected_vs_actual_metadata(sample_two_metadata_copy, metadata[1])
 
 
-class TestWriteImageMetadata(SampleMetadataMixin):
+class TestWriteImageMetadata(MetadataVerifyMixin):
     def test_change_single_image_metadata(self, sample_one_metadata_copy: ImageMetadata):
         # Change something
         sample_one_metadata_copy.RegionInfo.RegionList[0].Name = "Billy Bob"
@@ -141,7 +139,7 @@ class TestWriteImageMetadata(SampleMetadataMixin):
         self.verify_expected_vs_actual_metadata(sample_one_metadata_copy, changed_metadata)
 
 
-class TestMetadataClear(SampleMetadataMixin):
+class TestMetadataClear(MetadataVerifyMixin):
     def test_clear_existing_metadata(self, sample_three_metadata_copy: ImageMetadata):
         # Everything should be cleared (except SourceFile, obviously)
         expected = ImageMetadata(SourceFile=sample_three_metadata_copy.SourceFile)

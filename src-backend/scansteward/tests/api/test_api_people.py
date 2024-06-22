@@ -1,28 +1,11 @@
 from http import HTTPStatus
 
 import pytest
-from django.db import transaction
-from django.test import TestCase
 from django.test.client import Client
 from faker import Faker
 
 from scansteward.models import Person
-from scansteward.tests.api.utils import GeneratePeopleMixin
-from scansteward.tests.mixins import DirectoriesMixin
-
-
-def generate_people_objects(faker: Faker, count: int, *, with_description: bool = False) -> None:
-    """
-    Directly generate Person objects into the database
-    """
-    with transaction.atomic():
-        Person.objects.all().delete()
-        for _ in range(count):
-            name = faker.unique.name()
-            description = faker.sentence if with_description else None
-            Person.objects.create(name=name, description=description)
-
-        assert Person.objects.count() == count
+from scansteward.tests.api.conftest import PersonGeneratorProtocol
 
 
 @pytest.mark.django_db()
@@ -47,8 +30,8 @@ class TestApiPeopleRead:
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
-    def test_get_person_does_exist(self, client: Client, faker: Faker):
-        generate_people_objects(faker, 1)
+    def test_get_person_does_exist(self, client: Client, person_db_factory: PersonGeneratorProtocol):
+        person_db_factory(1)
         resp = client.get(
             "/api/person/1/",
         )
@@ -61,9 +44,9 @@ class TestApiPeopleRead:
         assert "name" in data
         assert data["name"] == instance.name
 
-    def test_list_people(self, client: Client, faker: Faker):
+    def test_list_people(self, client: Client, person_db_factory: PersonGeneratorProtocol):
         count = 5
-        generate_people_objects(faker, count)
+        person_db_factory(count)
 
         resp = client.get(
             "/api/person/",
@@ -76,10 +59,10 @@ class TestApiPeopleRead:
         assert data["count"] == count
         assert len(data["items"]) == count
 
-    def test_list_people_limit_offset(self, client: Client, faker: Faker):
+    def test_list_people_limit_offset(self, client: Client, person_db_factory: PersonGeneratorProtocol):
         count = 5
 
-        generate_people_objects(faker, count)
+        person_db_factory(count)
 
         page = 1
         resp = client.get(
@@ -106,10 +89,16 @@ class TestApiPeopleRead:
         assert len(data["items"]) == 0
 
 
-class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
+@pytest.mark.django_db()
+class TestApiPeopleCreate:
     def test_create_person(self, client: Client, faker: Faker):
-        person_name = self.faker.name()
-        resp = self.create_single_person_via_api(person_name)
+        person_name = faker.name()
+
+        resp = client.post(
+            "/api/person/",
+            content_type="application/json",
+            data={"name": person_name},
+        )
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -119,10 +108,15 @@ class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
         assert Person.objects.filter(id=data["id"]).exists()
         assert Person.objects.get(id=data["id"]).name == person_name
 
-    def test_create_person_with_description(self, client: Client):
-        person_name = self.faker.name()
-        description = self.faker.sentence()
-        resp = self.create_single_person_via_api(person_name, description)
+    def test_create_person_with_description(self, client: Client, faker: Faker):
+        person_name = faker.name()
+        description = faker.sentence()
+
+        resp = client.post(
+            "/api/person/",
+            content_type="application/json",
+            data={"name": person_name, "description": description},
+        )
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -133,12 +127,16 @@ class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
         assert Person.objects.get(id=data["id"]).name == person_name
         assert Person.objects.get(id=data["id"]).description == description
 
-    def test_create_multiple_person(self, client: Client):
+    def test_create_multiple_person(self, client: Client, faker: Faker):
         count = 5
 
         for _ in range(count):
-            person_name = self.faker.name()
-            resp = self.create_single_person_via_api(person_name)
+            person_name = faker.name()
+            resp = client.post(
+                "/api/person/",
+                content_type="application/json",
+                data={"name": person_name},
+            )
 
             assert resp.status_code == HTTPStatus.CREATED
             data = resp.json()
@@ -150,24 +148,34 @@ class TestApiPeopleCreate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
 
         assert Person.objects.count() == count
 
-    def test_create_person_existing_name(self, client: Client):
-        person_name = self.faker.name()
-        resp = self.create_single_person_via_api(person_name)
+    def test_create_person_existing_name(self, client: Client, faker: Faker):
+        person_name = faker.name()
+        resp = client.post(
+            "/api/person/",
+            content_type="application/json",
+            data={"name": person_name},
+        )
 
         assert resp.status_code == HTTPStatus.CREATED
 
-        resp = self.create_single_person_via_api(person_name)
+        resp = client.post(
+            "/api/person/",
+            content_type="application/json",
+            data={"name": person_name},
+        )
         assert resp.status_code == HTTPStatus.CONFLICT
         assert Person.objects.count() == 1
 
 
-class TestApiPeopleUpdate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
-    def test_update_person_name(self, client: Client):
-        generate_people_objects(1)
+@pytest.mark.django_db()
+class TestApiPeopleUpdate:
+    def test_update_person_name(self, client: Client, faker: Faker, person_db_factory: PersonGeneratorProtocol):
+        person_db_factory(1)
 
-        instance: Person = self.people[0]
+        instance = Person.objects.get(pk=1)
+        assert isinstance is not None
 
-        new_name = self.faker.name()
+        new_name = faker.name()
 
         resp = client.patch(
             f"/api/person/{instance.pk}/",
@@ -183,12 +191,13 @@ class TestApiPeopleUpdate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
         assert Person.objects.filter(id=created_id).exists()
         assert Person.objects.get(id=created_id).name == new_name
 
-    def test_update_person_description(self, client: Client):
-        generate_people_objects(1)
+    def test_update_person_description(self, client: Client, faker: Faker, person_db_factory: PersonGeneratorProtocol):
+        person_db_factory(1)
 
-        instance: Person = self.people[0]
+        instance = Person.objects.get(pk=1)
+        assert isinstance is not None
 
-        new_desc = self.faker.sentence()
+        new_desc = faker.sentence()
 
         resp = client.patch(
             f"/api/person/{instance.pk}/",
@@ -202,11 +211,13 @@ class TestApiPeopleUpdate(GeneratePeopleMixin, DirectoriesMixin, TestCase):
         assert data["description"] == new_desc
 
 
-class TestApiPeopleDelete(GeneratePeopleMixin, DirectoriesMixin, TestCase):
-    def test_delete_person(self, client: Client):
-        generate_people_objects(1)
+@pytest.mark.django_db()
+class TestApiPeopleDelete:
+    def test_delete_person(self, client: Client, person_db_factory: PersonGeneratorProtocol):
+        person_db_factory(1)
 
-        instance: Person = self.people[0]
+        instance = Person.objects.get(pk=1)
+        assert isinstance is not None
 
         resp = client.delete(f"/api/person/{instance.pk}/")
 

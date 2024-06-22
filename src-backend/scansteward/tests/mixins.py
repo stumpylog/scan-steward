@@ -147,7 +147,7 @@ class SampleDirMixin:
     ALL_SAMPLE_IMAGES: Final[Sequence[Path]] = [SAMPLE_ONE, SAMPLE_TWO, SAMPLE_THREE, SAMPLE_FOUR]
 
 
-class SampleMetadataMixin:
+class MetadataVerifyMixin:
     """
     Utilities for verifying sample image metadata and metadata in general against another version
     """
