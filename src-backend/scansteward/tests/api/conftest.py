@@ -1,27 +1,32 @@
 import datetime
-from typing import Protocol
 
 import pytest
+from django.http import HttpResponse
+from django.test.client import Client
 from faker import Faker
 
 from scansteward.models import Person
 from scansteward.models import RoughLocation
+from scansteward.tests.api.types import AlbumApiGeneratorProtocol
+from scansteward.tests.api.types import LocationGeneratorProtocol
+from scansteward.tests.api.types import PersonGeneratorProtocol
 
 
-class PersonGeneratorProtocol(Protocol):
-    def __call__(self, *, with_description: bool = False) -> int:  # type: ignore[return]
-        pass
+@pytest.fixture()
+def album_api_create_factory(client: Client, faker: Faker) -> AlbumApiGeneratorProtocol:
+    def create_single_album(name: str | None = None, description: str | None = None) -> HttpResponse:
+        if name is None:
+            name = faker.unique.name()
+        data = {"name": name}
+        if description is not None:
+            data.update({"description": description})
+        return client.post(
+            "/api/album/",
+            content_type="application/json",
+            data=data,
+        )
 
-
-class LocationGeneratorProtocol(Protocol):
-    def __call__(
-        self,
-        country: str,
-        subdivision: str | None = None,
-        city: str | None = None,
-        location: str | None = None,
-    ) -> int:  # type: ignore[return]
-        pass
+    return create_single_album
 
 
 @pytest.fixture()
@@ -48,7 +53,7 @@ def location_db_factory(faker: Faker) -> LocationGeneratorProtocol:
     Fixture to return a factory function which generates locations directly in the database
     """
 
-    def util_create_location_object(
+    def create_single_location_object(
         country: str,
         subdivision: str | None = None,
         city: str | None = None,
@@ -62,7 +67,7 @@ def location_db_factory(faker: Faker) -> LocationGeneratorProtocol:
         )
         return instance.pk
 
-    return util_create_location_object
+    return create_single_location_object
 
 
 @pytest.fixture(scope="session")

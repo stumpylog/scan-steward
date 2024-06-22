@@ -5,7 +5,7 @@ from django.test.client import Client
 from faker import Faker
 
 from scansteward.models import Person
-from scansteward.tests.api.conftest import PersonGeneratorProtocol
+from scansteward.tests.api.types import PersonGeneratorProtocol
 
 
 @pytest.mark.django_db()
@@ -31,7 +31,7 @@ class TestApiPeopleRead:
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
     def test_get_person_does_exist(self, client: Client, person_db_factory: PersonGeneratorProtocol):
-        person_db_factory(1)
+        person_db_factory()
         resp = client.get(
             "/api/person/1/",
         )
@@ -46,7 +46,8 @@ class TestApiPeopleRead:
 
     def test_list_people(self, client: Client, person_db_factory: PersonGeneratorProtocol):
         count = 5
-        person_db_factory(count)
+        for _ in range(count):
+            person_db_factory()
 
         resp = client.get(
             "/api/person/",
@@ -61,8 +62,8 @@ class TestApiPeopleRead:
 
     def test_list_people_limit_offset(self, client: Client, person_db_factory: PersonGeneratorProtocol):
         count = 5
-
-        person_db_factory(count)
+        for _ in range(count):
+            person_db_factory()
 
         page = 1
         resp = client.get(
@@ -170,10 +171,10 @@ class TestApiPeopleCreate:
 @pytest.mark.django_db()
 class TestApiPeopleUpdate:
     def test_update_person_name(self, client: Client, faker: Faker, person_db_factory: PersonGeneratorProtocol):
-        person_db_factory(1)
+        person_db_factory()
 
         instance = Person.objects.get(pk=1)
-        assert isinstance is not None
+        assert instance is not None
 
         new_name = faker.name()
 
@@ -192,10 +193,10 @@ class TestApiPeopleUpdate:
         assert Person.objects.get(id=created_id).name == new_name
 
     def test_update_person_description(self, client: Client, faker: Faker, person_db_factory: PersonGeneratorProtocol):
-        person_db_factory(1)
+        person_db_factory()
 
         instance = Person.objects.get(pk=1)
-        assert isinstance is not None
+        assert instance is not None
 
         new_desc = faker.sentence()
 
@@ -214,10 +215,10 @@ class TestApiPeopleUpdate:
 @pytest.mark.django_db()
 class TestApiPeopleDelete:
     def test_delete_person(self, client: Client, person_db_factory: PersonGeneratorProtocol):
-        person_db_factory(1)
+        person_db_factory()
 
         instance = Person.objects.get(pk=1)
-        assert isinstance is not None
+        assert instance is not None
 
         resp = client.delete(f"/api/person/{instance.pk}/")
 

@@ -4,23 +4,12 @@ from http import HTTPStatus
 from pathlib import Path
 
 import pytest
-from django.http import HttpResponse
 from django.test.client import Client
 from faker import Faker
 
 from scansteward.models import Album
 from scansteward.models import Image
-
-
-def create_single_album(client: Client, name: str, description: str | None = None) -> HttpResponse:
-    data = {"name": name}
-    if description is not None:
-        data.update({"description": description})
-    return client.post(
-        "/api/album/",
-        content_type="application/json",
-        data=data,
-    )
+from scansteward.tests.api.types import AlbumApiGeneratorProtocol
 
 
 @pytest.mark.django_db()
@@ -83,9 +72,9 @@ class TestApiAlbumRead:
 
 @pytest.mark.django_db()
 class TestApiAlbumCreate:
-    def test_create_album(self, client: Client, faker: Faker):
+    def test_create_album(self, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -95,10 +84,10 @@ class TestApiAlbumCreate:
         assert Album.objects.get(id=data["id"]).name == album_name
         assert Album.objects.get(id=data["id"]).images.count() == 0
 
-    def test_create_album_with_description(self, client: Client, faker: Faker):
+    def test_create_album_with_description(self, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
         desc = faker.unique.sentence()
-        resp = create_single_album(client, album_name, desc)
+        resp = album_api_create_factory(album_name, desc)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -112,9 +101,9 @@ class TestApiAlbumCreate:
 
 @pytest.mark.django_db()
 class TestApiAlbumUpdate:
-    def test_update_album(self, client: Client, faker: Faker):
+    def test_update_album(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -143,9 +132,14 @@ class TestApiAlbumUpdate:
         assert Album.objects.get(id=album_id).name == new_name
         assert Album.objects.get(id=album_id).images.count() == 0
 
-    def test_add_album_description(self, client: Client, faker: Faker):
+    def test_add_album_description(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -171,9 +165,9 @@ class TestApiAlbumUpdate:
 
 @pytest.mark.django_db()
 class TestApiAlbumDelete:
-    def test_delete_album(self, client: Client, faker: Faker):
+    def test_delete_album(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
@@ -193,9 +187,9 @@ class TestApiAlbumDelete:
 @pytest.mark.usefixtures("sample_image_database")
 @pytest.mark.django_db()
 class TestApiAlbumImages:
-    def test_add_single_image(self, client: Client, faker: Faker):
+    def test_add_single_image(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -216,9 +210,14 @@ class TestApiAlbumImages:
         assert resp.status_code == HTTPStatus.OK
         assert {"name": album_name, "description": None, "id": album_id, "image_ids": [img.pk]} == resp.json()
 
-    def test_add_multiple_images(self, client: Client, faker: Faker):
+    def test_add_multiple_images(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -244,9 +243,9 @@ class TestApiAlbumImages:
 
         assert album.images.count() == 2
 
-    def test_remove_image(self, client: Client, faker: Faker):
+    def test_remove_image(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -274,9 +273,15 @@ class TestApiAlbumImages:
             "image_ids": [x.pk for x in Image.objects.exclude(pk=removed_pk).all()],
         } == resp.json()
 
-    def test_remove_image_not_in_album(self, caplog: pytest.LogCaptureFixture, client: Client, faker: Faker):
+    def test_remove_image_not_in_album(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -312,9 +317,14 @@ class TestApiAlbumImages:
             "image_ids": [x.pk for x in Image.objects.exclude(pk=dont_add_pk).all()],
         } == resp.json()
 
-    def test_remove_last_album_image(self, client: Client, faker: Faker):
+    def test_remove_last_album_image(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -342,9 +352,14 @@ class TestApiAlbumImages:
             "image_ids": [x.pk for x in Image.objects.exclude(pk=test_img.pk).all()],
         } == resp.json()
 
-    def test_add_remove_no_items(self, client: Client, faker: Faker):
+    def test_add_remove_no_items(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -376,9 +391,14 @@ class TestApiAlbumImages:
 @pytest.mark.usefixtures("sample_image_database")
 @pytest.mark.django_db()
 class TestApiAlbumSorting:
-    def test_update_sorting_reversed(self, client: Client, faker: Faker):
+    def test_update_sorting_reversed(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -421,9 +441,9 @@ class TestApiAlbumSorting:
             == resp.json()
         )
 
-    def test_custom_sorting(self, client: Client, faker: Faker):
+    def test_custom_sorting(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -458,9 +478,14 @@ class TestApiAlbumSorting:
                 == resp.json()
             )
 
-    def test_sorting_invalid_length(self, client: Client, faker: Faker):
+    def test_sorting_invalid_length(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -480,9 +505,14 @@ class TestApiAlbumSorting:
 
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
-    def test_update_sorting_with_no_sorting_defined(self, client: Client, faker: Faker):
+    def test_update_sorting_with_no_sorting_defined(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -508,9 +538,17 @@ class TestApiAlbumSorting:
 @pytest.mark.usefixtures("sample_image_environment")
 @pytest.mark.django_db()
 class TestApiAlbumDownload:
-    def download_test_common(self, client: Client, faker: Faker, tmp_path: Path, *, use_original_download=False):
+    def download_test_common(
+        self,
+        client: Client,
+        faker: Faker,
+        tmp_path: Path,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+        *,
+        use_original_download=False,
+    ):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]
@@ -547,15 +585,27 @@ class TestApiAlbumDownload:
                 except KeyError:
                     pytest.fail(f"{arcname} not present in zipfile")
 
-    def test_album_download_full_size(self, client: Client, faker: Faker, tmp_path: Path):
-        self.download_test_common(client, faker, tmp_path, use_original_download=False)
+    def test_album_download_full_size(
+        self,
+        client: Client,
+        faker: Faker,
+        tmp_path: Path,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
+        self.download_test_common(client, faker, tmp_path, album_api_create_factory, use_original_download=False)
 
-    def test_album_download_original(self, client: Client, faker: Faker, tmp_path: Path):
-        self.download_test_common(client, faker, tmp_path, use_original_download=True)
+    def test_album_download_original(
+        self,
+        client: Client,
+        faker: Faker,
+        tmp_path: Path,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
+        self.download_test_common(client, faker, tmp_path, album_api_create_factory, use_original_download=True)
 
-    def test_album_no_images(self, client: Client, faker: Faker):
+    def test_album_no_images(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
-        resp = create_single_album(client, album_name)
+        resp = album_api_create_factory(album_name)
 
         assert resp.status_code == HTTPStatus.CREATED
         album_id = resp.json()["id"]

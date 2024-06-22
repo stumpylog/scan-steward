@@ -35,6 +35,8 @@ pytest-xdist = "*"
 pytest-randomly = "*"
 coverage = "*"
 faker = "*"
+# Maybe replace faker, but doesn't support pytest 8
+# mimesis = { version = "~=17.0", extras = ["pytest"] }
 # Linting
 black = "*"
 ruff = "*"

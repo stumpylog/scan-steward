@@ -4,14 +4,12 @@ import pytest
 from django.test.client import Client
 
 from scansteward.models import RoughLocation
+from scansteward.tests.api.types import LocationGeneratorProtocol
 
 
 @pytest.mark.django_db()
 class TestCreateLocation:
-    def test_location_create_country_only(
-        self,
-        client: Client,
-    ):
+    def test_location_create_country_only(self, client: Client):
         resp = client.post(
             "/api/location/",
             content_type="application/json",
@@ -113,8 +111,8 @@ class TestCreateLocation:
 
 @pytest.mark.django_db()
 class TestReadLocation:
-    def test_read_single_location(self, client: Client):
-        id_ = util_create_location_object(
+    def test_read_single_location(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
@@ -138,14 +136,14 @@ class TestReadLocation:
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
-    def test_read_all_locations(self, client: Client):
-        id1 = util_create_location_object(
+    def test_read_all_locations(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id1 = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
             "Golden Gate Bridge",
         )
-        id2 = util_create_location_object(
+        id2 = location_db_factory(
             "US",
             "US-CA",
             "Los Angeles",
@@ -166,8 +164,8 @@ class TestReadLocation:
 
 @pytest.mark.django_db()
 class TestUpdateLocation:
-    def test_update_city(self, client: Client):
-        id_ = util_create_location_object(
+    def test_update_city(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
@@ -183,8 +181,12 @@ class TestUpdateLocation:
         assert resp.status_code == HTTPStatus.OK
         assert RoughLocation.objects.get(pk=id_).city == "New York"
 
-    def test_update_subdivision_code_with_no_country(self, client: Client):
-        id_ = util_create_location_object(
+    def test_update_subdivision_code_with_no_country(
+        self,
+        client: Client,
+        location_db_factory: LocationGeneratorProtocol,
+    ):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
@@ -202,8 +204,12 @@ class TestUpdateLocation:
         assert "Subdivision must also include country code" in data["detail"][0]["msg"]
         assert RoughLocation.objects.get(pk=id_).subdivision_code == "US-CA"
 
-    def test_update_subdivision_code_with_wrong_country(self, client: Client):
-        id_ = util_create_location_object(
+    def test_update_subdivision_code_with_wrong_country(
+        self,
+        client: Client,
+        location_db_factory: LocationGeneratorProtocol,
+    ):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
@@ -223,8 +229,8 @@ class TestUpdateLocation:
         assert "AM-AG is not a valid subdivision of US" in context["error"]
         assert RoughLocation.objects.get(pk=id_).subdivision_code == "US-CA"
 
-    def test_update_no_data(self, client: Client):
-        id_ = util_create_location_object(
+    def test_update_no_data(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
@@ -238,8 +244,8 @@ class TestUpdateLocation:
 
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
-    def test_update_country_and_subdivision(self, client: Client):
-        id_ = util_create_location_object(
+    def test_update_country_and_subdivision(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
@@ -258,8 +264,8 @@ class TestUpdateLocation:
 
 @pytest.mark.django_db()
 class TestDeleteLocation:
-    def test_delete_location(self, client: Client):
-        id_ = util_create_location_object(
+    def test_delete_location(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
@@ -270,8 +276,8 @@ class TestDeleteLocation:
         assert resp.status_code == HTTPStatus.NO_CONTENT
         assert RoughLocation.objects.filter(pk=id_).exists() is False
 
-    def test_delete_location_not_found(self, client: Client):
-        id_ = util_create_location_object(
+    def test_delete_location_not_found(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id_ = location_db_factory(
             "US",
             "US-CA",
             "San Francisco",
