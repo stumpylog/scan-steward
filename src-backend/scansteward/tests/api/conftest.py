@@ -5,16 +5,39 @@ from django.http import HttpResponse
 from django.test.client import Client
 from faker import Faker
 
+from scansteward.models import Album
 from scansteward.models import Person
 from scansteward.models import Pet
 from scansteward.models import RoughDate
 from scansteward.models import RoughLocation
+from scansteward.models import Tag
 from scansteward.tests.api.types import AlbumApiGeneratorProtocol
+from scansteward.tests.api.types import AlbumGeneratorProtocol
+from scansteward.tests.api.types import ChildTagGeneratorProtocol
 from scansteward.tests.api.types import DateGeneratorProtocol
 from scansteward.tests.api.types import LocationGeneratorProtocol
 from scansteward.tests.api.types import PersonGeneratorProtocol
 from scansteward.tests.api.types import PetApiGeneratorProtocol
 from scansteward.tests.api.types import PetGeneratorProtocol
+from scansteward.tests.api.types import TagGeneratorProtocol
+
+
+@pytest.fixture()
+def album_db_factory(faker: Faker) -> AlbumGeneratorProtocol:
+    """
+    Fixture to return a factory function which generates people directly in the database
+    """
+
+    def generate_album_objects(*, with_description: bool = False) -> int:
+        """
+        Directly generate Person objects into the database
+        """
+        name = faker.unique.name()
+        description = faker.sentence if with_description else None
+        o = Album.objects.create(name=name, description=description)
+        return o.pk
+
+    return generate_album_objects
 
 
 @pytest.fixture()
@@ -126,9 +149,39 @@ def pet_api_create_factory(client: Client, faker: Faker) -> PetApiGeneratorProto
     return create_single_pet
 
 
-# @pytest.fixture()
-# def image_db_factory(faker: Faker) -> ImageGeneratorProtocol:
-#     pass
+@pytest.fixture()
+def root_tag_db_factory(faker: Faker) -> TagGeneratorProtocol:
+    """
+    Fixture to return a factory function which generates people directly in the database
+    """
+
+    def generate_root_tag_objects(self, *, with_description: bool = False) -> None:
+        """
+        Directly create root Tag objects into the database
+        """
+        name = self.faker.unique.word()
+        description = self.faker.sentence if with_description else None
+        o = Tag.objects.create(name=name, description=description)
+        return o.pk
+
+    return generate_root_tag_objects
+
+
+@pytest.fixture()
+def child_tag_db_factory(faker: Faker) -> ChildTagGeneratorProtocol:
+    """ """
+
+    def generate_child_tag_objects(parent_id: int, *, with_description: bool = False) -> int:
+        """
+        Directly create child Tags under the given parent ID
+        """
+        parent = Tag.objects.get(id=parent_id)
+        name = faker.unique.word()
+        description = faker.sentence if with_description else None
+        o = Tag.objects.create(name=name, description=description, parent=parent)
+        return o.pk
+
+    return generate_child_tag_objects
 
 
 @pytest.fixture(scope="session")

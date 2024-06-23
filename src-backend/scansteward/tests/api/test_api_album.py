@@ -162,6 +162,25 @@ class TestApiAlbumUpdate:
         assert Album.objects.get(id=album_id).name == album_name
         assert Album.objects.get(id=album_id).description == desc
 
+    def test_update_album_no_data(
+        self,
+        client: Client,
+        faker: Faker,
+        album_api_create_factory: AlbumApiGeneratorProtocol,
+    ):
+        album_name = faker.unique.name()
+        resp = album_api_create_factory(album_name)
+
+        album_id = resp.json()["id"]
+
+        resp = client.patch(
+            f"/api/album/{album_id}/",
+            content_type="application/json",
+            data={},
+        )
+
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
 
 @pytest.mark.django_db()
 class TestApiAlbumDelete:

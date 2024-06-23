@@ -8,9 +8,9 @@ from scansteward.tests.api.utils import GenerateTagsMixin
 from scansteward.tests.mixins import DirectoriesMixin
 
 
-class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
+class TestApiTagRead:
     def test_get_single_tag_not_found(self):
-        resp = self.client.get("/api/tag/1/")
+        resp = client.get("/api/tag/1/")
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
@@ -18,7 +18,7 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
         self.generate_root_tag_objects(1)
         instance: Tag = self.roots[0]
 
-        resp = self.client.get(f"/api/tag/{instance.pk}/")
+        resp = client.get(f"/api/tag/{instance.pk}/")
 
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["name"] == instance.name
@@ -27,7 +27,7 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
         count = 10
         self.generate_root_tag_objects(count)
 
-        resp = self.client.get("/api/tag/")
+        resp = client.get("/api/tag/")
 
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["count"] == count
@@ -39,7 +39,7 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
         self.generate_root_tag_objects(count)
 
         page = 1
-        resp = self.client.get(f"/api/tag/?page={page}")
+        resp = client.get(f"/api/tag/?page={page}")
 
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
@@ -47,7 +47,7 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
         assert len(data["items"]) == 100
 
         page = 2
-        resp = self.client.get(f"/api/tag/?page={page}")
+        resp = client.get(f"/api/tag/?page={page}")
 
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
@@ -64,7 +64,7 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
         single_child = self.children[0]
         self.generate_child_tag_object(1, single_child.pk)
 
-        resp = self.client.get("/api/tag/tree/")
+        resp = client.get("/api/tag/tree/")
         assert resp.status_code == HTTPStatus.OK
 
         data = resp.json()
@@ -81,7 +81,7 @@ class TestApiTagRead(GenerateTagsMixin, DirectoriesMixin, TestCase):
 class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
     def test_create_tag_no_parent(self):
         tag_name = self.faker.country()
-        resp = self.client.post(
+        resp = client.post(
             "/api/tag/",
             content_type="application/json",
             data={"name": tag_name},
@@ -103,7 +103,7 @@ class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
 
         tag_name = self.faker.country()
 
-        resp = self.client.post(
+        resp = client.post(
             "/api/tag/",
             content_type="application/json",
             data={"name": tag_name, "parent_id": parent.pk},
@@ -127,7 +127,7 @@ class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
         existing_name = self.faker.country()
         Tag.objects.create(name=existing_name)
 
-        resp = self.client.post(
+        resp = client.post(
             "/api/tag/",
             content_type="application/json",
             data={"name": existing_name},
@@ -144,7 +144,7 @@ class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
 
         new_name = self.faker.unique.country()
 
-        resp = self.client.patch(
+        resp = client.patch(
             f"/api/tag/{instance.pk}/",
             content_type="application/json",
             data={"name": new_name},
@@ -166,7 +166,7 @@ class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
         assert child_1.parent is not None
         assert child_1.parent.pk == root_1.pk
 
-        resp = self.client.patch(
+        resp = client.patch(
             f"/api/tag/{child_1.pk}/",
             content_type="application/json",
             data={"parent_id": child_2.pk},
@@ -183,7 +183,7 @@ class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
 
         assert root.description is None
 
-        resp = self.client.patch(
+        resp = client.patch(
             f"/api/tag/{root.pk}/",
             content_type="application/json",
             data={"description": self.faker.sentence()},
@@ -198,14 +198,14 @@ class TestApiTagDelete(GenerateTagsMixin, DirectoriesMixin, TestCase):
     def test_delete_single_tag(self):
         self.generate_root_tag_objects(1)
         root: Tag = self.roots[0]
-        resp = self.client.delete(
+        resp = client.delete(
             f"/api/tag/{root.pk}/",
         )
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
 
     def test_delete_single_tag_not_found(self):
-        resp = self.client.delete(
+        resp = client.delete(
             "/api/tag/1/",
         )
 

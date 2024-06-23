@@ -193,9 +193,7 @@ class TestApiPeopleUpdate:
         assert Person.objects.get(id=created_id).name == new_name
 
     def test_update_person_description(self, client: Client, faker: Faker, person_db_factory: PersonGeneratorProtocol):
-        person_db_factory()
-
-        instance = Person.objects.get(pk=1)
+        instance = Person.objects.get(pk=person_db_factory())
         assert instance is not None
 
         new_desc = faker.sentence()
@@ -210,6 +208,17 @@ class TestApiPeopleUpdate:
         data = resp.json()
         assert data["name"] == instance.name
         assert data["description"] == new_desc
+
+    def test_update_person_no_data(self, client: Client, person_db_factory: PersonGeneratorProtocol):
+        instance = Person.objects.get(pk=person_db_factory())
+
+        resp = client.patch(
+            f"/api/person/{instance.pk}/",
+            content_type="application/json",
+            data={},
+        )
+
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.django_db()

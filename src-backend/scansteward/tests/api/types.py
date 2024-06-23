@@ -16,6 +16,19 @@ class PetGeneratorProtocol(_BaseNamedItemGeneratorProtocol):
     pass
 
 
+class AlbumGeneratorProtocol(_BaseNamedItemGeneratorProtocol):
+    pass
+
+
+class TagGeneratorProtocol(_BaseNamedItemGeneratorProtocol):
+    pass
+
+
+class ChildTagGeneratorProtocol(Protocol):
+    def __call__(self, parent_id: int, *, with_description: bool = False) -> int:
+        pass
+
+
 class _BaseNamedApiGeneratorProtocol(Protocol):
     def __call__(self, name: str | None = None, description: str | None = None) -> HttpResponse:
         pass

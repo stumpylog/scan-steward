@@ -184,6 +184,17 @@ class TestApiPetsUpdate:
         assert data["name"] == instance.name
         assert data["description"] == new_desc
 
+    def test_update_pet_no_data(self, client: Client, pet_db_factory: PetGeneratorProtocol):
+        instance: Pet = Pet.objects.get(pk=pet_db_factory())
+
+        resp = client.patch(
+            f"/api/pet/{instance.pk}/",
+            content_type="application/json",
+            data={},
+        )
+
+        assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
 
 @pytest.mark.django_db()
 class TestApiPetsDelete:

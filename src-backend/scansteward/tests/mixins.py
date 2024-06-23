@@ -1,21 +1,11 @@
 import collections
 import tempfile
 from contextlib import ExitStack
-from contextlib import contextmanager
 from pathlib import Path
 
 from django.test import override_settings
 
 from scansteward.imageops.models import ImageMetadata
-
-
-@contextmanager
-def disable_signal(sig, receiver, sender):
-    try:
-        sig.disconnect(receiver=receiver, sender=sender)
-        yield
-    finally:
-        sig.connect(receiver=receiver, sender=sender)
 
 
 class TemporaryDirectoryMixin:
