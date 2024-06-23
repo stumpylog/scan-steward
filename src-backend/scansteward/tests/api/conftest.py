@@ -126,6 +126,11 @@ def pet_api_create_factory(client: Client, faker: Faker) -> PetApiGeneratorProto
     return create_single_pet
 
 
+# @pytest.fixture()
+# def image_db_factory(faker: Faker) -> ImageGeneratorProtocol:
+#     pass
+
+
 @pytest.fixture(scope="session")
-def today() -> datetime.date:
+def date_today_utc() -> datetime.date:
     return datetime.datetime.now(tz=datetime.timezone.utc).date()

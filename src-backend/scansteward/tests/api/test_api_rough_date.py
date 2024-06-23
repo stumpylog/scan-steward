@@ -10,12 +10,12 @@ from scansteward.tests.api.types import DateGeneratorProtocol
 
 @pytest.mark.django_db()
 class TestApiRoughDateCreate:
-    def test_create_rough_date_all_valid(self, client: Client, today: datetime.date):
+    def test_create_rough_date_all_valid(self, client: Client, date_today_utc: datetime.date):
         resp = client.post(
             "/api/date/",
             content_type="application/json",
             data={
-                "date": today.isoformat(),
+                "date": date_today_utc.isoformat(),
                 "month_valid": True,
                 "day_valid": True,
             },
@@ -25,16 +25,16 @@ class TestApiRoughDateCreate:
         obj = RoughDate.objects.get(id=resp.json()["id"])
 
         assert obj is not None
-        assert obj.date == today
+        assert obj.date == date_today_utc
         assert obj.month_valid
         assert obj.day_valid
 
-    def test_create_rough_date_valid_month(self, client: Client, today: datetime.date):
+    def test_create_rough_date_valid_month(self, client: Client, date_today_utc: datetime.date):
         resp = client.post(
             "/api/date/",
             content_type="application/json",
             data={
-                "date": today.isoformat(),
+                "date": date_today_utc.isoformat(),
                 "month_valid": True,
                 "day_valid": False,
             },
@@ -44,16 +44,16 @@ class TestApiRoughDateCreate:
         obj = RoughDate.objects.get(id=resp.json()["id"])
 
         assert obj is not None
-        assert obj.date == today
+        assert obj.date == date_today_utc
         assert obj.month_valid
         assert not obj.day_valid
 
-    def test_create_rough_date_invalid_month_valid_date(self, client: Client, today: datetime.date):
+    def test_create_rough_date_invalid_month_valid_date(self, client: Client, date_today_utc: datetime.date):
         resp = client.post(
             "/api/date/",
             content_type="application/json",
             data={
-                "date": today.isoformat(),
+                "date": date_today_utc.isoformat(),
                 "month_valid": False,
                 "day_valid": True,
             },
@@ -62,12 +62,12 @@ class TestApiRoughDateCreate:
 
         assert RoughDate.objects.count() == 0
 
-    def test_create_date_already_exists(self, client: Client, today: datetime.date):
+    def test_create_date_already_exists(self, client: Client, date_today_utc: datetime.date):
         resp = client.post(
             "/api/date/",
             content_type="application/json",
             data={
-                "date": today.isoformat(),
+                "date": date_today_utc.isoformat(),
                 "month_valid": True,
                 "day_valid": False,
             },
@@ -78,7 +78,7 @@ class TestApiRoughDateCreate:
             "/api/date/",
             content_type="application/json",
             data={
-                "date": today.isoformat(),
+                "date": date_today_utc.isoformat(),
                 "month_valid": True,
                 "day_valid": False,
             },
@@ -145,10 +145,15 @@ class TestApiRoughDateRead:
 
 @pytest.mark.django_db()
 class TestApiRoughDateUpdate:
-    def test_update_rough_date_date(self, client: Client, date_db_factory: DateGeneratorProtocol, today: datetime.date):
+    def test_update_rough_date_date(
+        self,
+        client: Client,
+        date_db_factory: DateGeneratorProtocol,
+        date_today_utc: datetime.date,
+    ):
         date = RoughDate.objects.get(pk=date_db_factory())
 
-        new_date = today + datetime.timedelta(days=1)
+        new_date = date_today_utc + datetime.timedelta(days=1)
         resp = client.patch(
             f"/api/date/{date.pk}/",
             content_type="application/json",

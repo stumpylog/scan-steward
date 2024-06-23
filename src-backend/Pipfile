@@ -4,13 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django-ninja = "*"
-django-typer = "*"
+django-ninja = "~=1.1"
+django-typer = { version = "~=2.1", extras = ["rich"] }
 # Task Queue
-huey = "*"
-redis = { version = "*", extras = ["hiredis"] }
+huey = "~=2.5"
+redis = { version = "~=5.0", extras = ["hiredis"] }
 # Settings
-pydantic_settings = "*"
+pydantic_settings = "~=2.3"
 # Other
 blake3 = "*"
 orjson = "*"

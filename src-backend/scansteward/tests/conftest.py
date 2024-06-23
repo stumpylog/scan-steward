@@ -231,7 +231,7 @@ def _sample_image_database(sample_db_fixture_file: Path) -> None:
         disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughLocation),
         disable_signal(models.signals.post_save, mark_images_as_dirty_on_fk_change, RoughDate),
     ):
-        call_command("loaddata", sample_db_fixture_file)
+        call_command("loaddata", "--verbosity", "0", "--skip-checks", sample_db_fixture_file)
 
 
 @pytest.fixture(name="sample_image_environment")

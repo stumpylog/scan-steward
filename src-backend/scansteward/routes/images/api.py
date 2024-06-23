@@ -169,8 +169,9 @@ async def update_faces_in_image(request: HttpRequest, image_id: int, data: list[
 async def delete_faces_in_image(request: HttpRequest, image_id: int, data: PersonFaceDeleteSchema):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("people"), id=image_id)
 
-    to_delete = img.people.filter(pk__in=data.people_ids)
-    await to_delete.adelete()
+    # TODO: transaction
+    async for person in img.people.filter(pk__in=data.people_ids).all():
+        await img.people.aremove(person)
     await img.arefresh_from_db()
 
     return await get_faces_from_image(img)
@@ -238,8 +239,9 @@ async def update_pet_boxes_in_image(request: HttpRequest, image_id: int, data: l
 async def delete_pets_from_image(request: HttpRequest, image_id: int, data: PetBoxDeleteSchema):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("pets"), id=image_id)
 
-    to_delete = img.pets.filter(pk__in=data.pet_ids)
-    await to_delete.adelete()
+    # TODO: transaction
+    async for pet in img.pets.filter(pk__in=data.pet_ids).all():
+        await img.pets.aremove(pet)
     await img.arefresh_from_db()
 
     return await get_pet_boxes_from_image(img)
@@ -285,6 +287,7 @@ async def update_image_metadata(request: HttpRequest, image_id: int, data: Image
         Image.objects.select_related("location").select_related("date"),
         id=image_id,
     )
+
     if data.orientation is not None:
         img.orientation = data.orientation
     if data.description is not None:
@@ -292,7 +295,7 @@ async def update_image_metadata(request: HttpRequest, image_id: int, data: Image
     if data.location_id is not None:
         img.location = await aget_object_or_404(RoughLocation, pk=data.location_id)
     if data.date_id is not None:
-        img.date = await aget_object_or_404(RoughDate, pk=data.location_id)
+        img.date = await aget_object_or_404(RoughDate, pk=data.date_id)
 
     await img.asave()
 
