@@ -1,31 +1,33 @@
 from http import HTTPStatus
 
-from django.test import TestCase
+import pytest
+from django.test.client import Client
+from faker import Faker
 
 from scansteward.models import Tag
-from scansteward.tests.api.utils import FakerMixin
-from scansteward.tests.api.utils import GenerateTagsMixin
-from scansteward.tests.mixins import DirectoriesMixin
+from scansteward.tests.api.types import ChildTagGeneratorProtocol
+from scansteward.tests.api.types import TagGeneratorProtocol
 
 
+@pytest.mark.django_db()
 class TestApiTagRead:
-    def test_get_single_tag_not_found(self):
+    def test_get_single_tag_not_found(self, client: Client):
         resp = client.get("/api/tag/1/")
 
         assert resp.status_code == HTTPStatus.NOT_FOUND
 
-    def test_get_single_tag(self):
-        self.generate_root_tag_objects(1)
-        instance: Tag = self.roots[0]
+    def test_get_single_tag(self, client: Client, root_tag_db_factory: TagGeneratorProtocol):
+        instance = Tag.objects.get(pk=root_tag_db_factory())
 
         resp = client.get(f"/api/tag/{instance.pk}/")
 
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["name"] == instance.name
 
-    def test_list_tags(self):
+    def test_list_tags(self, client: Client, root_tag_db_factory: TagGeneratorProtocol):
         count = 10
-        self.generate_root_tag_objects(count)
+        for _ in range(count):
+            root_tag_db_factory()
 
         resp = client.get("/api/tag/")
 
@@ -33,10 +35,11 @@ class TestApiTagRead:
         assert resp.json()["count"] == count
         assert len(resp.json()["items"]) == count
 
-    def test_tag_paginate(self):
+    def test_tag_paginate(self, client: Client, root_tag_db_factory: TagGeneratorProtocol):
         count = 110
 
-        self.generate_root_tag_objects(count)
+        for _ in range(count):
+            root_tag_db_factory()
 
         page = 1
         resp = client.get(f"/api/tag/?page={page}")
@@ -54,15 +57,24 @@ class TestApiTagRead:
         assert data["count"] == count
         assert len(data["items"]) == 10
 
-    def test_tag_tree(self):
+    def test_tag_tree(
+        self,
+        client: Client,
+        root_tag_db_factory: TagGeneratorProtocol,
+        child_tag_db_factory: ChildTagGeneratorProtocol,
+    ):
         root_count = 3
         child_count = 2
-        self.generate_root_tag_objects(root_count)
-        for root in self.roots:
-            self.generate_child_tag_object(child_count, root.pk)
+        for _ in range(root_count):
+            root_tag_db_factory()
 
-        single_child = self.children[0]
-        self.generate_child_tag_object(1, single_child.pk)
+        for root in Tag.objects.filter(parent=None).all():
+            for _ in range(child_count):
+                child_tag_db_factory(root.pk)
+
+        single_child = Tag.objects.exclude(parent=None).first()
+        assert single_child is not None
+        child_tag_db_factory(single_child.pk)
 
         resp = client.get("/api/tag/tree/")
         assert resp.status_code == HTTPStatus.OK
@@ -78,9 +90,10 @@ class TestApiTagRead:
                     assert len(child["children"]) == 1
 
 
-class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
-    def test_create_tag_no_parent(self):
-        tag_name = self.faker.country()
+@pytest.mark.django_db()
+class TestApiTagCreate:
+    def test_create_tag_no_parent(self, client: Client, faker: Faker):
+        tag_name = faker.country()
         resp = client.post(
             "/api/tag/",
             content_type="application/json",
@@ -98,10 +111,10 @@ class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
         assert instance.name == tag_name
         assert instance.description is None
 
-    def test_create_tag_with_parent(self):
-        parent = Tag.objects.create(name=self.faker.country())
+    def test_create_tag_with_parent(self, client: Client, faker: Faker):
+        parent = Tag.objects.create(name=faker.country())
 
-        tag_name = self.faker.country()
+        tag_name = faker.country()
 
         resp = client.post(
             "/api/tag/",
@@ -123,8 +136,8 @@ class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
         assert instance.description is None
         assert instance.parent == parent
 
-    def test_create_tag_exists(self):
-        existing_name = self.faker.country()
+    def test_create_tag_exists(self, client: Client, faker: Faker):
+        existing_name = faker.country()
         Tag.objects.create(name=existing_name)
 
         resp = client.post(
@@ -136,13 +149,12 @@ class TestApiTagCreate(FakerMixin, DirectoriesMixin, TestCase):
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
 
-class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
-    def test_update_tag_name(self):
-        self.generate_root_tag_objects(1)
+@pytest.mark.django_db()
+class TestApiTagUpdate:
+    def test_update_tag_name(self, client: Client, faker: Faker, root_tag_db_factory: TagGeneratorProtocol):
+        instance: Tag = Tag.objects.get(pk=root_tag_db_factory())
 
-        instance: Tag = self.roots[0]
-
-        new_name = self.faker.unique.country()
+        new_name = faker.unique.country()
 
         resp = client.patch(
             f"/api/tag/{instance.pk}/",
@@ -154,14 +166,17 @@ class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
         instance.refresh_from_db()
         assert instance.name == new_name
 
-    def test_update_tag_parent(self):
-        self.generate_root_tag_objects(2)
-        root_1: Tag = self.roots[0]
-        root_2: Tag = self.roots[1]
-        self.generate_child_tag_object(1, root_1.pk)
-        self.generate_child_tag_object(1, root_2.pk)
-        child_1: Tag = self.children[0]
-        child_2: Tag = self.children[1]
+    def test_update_tag_parent(
+        self,
+        client: Client,
+        root_tag_db_factory: TagGeneratorProtocol,
+        child_tag_db_factory: ChildTagGeneratorProtocol,
+    ):
+        root_1: Tag = Tag.objects.get(pk=root_tag_db_factory())
+        root_2: Tag = Tag.objects.get(pk=root_tag_db_factory())
+        root_1: Tag = Tag.objects.get(pk=root_tag_db_factory())
+        child_1: Tag = Tag.objects.get(pk=child_tag_db_factory(root_1.pk))
+        child_2: Tag = Tag.objects.get(pk=child_tag_db_factory(root_2.pk))
 
         assert child_1.parent is not None
         assert child_1.parent.pk == root_1.pk
@@ -177,16 +192,15 @@ class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
         assert child_1.parent is not None
         assert child_1.parent.pk == child_2.pk
 
-    def test_update_tag_add_description(self):
-        self.generate_root_tag_objects(1)
-        root: Tag = self.roots[0]
+    def test_update_tag_add_description(self, client: Client, faker: Faker, root_tag_db_factory: TagGeneratorProtocol):
+        root: Tag = Tag.objects.get(pk=root_tag_db_factory())
 
         assert root.description is None
 
         resp = client.patch(
             f"/api/tag/{root.pk}/",
             content_type="application/json",
-            data={"description": self.faker.sentence()},
+            data={"description": faker.sentence()},
         )
         assert resp.status_code == HTTPStatus.OK
 
@@ -194,17 +208,17 @@ class TestApiTagUpdate(GenerateTagsMixin, DirectoriesMixin, TestCase):
         assert root.description is not None
 
 
-class TestApiTagDelete(GenerateTagsMixin, DirectoriesMixin, TestCase):
-    def test_delete_single_tag(self):
-        self.generate_root_tag_objects(1)
-        root: Tag = self.roots[0]
+@pytest.mark.django_db()
+class TestApiTagDelete:
+    def test_delete_single_tag(self, client: Client, root_tag_db_factory: TagGeneratorProtocol):
+        root: Tag = Tag.objects.get(pk=root_tag_db_factory())
         resp = client.delete(
             f"/api/tag/{root.pk}/",
         )
 
         assert resp.status_code == HTTPStatus.NO_CONTENT
 
-    def test_delete_single_tag_not_found(self):
+    def test_delete_single_tag_not_found(self, client: Client):
         resp = client.delete(
             "/api/tag/1/",
         )

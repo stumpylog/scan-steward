@@ -155,12 +155,12 @@ def root_tag_db_factory(faker: Faker) -> TagGeneratorProtocol:
     Fixture to return a factory function which generates people directly in the database
     """
 
-    def generate_root_tag_objects(self, *, with_description: bool = False) -> None:
+    def generate_root_tag_objects(*, with_description: bool = False) -> None:
         """
         Directly create root Tag objects into the database
         """
-        name = self.faker.unique.word()
-        description = self.faker.sentence if with_description else None
+        name = faker.unique.word()
+        description = faker.sentence if with_description else None
         o = Tag.objects.create(name=name, description=description)
         return o.pk
 
