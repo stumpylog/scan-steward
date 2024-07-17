@@ -135,12 +135,12 @@ class TestApiRoughDateRead:
 
         data = resp.json()
 
-        assert {
+        assert data == {
             "id": date.pk,
             "date": date.date.isoformat(),
             "month_valid": date.month_valid,
             "day_valid": date.day_valid,
-        } == data
+        }
 
 
 @pytest.mark.django_db()

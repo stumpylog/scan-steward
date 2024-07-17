@@ -10,11 +10,12 @@ django-typer = { version = "~=2.1", extras = ["rich"] }
 huey = "~=2.5"
 redis = { version = "~=5.0", extras = ["hiredis"] }
 # Settings
-pydantic_settings = "~=2.3"
+pydantic-settings = "~=2.3"
+pydantic-extra-types = "*"
 # Other
 blake3 = "*"
 orjson = "*"
-typing_extensions = { version = "*", markers="python_version < '3.11'"}
+typing-extensions = { version = "*", markers="python_version < '3.11'"}
 imagehash = "*"
 simpleiso3166 = { version = "*", extras = ["search"] }
 # Server

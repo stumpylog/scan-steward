@@ -78,7 +78,7 @@ class TestApiAlbumCreate:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert {"id": 1, "name": album_name, "description": None} == data
+        assert data == {"id": 1, "name": album_name, "description": None}
 
         assert Album.objects.filter(id=data["id"]).exists()
         assert Album.objects.get(id=data["id"]).name == album_name
@@ -91,7 +91,7 @@ class TestApiAlbumCreate:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert {"id": 1, "name": album_name, "description": desc} == data
+        assert data == {"id": 1, "name": album_name, "description": desc}
 
         assert Album.objects.filter(id=data["id"]).exists()
         assert Album.objects.get(id=data["id"]).name == album_name
@@ -108,7 +108,7 @@ class TestApiAlbumUpdate:
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
 
-        assert {"id": 1, "name": album_name, "description": None} == data
+        assert data == {"id": 1, "name": album_name, "description": None}
         album_id = data["id"]
 
         assert Album.objects.filter(id=album_id).exists()
@@ -127,7 +127,7 @@ class TestApiAlbumUpdate:
 
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
-        assert {"id": album_id, "name": new_name, "description": None} == data
+        assert data == {"id": album_id, "name": new_name, "description": None}
         assert Album.objects.filter(id=album_id).exists()
         assert Album.objects.get(id=album_id).name == new_name
         assert Album.objects.get(id=album_id).images.count() == 0
@@ -143,7 +143,7 @@ class TestApiAlbumUpdate:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert {"id": 1, "name": album_name, "description": None} == data
+        assert data == {"id": 1, "name": album_name, "description": None}
         album_id = data["id"]
         assert Album.objects.get(id=album_id).name == album_name
         assert Album.objects.get(id=album_id).description is None
@@ -158,7 +158,7 @@ class TestApiAlbumUpdate:
 
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
-        assert {"id": album_id, "name": album_name, "description": desc} == data
+        assert data == {"id": album_id, "name": album_name, "description": desc}
         assert Album.objects.get(id=album_id).name == album_name
         assert Album.objects.get(id=album_id).description == desc
 
@@ -190,7 +190,7 @@ class TestApiAlbumDelete:
 
         assert resp.status_code == HTTPStatus.CREATED
         data = resp.json()
-        assert {"id": 1, "name": album_name, "description": None} == data
+        assert data == {"id": 1, "name": album_name, "description": None}
         album_id = data["id"]
 
         resp = client.delete(f"/api/album/{album_id}/")
@@ -222,12 +222,12 @@ class TestApiAlbumImages:
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert {"name": album_name, "description": None, "id": album_id, "image_ids": [img.pk]} == resp.json()
+        assert resp.json() == {"name": album_name, "description": None, "id": album_id, "image_ids": [img.pk]}
 
         resp = client.get(f"/api/album/{album_id}/")
 
         assert resp.status_code == HTTPStatus.OK
-        assert {"name": album_name, "description": None, "id": album_id, "image_ids": [img.pk]} == resp.json()
+        assert resp.json() == {"name": album_name, "description": None, "id": album_id, "image_ids": [img.pk]}
 
     def test_add_multiple_images(
         self,
@@ -251,12 +251,12 @@ class TestApiAlbumImages:
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert {
+        assert resp.json() == {
             "name": album_name,
             "description": None,
             "id": album_id,
             "image_ids": [img_one.pk, img_two.pk],
-        } == resp.json()
+        }
 
         album = Album.objects.get(pk=album_id)
 
@@ -285,12 +285,12 @@ class TestApiAlbumImages:
             data={"image_ids": [test_img.pk]},
         )
         assert resp.status_code == HTTPStatus.OK
-        assert {
+        assert resp.json() == {
             "name": album_name,
             "description": None,
             "id": album_id,
             "image_ids": [x.pk for x in Image.objects.exclude(pk=removed_pk).all()],
-        } == resp.json()
+        }
 
     def test_remove_image_not_in_album(
         self,
@@ -329,12 +329,12 @@ class TestApiAlbumImages:
 
         resp = client.get(f"/api/album/{album_id}/")
         assert resp.status_code == HTTPStatus.OK
-        assert {
+        assert resp.json() == {
             "name": album_name,
             "description": None,
             "id": album_id,
             "image_ids": [x.pk for x in Image.objects.exclude(pk=dont_add_pk).all()],
-        } == resp.json()
+        }
 
     def test_remove_last_album_image(
         self,
@@ -364,12 +364,12 @@ class TestApiAlbumImages:
             data={"image_ids": [test_img.pk]},
         )
         assert resp.status_code == HTTPStatus.OK
-        assert {
+        assert resp.json() == {
             "name": album_name,
             "description": None,
             "id": album_id,
             "image_ids": [x.pk for x in Image.objects.exclude(pk=test_img.pk).all()],
-        } == resp.json()
+        }
 
     def test_add_remove_no_items(
         self,

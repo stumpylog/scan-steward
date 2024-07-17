@@ -38,7 +38,7 @@ repos:
           - json
   # See https://github.com/prettier/prettier/issues/15742 for the fork reason
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: "v3.3.2"
+    rev: "v3.3.3"
     hooks:
       - id: prettier
         types_or:
@@ -50,7 +50,7 @@ repos:
         exclude: "(Pipfile\\.lock)|(^src-docs/docs/roadmap.md)"
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.4.10"
+    rev: "v0.5.2"
     hooks:
       # Run the linter.
       - id: ruff

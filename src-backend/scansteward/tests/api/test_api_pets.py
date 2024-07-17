@@ -38,7 +38,7 @@ class TestApiPetsRead:
         )
 
         assert resp.status_code == HTTPStatus.OK
-        assert {"id": pet.pk, "name": pet.name, "description": None} == resp.json()
+        assert resp.json() == {"id": pet.pk, "name": pet.name, "description": None}
 
     def test_list_pets(self, client: Client, pet_db_factory: PetGeneratorProtocol):
         count = 5

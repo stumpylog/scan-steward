@@ -17,8 +17,6 @@ from scansteward.models import RoughLocation
 from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import FileSystemAssertsMixin
 
-# from scansteward.tests.mixins import SampleDirMixin
-
 
 def util_create_image_in_database(sample_dir: Path) -> tuple[Image, Person, Pet]:
     image = Image.objects.create(
@@ -119,7 +117,7 @@ class TestImageReadApi:
 
         data = resp.json()
 
-        assert [
+        assert data == [
             {
                 "box": {
                     "center_x": 0.466361,
@@ -129,7 +127,7 @@ class TestImageReadApi:
                 },
                 "person_id": 1,
             },
-        ] == data
+        ]
 
     def test_get_image_pets(self, client: Client):
         img = Image.objects.first()
@@ -140,7 +138,7 @@ class TestImageReadApi:
 
         data = resp.json()
 
-        assert [
+        assert data == [
             {
                 "pet_id": 1,
                 "box": {
@@ -150,7 +148,7 @@ class TestImageReadApi:
                     "width": 0.202148,
                 },
             },
-        ] == data
+        ]
 
     def test_get_image_metadata(self, client: Client):
         img = Image.objects.first()
@@ -161,7 +159,7 @@ class TestImageReadApi:
 
         data = resp.json()
 
-        assert {
+        assert data == {
             "album_ids": None,
             "date_id": 1,
             "description": (
@@ -172,7 +170,7 @@ class TestImageReadApi:
             "location_id": 1,
             "orientation": RotationEnum.HORIZONTAL,
             "tag_ids": [3],
-        } == data
+        }
 
 
 @pytest.mark.usefixtures("sample_image_environment")
