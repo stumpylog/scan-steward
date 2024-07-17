@@ -7,6 +7,7 @@ from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import condition
+from ninja import Query
 from ninja import Router
 from ninja.decorators import decorate_view
 
@@ -25,6 +26,7 @@ from scansteward.routes.images.conditionals import full_size_etag
 from scansteward.routes.images.conditionals import image_last_modified
 from scansteward.routes.images.conditionals import original_image_etag
 from scansteward.routes.images.conditionals import thumbnail_etag
+from scansteward.routes.images.filters import BasicFilterSchema
 from scansteward.routes.images.schemas import ImageMetadataReadSchema
 from scansteward.routes.images.schemas import ImageMetadataUpdateSchema
 from scansteward.routes.images.schemas import PersonFaceDeleteSchema
@@ -34,6 +36,18 @@ from scansteward.routes.images.schemas import PetWithBoxSchema
 
 router = Router(tags=["images"])
 logger = logging.getLogger(__name__)
+
+
+@router.get("", operation_id="get_image_thumbnail")
+def get_all_images(request: HttpRequest, includes_people_filter: Query[BasicFilterSchema] | None = None) -> list[int]:
+    """
+    Get all images, filtered as requested
+    """
+    qs = Image.objects.all()
+    print(includes_people_filter)
+    if includes_people_filter:
+        qs = qs.filter(people__id__in=includes_people_filter.ids)
+    return list(qs.values_list("id", flat=True))
 
 
 @router.get(

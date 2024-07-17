@@ -1,7 +1,5 @@
 import datetime
-import random
 from http import HTTPStatus
-from pathlib import Path
 
 import pytest
 from django.test.client import Client
@@ -16,41 +14,6 @@ from scansteward.models import RoughDate
 from scansteward.models import RoughLocation
 from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import FileSystemAssertsMixin
-
-
-def util_create_image_in_database(sample_dir: Path) -> tuple[Image, Person, Pet]:
-    image = Image.objects.create(
-        file_size=random.randint(1, 1_000_000),  # noqa: S311
-        original_checksum="abcd",
-        thumbnail_checksum="efgh",
-        full_size_checksum="ijkl",
-        phash="mnop",
-        original=sample_dir / "test.jpg",
-        description="test description",
-        height=random.randint(100, 200),  # noqa: S311
-        width=random.randint(100, 200),  # noqa: S311
-    )
-
-    person = Person.objects.create(name="Test Person")
-    _ = PersonInImage.objects.create(
-        person=person,
-        image=image,
-        center_x=0.1,
-        center_y=0.2,
-        height=0.3,
-        width=0.4,
-    )
-    pet = Pet.objects.create(name="Test Pet")
-    PetInImage.objects.create(
-        pet=pet,
-        image=image,
-        center_x=0.5,
-        center_y=0.6,
-        height=0.7,
-        width=0.8,
-    )
-    image.refresh_from_db()
-    return image, person, pet
 
 
 @pytest.mark.usefixtures("sample_image_environment")
@@ -171,6 +134,33 @@ class TestImageReadApi:
             "orientation": RotationEnum.HORIZONTAL,
             "tag_ids": [3],
         }
+
+    def test_get_images_filter_includes(self, client: Client):
+        person = Person.objects.get(pk=1)
+        assert person is not None
+        assert person.name == "Barack Obama"
+        resp = client.get("/api/image/", query_params={"includes_people": [person.pk]})
+        assert resp.status_code == HTTPStatus.OK
+
+        assert resp.json() == [1, 2, 3, 4]
+
+        includes_person = Person.objects.get(pk=1)
+        excludes_person = Person.objects.get(pk=3)
+        assert includes_person is not None
+        assert includes_person.name == "Barack Obama"
+
+        assert excludes_person is not None
+        assert excludes_person.name == "Hillary Clinton"
+
+        resp = client.get(
+            "/api/image/",
+            query_params={"includes_people": [includes_person.pk], "excludes_people": [excludes_person.pk]},
+        )
+        assert resp.status_code == HTTPStatus.OK
+
+        assert resp.json() == [1, 2, 3, 4]
+
+        assert False
 
 
 @pytest.mark.usefixtures("sample_image_environment")

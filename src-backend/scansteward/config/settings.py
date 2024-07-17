@@ -15,7 +15,7 @@ class AppBaseSettings(BaseSettings):
 
 class DjangoSettings(AppBaseSettings):
     secret_key: SecretStr = Field(default="django-insecure-sy01il8rqt#832c6nx#2^a5@n_l(wy3v*dl&8-_*yu=1(=e%iv")
-    debug: bool = False
+    debug: bool = True
     db_engine: DatabaseChoices = DatabaseChoices.Sqlite3
     timezone: TimeZoneName = Field(default="UTC")
 
