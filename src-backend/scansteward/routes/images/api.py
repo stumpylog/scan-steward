@@ -7,8 +7,8 @@ from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import condition
-from ninja import Query
 from ninja import Router
+from ninja import Schema
 from ninja.decorators import decorate_view
 
 from scansteward.common.constants import WEBP_CONTENT_TYPE
@@ -26,7 +26,7 @@ from scansteward.routes.images.conditionals import full_size_etag
 from scansteward.routes.images.conditionals import image_last_modified
 from scansteward.routes.images.conditionals import original_image_etag
 from scansteward.routes.images.conditionals import thumbnail_etag
-from scansteward.routes.images.filters import BasicFilterSchema
+from scansteward.routes.images.filters import CommaSepIntList
 from scansteward.routes.images.schemas import ImageMetadataReadSchema
 from scansteward.routes.images.schemas import ImageMetadataUpdateSchema
 from scansteward.routes.images.schemas import PersonFaceDeleteSchema
@@ -38,15 +38,38 @@ router = Router(tags=["images"])
 logger = logging.getLogger(__name__)
 
 
+class PeopleQueryParams(Schema):
+    ids: list[int] | None = None
+
+
 @router.get("", operation_id="get_image_thumbnail")
-def get_all_images(request: HttpRequest, includes_people_filter: Query[BasicFilterSchema] | None = None) -> list[int]:
+def get_all_images(
+    request: HttpRequest,
+    includes_people: CommaSepIntList | None = None,
+    excludes_people: CommaSepIntList | None = None,
+    includes_pets: CommaSepIntList | None = None,
+    excludes_pets: CommaSepIntList | None = None,
+    includes_locations: CommaSepIntList | None = None,
+    excludes_locations: CommaSepIntList | None = None,
+) -> list[int]:
     """
     Get all images, filtered as requested
     """
-    qs = Image.objects.all()
-    print(includes_people_filter)
-    if includes_people_filter:
-        qs = qs.filter(people__id__in=includes_people_filter.ids)
+    qs = Image.objects.all().select_related("location").prefetch_related("people", "pets")
+
+    if includes_people:
+        qs = qs.filter(people__id__in=includes_people)
+    if excludes_people:
+        qs = qs.exclude(people__id__in=excludes_people)
+    if includes_pets:
+        qs = qs.filter(pets__id__in=includes_pets)
+    if excludes_pets:
+        qs = qs.exclude(pets__id__in=excludes_pets)
+    if includes_locations:
+        qs = qs.filter(location__id__in=includes_locations)
+    if excludes_locations:
+        qs = qs.exclude(location__id__in=excludes_locations)
+
     return list(qs.values_list("id", flat=True))
 
 

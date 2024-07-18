@@ -135,15 +135,44 @@ class TestImageReadApi:
             "tag_ids": [3],
         }
 
-    def test_get_images_filter_includes(self, client: Client):
-        person = Person.objects.get(pk=1)
+
+@pytest.mark.usefixtures("sample_image_environment")
+@pytest.mark.django_db()
+class TestImageReadWithFiltersApi:
+    def test_get_images_filter_includes_person(self, client: Client):
+        """
+        Test getting all images with include a particular person
+        """
+        person = Person.objects.get(pk=3)
         assert person is not None
-        assert person.name == "Barack Obama"
-        resp = client.get("/api/image/", query_params={"includes_people": [person.pk]})
+        assert person.name == "Hillary Clinton"
+
+        resp = client.get("/api/image/", data={"includes_people": [person.pk]})
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == [1, 2, 3, 4]
+        assert resp.json() == [3]
 
+    def test_get_images_filter_includes_people(self, client: Client):
+        """
+        Test getting all images with include all people
+        """
+        barak = Person.objects.get(pk=1)
+        assert barak is not None
+        assert barak.name == "Barack Obama"
+
+        hrc = Person.objects.get(pk=3)
+        assert hrc is not None
+        assert hrc.name == "Hillary Clinton"
+
+        resp = client.get("/api/image/", data={"includes_people": [barak.pk, hrc.pk]})
+        assert resp.status_code == HTTPStatus.OK
+
+        assert resp.json() == [3]
+
+    def test_get_images_filter_include_and_exclude_people(self, client: Client):
+        """
+        Test getting all images with include and exclude people
+        """
         includes_person = Person.objects.get(pk=1)
         excludes_person = Person.objects.get(pk=3)
         assert includes_person is not None
@@ -154,13 +183,86 @@ class TestImageReadApi:
 
         resp = client.get(
             "/api/image/",
-            query_params={"includes_people": [includes_person.pk], "excludes_people": [excludes_person.pk]},
+            data={"includes_people": [includes_person.pk], "excludes_people": [excludes_person.pk]},
         )
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == [1, 2, 3, 4]
+        assert resp.json() == [1, 2, 4]
 
-        assert False
+    def test_get_images_filter_include_person_include_pet(self, client: Client):
+        """
+        Test getting all images with include person and include pet
+        """
+        includes_person = Person.objects.get(pk=1)
+        assert includes_person is not None
+        assert includes_person.name == "Barack Obama"
+
+        include_pet = Pet.objects.get(pk=1)
+        assert include_pet is not None
+        assert include_pet.name == "Bo"
+
+        resp = client.get(
+            "/api/image/",
+            data={"includes_people": [includes_person.pk], "includes_pets": [include_pet.pk]},
+        )
+        assert resp.status_code == HTTPStatus.OK
+
+        # TODO: Image 4 does not include the pet box, that should be fixed
+        assert resp.json() == [1]
+
+    def test_get_images_filter_include_person_exclude_pet(self, client: Client):
+        """
+        Test getting all images with include person and exclude pet
+        """
+        includes_person = Person.objects.get(pk=1)
+        assert includes_person is not None
+        assert includes_person.name == "Barack Obama"
+
+        exclude_pet = Pet.objects.get(pk=1)
+        assert exclude_pet is not None
+        assert exclude_pet.name == "Bo"
+
+        resp = client.get(
+            "/api/image/",
+            data={"includes_people": [includes_person.pk], "excludes_pets": [exclude_pet.pk]},
+        )
+        assert resp.status_code == HTTPStatus.OK
+
+        # TODO: Image 4 does not include the pet box, that should be fixed and 4 removed
+        assert resp.json() == [2, 3, 4]
+
+    def test_get_images_filter_include_location(self, client: Client):
+        """
+        Test getting all images with include location
+        """
+        include_location = RoughLocation.objects.get(pk=1)
+
+        assert include_location is not None
+
+        resp = client.get(
+            "/api/image/",
+            data={"includes_locations": [include_location.pk]},
+        )
+        assert resp.status_code == HTTPStatus.OK
+
+        assert resp.json() == [1, 2, 3]
+
+    def test_get_images_filter_include_and_exclude_location(self, client: Client):
+        """
+        Test getting all images with include location and exclude location
+        """
+        include_location = RoughLocation.objects.get(pk=1)
+        exclude_location = RoughLocation.objects.get(pk=2)
+
+        assert include_location is not None
+
+        resp = client.get(
+            "/api/image/",
+            data={"includes_locations": [include_location.pk], "excludes_locations": [exclude_location.pk]},
+        )
+        assert resp.status_code == HTTPStatus.OK
+
+        assert resp.json() == [1, 2, 3]
 
 
 @pytest.mark.usefixtures("sample_image_environment")

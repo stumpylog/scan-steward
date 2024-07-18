@@ -1,13 +1,11 @@
 from typing import Annotated
+from typing import TypeVar
 
-from ninja import Schema
 from pydantic import BeforeValidator
 
-CommaToStrList = Annotated[
-    list[str],
-    BeforeValidator(lambda x: x.split(",")),
+T = TypeVar("T")
+
+CommaSepIntList = Annotated[
+    list[T],
+    BeforeValidator(lambda x: [int(v) for v in (v.strip() for v in x.split(",")) if v]),
 ]
-
-
-class BasicFilterSchema(Schema):
-    ids: CommaToStrList | None = None
