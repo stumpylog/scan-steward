@@ -1,0 +1,50 @@
+<div class="modal-header">
+  <h4 class="modal-title" id="modal-basic-title">Edit Person</h4>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="activeModal.dismiss('Cross click')"
+  ></button>
+</div>
+<div class="modal-body">
+  <form [formGroup]="personForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label for="name" class="form-label">Name</label>
+      <input
+        type="text"
+        class="form-control"
+        id="name"
+        formControlName="name"
+        placeholder="Enter name"
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea
+        class="form-control"
+        id="description"
+        rows="3"
+        formControlName="description"
+        placeholder="Enter description (optional)"
+      ></textarea>
+    </div>
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn btn-outline-dark"
+        (click)="activeModal.dismiss('Save click')"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="personForm.invalid"
+      >
+        Save
+      </button>
+    </div>
+  </form>
+</div>

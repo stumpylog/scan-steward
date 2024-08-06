@@ -60,7 +60,10 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
             for file_generator in [path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS]:
                 for filename in file_generator:
                     self.stdout.write(self.style.SUCCESS(f"Indexing {filename.name}"))
-                    self.handle_single_image(filename)
+                    try:
+                        self.handle_single_image(filename)
+                    except KeyboardInterrupt:
+                        break
 
     def handle_single_image(self, image_path: Path) -> None:
         """
@@ -363,6 +366,8 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
             year_node = date_and_time_tree.Children[0]
             month = 1
             month_valid = False
+            day = 1
+            day_valid = False
             if len(year_node.Children) > 0:
                 month_node = year_node.Children[0]
                 day = 1

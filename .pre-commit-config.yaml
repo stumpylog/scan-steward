@@ -36,21 +36,30 @@ repos:
         exclude_types:
           - pofile
           - json
+  # Web dev hooks
   # See https://github.com/prettier/prettier/issues/15742 for the fork reason
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: "v3.3.3"
     hooks:
       - id: prettier
         types_or:
-          - javascript
-          - ts
           - markdown
           - json
           - html
+          - css
+          - yaml
         exclude: "(Pipfile\\.lock)|(^src-docs/docs/roadmap.md)"
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v0.4.0"
+    hooks:
+      - id: biome-format
+        types_or:
+          - ts
+          - javascript
+        additional_dependencies: ["@biomejs/biome@1.8.3"]
   # Python hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.5.2"
+    rev: "v0.5.7"
     hooks:
       # Run the linter.
       - id: ruff

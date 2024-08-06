@@ -33,6 +33,7 @@ DEBUG = get_django_settings().debug
 
 ALLOWED_HOSTS: list[str] = []
 
+NINJA_PAGINATION_PER_PAGE: int = 50
 
 # Application definition
 

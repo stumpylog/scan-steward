@@ -1,0 +1,38 @@
+/* tslint:disable */
+/* eslint-disable */
+import { HttpClient, HttpContext, HttpResponse } from "@angular/common/http";
+import { Observable } from "rxjs";
+import { filter, map } from "rxjs/operators";
+import { StrictHttpResponse } from "../../strict-http-response";
+import { RequestBuilder } from "../../request-builder";
+
+import { PagedRoughDateReadSchema } from "../../models/paged-rough-date-read-schema";
+
+export interface GetRoughDates$Params {
+	page?: number;
+}
+
+export function getRoughDates(
+	http: HttpClient,
+	rootUrl: string,
+	params?: GetRoughDates$Params,
+	context?: HttpContext,
+): Observable<StrictHttpResponse<PagedRoughDateReadSchema>> {
+	const rb = new RequestBuilder(rootUrl, getRoughDates.PATH, "get");
+	if (params) {
+		rb.query("page", params.page, {});
+	}
+
+	return http
+		.request(
+			rb.build({ responseType: "json", accept: "application/json", context }),
+		)
+		.pipe(
+			filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
+			map((r: HttpResponse<any>) => {
+				return r as StrictHttpResponse<PagedRoughDateReadSchema>;
+			}),
+		);
+}
+
+getRoughDates.PATH = "/api/date/";

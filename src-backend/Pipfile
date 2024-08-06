@@ -15,7 +15,7 @@ pydantic-extra-types = "*"
 # Other
 blake3 = "*"
 orjson = "*"
-typing-extensions = { version = "*", markers="python_version < '3.11'"}
+typing-extensions = "*"
 imagehash = "*"
 simpleiso3166 = { version = "*", extras = ["search"] }
 # Server
@@ -39,7 +39,6 @@ faker = "*"
 # Maybe replace faker, but doesn't support pytest 8
 # mimesis = { version = "~=17.0", extras = ["pytest"] }
 # Linting
-black = "*"
 ruff = "*"
 codespell = "*"
 # Typing

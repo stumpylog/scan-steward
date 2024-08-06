@@ -1,0 +1,69 @@
+<!-- dashboard.component.html -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/">Scan Steward</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- TODO: This doesn't work if it collapses -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="nav nav-pills">
+        <li class="nav-item active">
+          <a class="nav-link" routerLink="/photos"
+            ><i class="bi-collection"></i>Photos</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/people"
+            ><i class="bi-person-rolodex"></i>People</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/locations"
+            ><i class="bi-pin-map"></i>Locations</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dates"
+            ><i class="bi-calendar-date"></i>Dates</a
+          >
+        </li>
+      </ul>
+
+      <div class="ml-auto mr-4"></div>
+      <!-- add a bar to separate the dropdown from the nav links -->
+    </div>
+
+    <div
+      class="btn-group me-3 ml-auto"
+      ngbDropdown
+      role="group"
+      aria-label="Button group with nested dropdown"
+    >
+      <button type="button" class="btn btn-outline-success" ngbDropdownToggle>
+        <i class="bi-gear"></i>
+      </button>
+      <div class="dropdown-menu dropdown-menu-end" ngbDropdownMenu>
+        <button ngbDropdownItem>
+          <a class="nav-link" routerLink="/profile"
+            ><i class="bi-person-badge"></i>Profile</a
+          >
+        </button>
+        <button ngbDropdownItem>
+          <a class="nav-link" routerLink="/logout"
+            ><i class="bi-box-arrow-down-right"></i>Logout</a
+          >
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
