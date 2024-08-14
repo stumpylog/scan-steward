@@ -138,6 +138,8 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
         with Image.open(image_path) as im_file:
             im_file.save(new_img.full_size_path, quality=90)
 
+        del img_copy, im_file
+
         # Update the file hashes, now that the files exist
         self.update_image_hash(new_img, hash_threads=self.hash_threads)
 
@@ -222,8 +224,10 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
                 existing_node, _ = Tag.objects.get_or_create(
                     name=tree_node.Keyword,
                     parent=parent,
-                    applied=tree_node.Applied or not tree_node.Children,
                 )
+                # This may change if a tag is applied
+                existing_node.applied = tree_node.Applied or not tree_node.Children
+                existing_node.save()
                 # If this is applied or there are no children, tag it
                 if existing_node.applied or not tree_node.Children:
                     image_instance.tags.add(existing_node)
@@ -241,8 +245,9 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
                 existing_root_tag, _ = Tag.objects.get_or_create(
                     name=keyword.Keyword,
                     parent=None,
-                    applied=False if keyword.Applied is None else keyword.Applied,
                 )
+                existing_root_tag.applied = False if keyword.Applied is None else keyword.Applied
+                existing_root_tag.save()
 
                 if keyword.Applied or not keyword.Children:
                     new_image.tags.add(existing_root_tag)

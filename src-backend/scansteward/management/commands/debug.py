@@ -1,19 +1,46 @@
-from pathlib import Path
-
 from django.core.management.base import BaseCommand
 
-from scansteward.imageops.metadata import read_image_metadata
-from scansteward.imageops.metadata import write_image_metadata
+
+def merge_tree(data):
+    """Merges child nodes and removes duplicate keywords while preserving structure.
+
+    Args:
+      data: The input dictionary.
+
+    Returns:
+      The modified dictionary.
+    """
+
+    seen_keywords = set()
+
+    def helper(node):
+        children = node.get("Children", [])
+        filtered_children = []
+        for child in children:
+            helper(child)
+            if child["Keyword"] not in seen_keywords:
+                seen_keywords.add(child["Keyword"])
+                filtered_children.append(child)
+        node["Children"] = filtered_children
+
+    helper(data)
+    return data
 
 
 class Command(BaseCommand):
     help = "Debug command to do stuff"
 
     def handle(self, *args, **options) -> None:
-        file = Path(__file__).parent.parent.parent / "tests" / "samples" / "images" / "sample1.jpg"
-        assert file.exists()
-        assert file.is_file()
+        data = {
+            "Children": [
+                {"Children": [], "Keyword": "Outdoors"},
+                {
+                    "Children": [{"Children": [], "Keyword": "Mountains"}],
+                    "Keyword": "Outdoors",
+                },
+            ],
+            "Keyword": "Themes",
+        }
 
-        metadata = read_image_metadata(file)
-
-        write_image_metadata(metadata)
+        result = merge_tree(data)
+        print(result)

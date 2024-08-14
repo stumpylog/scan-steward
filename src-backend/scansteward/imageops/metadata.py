@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import tempfile
+from collections import defaultdict
 from datetime import datetime
 from datetime import timezone
 from pathlib import Path
@@ -61,6 +62,39 @@ def remove_duplicate_children(root: KeywordStruct):
     root.Children = list(set(root.Children))
 
 
+def combine_same_keywords(root: KeywordStruct) -> KeywordStruct:
+    if not root.Children:
+        return root
+
+    # Group children by their "Keyword"
+    groups: dict[str, list[KeywordStruct]] = defaultdict(list)
+    for child in root.Children:
+        groups[child.Keyword].append(child)
+
+    merged_children: list[KeywordStruct] = []
+    for keyword in groups:
+        nodes = groups[keyword]
+        if len(nodes) == 1:
+            merged_children.append(combine_same_keywords(nodes[0]))
+        else:
+            # Merge children of nodes with the same keyword
+            merged_node = KeywordStruct(Keyword=keyword)
+            all_children = []
+            for node in nodes:
+                if node.Children:
+                    all_children.extend(node.Children)
+
+            if all_children:
+                merged_node.Children = all_children
+                # Recursively merge the children of the merged node
+                merged_children.append(combine_same_keywords(merged_node))
+            else:
+                merged_children.append(merged_node)
+
+    root.Children = merged_children
+    return root
+
+
 def combine_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
     """
     Reads the various other possible keyword values, and generates a tree from them,
@@ -96,6 +130,7 @@ def combine_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
 
     for keyword in keywords:
         remove_duplicate_children(keyword)
+        combine_same_keywords(keyword)
 
     # Assign the parsed flat keywords in as well
     if not keywords:
