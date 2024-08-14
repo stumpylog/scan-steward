@@ -1,0 +1,56 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    // Django specific
+    {
+      "name": "runserver",
+      "type": "debugpy",
+      "request": "launch",
+      "args": ["runserver"],
+      "django": true,
+      "autoStartBrowser": false,
+      "program": "${workspaceFolder}\\manage.py"
+    },
+    {
+      "name": "migrate",
+      "type": "debugpy",
+      "request": "launch",
+      "args": ["migrate"],
+      "django": true,
+      "autoStartBrowser": false,
+      "program": "${workspaceFolder}\\manage.py"
+    },
+    {
+      "name": "makemigrations",
+      "type": "debugpy",
+      "request": "launch",
+      "args": ["makemigrations"],
+      "django": true,
+      "autoStartBrowser": false,
+      "program": "${workspaceFolder}\\manage.py"
+    },
+    {
+      "name": "management debug",
+      "type": "debugpy",
+      "request": "launch",
+      "args": ["debug"],
+      "console": "integratedTerminal",
+      "django": true,
+      "autoStartBrowser": false,
+      "program": "${workspaceFolder}\\manage.py"
+    },
+    {
+      "name": "management index",
+      "type": "debugpy",
+      "request": "launch",
+      "args": ["index", "D:\\Pictures\\Scans\\Grandma's\\Carousel_15 (Germany Sept-Oct 1973)"],
+      "console": "integratedTerminal",
+      "django": true,
+      "autoStartBrowser": false,
+      "program": "${workspaceFolder}\\manage.py"
+    }
+  ]
+}
