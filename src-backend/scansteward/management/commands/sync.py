@@ -24,7 +24,7 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
     ):
         paginator = Paginator(
             ImageModel.objects.filter(is_dirty=True)
-            .filter(in_trash=False)
+            .filter(deleted_at__isnull=True)
             .order_by("pk")
             .prefetch_related("location", "date", "people", "pets", "tags")
             .all(),

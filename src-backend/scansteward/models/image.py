@@ -101,9 +101,10 @@ class Image(AbstractTimestampMixin, models.Model):
         help_text="The metadata is dirty and needs to be synced to the file",
     )
 
-    in_trash = models.BooleanField(
-        default=False,
-        help_text="The image is in the trash and needs to be deleted from the file system on scheduled run",
+    deleted_at = models.DateTimeField(
+        default=None,
+        null=True,
+        help_text="Date the image was deleted or None if it has not been",
     )
 
     is_starred = models.BooleanField(

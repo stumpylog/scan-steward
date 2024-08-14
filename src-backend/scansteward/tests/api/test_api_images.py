@@ -3,6 +3,7 @@ from http import HTTPStatus
 
 import pytest
 from django.test.client import Client
+from django.utils import timezone
 
 from scansteward.imageops.models import RotationEnum
 from scansteward.models import Image
@@ -340,16 +341,6 @@ class TestImageUpdateApi:
 
 @pytest.mark.usefixtures("sample_image_environment")
 @pytest.mark.django_db()
-class TestImageCreateApi(DirectoriesMixin):
-    def test_add_faces_to_image(self):
-        pass
-
-    def test_add_pet_box_to_image(self):
-        pass
-
-
-@pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
 class TestImageDeleteApi(DirectoriesMixin):
     def test_delete_face_from_image(self, client: Client):
         image = Image.objects.first()
@@ -464,3 +455,34 @@ class TestImageDeleteApi(DirectoriesMixin):
         assert PetInImage.objects.count() == initial_pet_box_count
         assert Pet.objects.count() == initial_pet_count
         assert Person.objects.count() == initial_people_count
+
+    def test_image_restore_but_not_deleted(self, client: Client):
+        image = Image.objects.first()
+        assert image is not None
+
+        resp = client.patch(f"/api/image/{image.pk}/restore/")
+        assert resp.status_code == HTTPStatus.CONFLICT
+
+        image.refresh_from_db()
+
+        assert image.deleted_at is None
+
+    def test_image_delete_and_restore(self, client: Client):
+        image = Image.objects.last()
+        assert image is not None
+
+        resp = client.delete(f"/api/image/{image.pk}/delete/")
+        assert resp.status_code == HTTPStatus.NO_CONTENT
+
+        image.refresh_from_db()
+
+        assert image.deleted_at is not None
+        assert image.deleted_at.timestamp() == pytest.approx(
+            timezone.now().timestamp(),
+            rel=datetime.timedelta(seconds=1).total_seconds(),
+        )
+
+        resp = client.patch(f"/api/image/{image.pk}/restore/")
+
+        image.refresh_from_db()
+        assert image.deleted_at is None

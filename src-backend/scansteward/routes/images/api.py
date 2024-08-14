@@ -6,6 +6,7 @@ from django.http import FileResponse
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.decorators.http import condition
 from ninja import Router
 from ninja.decorators import decorate_view
@@ -13,6 +14,7 @@ from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
 from scansteward.common.constants import WEBP_CONTENT_TYPE
+from scansteward.common.errors import HttpConflictError
 from scansteward.models import Image
 from scansteward.models import Person
 from scansteward.models import PersonInImage
@@ -53,7 +55,12 @@ def get_all_images(
     """
     Get all images, filtered as requested
     """
-    qs = Image.objects.all().select_related("location").prefetch_related("people", "pets")
+    qs = (
+        Image.objects.all()
+        .filter(deleted_at__isnull=True)
+        .select_related("location")
+        .prefetch_related("people", "pets")
+    )
 
     if includes_people:
         qs = qs.filter(people__id__in=includes_people)
@@ -140,6 +147,56 @@ def get_image_original(request: HttpRequest, image_id: int):
         mimetype = "image/jpeg"
 
     return FileResponse(img.original_path.open(mode="rb"), content_type=mimetype)
+
+
+@router.delete(
+    "/{image_id}/delete/",
+    response={HTTPStatus.NO_CONTENT: None},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+    operation_id="delete_image",
+)
+async def delete_image(request: HttpRequest, image_id: int):
+    img: Image = await aget_object_or_404(Image, id=image_id)
+
+    img.deleted_at = timezone.now()
+
+    await img.asave()
+
+    return HTTPStatus.NO_CONTENT, None
+
+
+@router.patch(
+    "/{image_id}/restore/",
+    response={HTTPStatus.NO_CONTENT: None},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+            HTTPStatus.CONFLICT: {
+                "description": "The image was not previously deleted",
+            },
+        },
+    },
+    operation_id="restore_image",
+)
+async def restore_image(request: HttpRequest, image_id: int):
+    img: Image = await aget_object_or_404(Image, id=image_id)
+
+    if img.deleted_at is None:
+        raise HttpConflictError(f"Image {image_id} was not previously deleted")
+
+    img.deleted_at = None
+
+    await img.asave()
+
+    return HTTPStatus.NO_CONTENT, None
 
 
 @router.get(

@@ -47,9 +47,17 @@ class TestApiTagRead:
         assert resp.status_code == HTTPStatus.OK
         data = resp.json()
         assert data["count"] == count
-        assert len(data["items"]) == 100
+        assert len(data["items"]) == 50
 
         page = 2
+        resp = client.get(f"/api/tag/?page={page}")
+
+        assert resp.status_code == HTTPStatus.OK
+        data = resp.json()
+        assert data["count"] == count
+        assert len(data["items"]) == 50
+
+        page = 3
         resp = client.get(f"/api/tag/?page={page}")
 
         assert resp.status_code == HTTPStatus.OK
