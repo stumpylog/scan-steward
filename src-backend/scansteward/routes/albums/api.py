@@ -33,10 +33,14 @@ router = Router(tags=["albums"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_all_albums")
+@router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_albums")
 @paginate(PageNumberPagination)
-def get_albums(request: HttpRequest):
-    return Album.objects.all()
+def get_albums(request: HttpRequest, name_like: str | None = None):
+    qs = Album.objects.all()
+    if name_like is not None:
+        qs = qs.filter(name__icontains=name_like)
+
+    return qs
 
 
 @router.get(

@@ -6,6 +6,8 @@ from django.shortcuts import aget_object_or_404
 from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
+from simpleiso3166.countries.types import CountryCodeAlpha2Type
+from simpleiso3166.subdivisions.types import SubdivisionCodeType
 
 from scansteward.common.errors import HttpBadRequestError
 from scansteward.common.errors import HttpConflictError
@@ -22,8 +24,23 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[LocationReadSchema], operation_id="get_locations")
 @paginate(PageNumberPagination)
-def get_all_locations(request: HttpRequest):
-    return RoughLocation.objects.all()
+def get_all_locations(
+    request: HttpRequest,
+    country_code: CountryCodeAlpha2Type | None = None,
+    subdivision_code: SubdivisionCodeType | None = None,
+    city_like: str | None = None,
+    shown_location_like: str | None = None,
+):
+    qs = RoughLocation.objects.all()
+    if country_code is not None:
+        qs = qs.filter(country_code=country_code)
+    if subdivision_code is not None:
+        qs = qs.filter(subdivision_code=subdivision_code)
+    if city_like:
+        qs = qs.filter(city__icontains=city_like)
+    if shown_location_like:
+        qs = qs.filter(sub_location__icontains=shown_location_like)
+    return qs
 
 
 @router.get(

@@ -47,9 +47,6 @@ async def get_single_rough_date(request: HttpRequest, date_id: int):
     response={HTTPStatus.CREATED: RoughDateReadSchema},
     openapi_extra={
         "responses": {
-            HTTPStatus.NOT_FOUND: {
-                "description": "Not Found Response",
-            },
             HTTPStatus.BAD_REQUEST: {
                 "description": "Date Already Exists",
             },

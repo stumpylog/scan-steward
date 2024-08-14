@@ -150,7 +150,7 @@ class TestImageReadWithFiltersApi:
         resp = client.get("/api/image/", data={"includes_people": [person.pk]})
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == [3]
+        assert resp.json() == {"count": 1, "items": [3]}
 
     def test_get_images_filter_includes_people(self, client: Client):
         """
@@ -167,7 +167,7 @@ class TestImageReadWithFiltersApi:
         resp = client.get("/api/image/", data={"includes_people": [barak.pk, hrc.pk]})
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == [3]
+        assert resp.json() == {"count": 1, "items": [3]}
 
     def test_get_images_filter_include_and_exclude_people(self, client: Client):
         """
@@ -187,7 +187,7 @@ class TestImageReadWithFiltersApi:
         )
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == [1, 2, 4]
+        assert resp.json() == {"count": 3, "items": [1, 2, 4]}
 
     def test_get_images_filter_include_person_include_pet(self, client: Client):
         """
@@ -208,7 +208,7 @@ class TestImageReadWithFiltersApi:
         assert resp.status_code == HTTPStatus.OK
 
         # TODO: Image 4 does not include the pet box, that should be fixed
-        assert resp.json() == [1]
+        assert resp.json() == {"count": 1, "items": [1]}
 
     def test_get_images_filter_include_person_exclude_pet(self, client: Client):
         """
@@ -229,7 +229,7 @@ class TestImageReadWithFiltersApi:
         assert resp.status_code == HTTPStatus.OK
 
         # TODO: Image 4 does not include the pet box, that should be fixed and 4 removed
-        assert resp.json() == [2, 3, 4]
+        assert resp.json() == {"count": 3, "items": [2, 3, 4]}
 
     def test_get_images_filter_include_location(self, client: Client):
         """
@@ -245,7 +245,7 @@ class TestImageReadWithFiltersApi:
         )
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == [1, 2, 3]
+        assert resp.json() == {"count": 3, "items": [1, 2, 3]}
 
     def test_get_images_filter_include_and_exclude_location(self, client: Client):
         """
@@ -262,7 +262,7 @@ class TestImageReadWithFiltersApi:
         )
         assert resp.status_code == HTTPStatus.OK
 
-        assert resp.json() == [1, 2, 3]
+        assert resp.json() == {"count": 3, "items": [1, 2, 3]}
 
 
 @pytest.mark.usefixtures("sample_image_environment")

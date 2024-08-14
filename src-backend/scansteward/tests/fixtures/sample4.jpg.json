@@ -1,5 +1,5 @@
 {
-  "SourceFile": "scansteward\\tests\\samples\\images\\originals\\sample4.jpg",
+  "SourceFile": "scansteward/tests/samples/images/originals/sample4.jpg",
   "ImageHeight": 436,
   "ImageWidth": 654,
   "Title": null,

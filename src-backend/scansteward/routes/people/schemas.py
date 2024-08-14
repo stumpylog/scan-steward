@@ -1,6 +1,5 @@
 import sys
 
-from ninja import FilterSchema
 from ninja import Schema
 from pydantic import model_validator
 
@@ -40,7 +39,3 @@ class PersonUpdateSchema(Schema):
         if self.name is None and self.description is None:
             raise ValueError("At least one of name or description must be set")  # noqa: TRY003, EM101
         return self
-
-
-class PersonNameFilter(FilterSchema):
-    name: str | None = None

@@ -3,7 +3,6 @@ from http import HTTPStatus
 
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
-from ninja import Query
 from ninja import Router
 from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
@@ -11,7 +10,6 @@ from ninja.pagination import paginate
 from scansteward.common.errors import HttpConflictError
 from scansteward.models import Person
 from scansteward.routes.people.schemas import PersonCreateSchema
-from scansteward.routes.people.schemas import PersonNameFilter
 from scansteward.routes.people.schemas import PersonReadSchema
 from scansteward.routes.people.schemas import PersonUpdateSchema
 
@@ -22,8 +20,12 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[PersonReadSchema], operation_id="get_people")
 @paginate(PageNumberPagination)
-def get_all_people(request: HttpRequest, name_filter: Query[PersonNameFilter]):
-    return Person.objects.filter(name_filter.get_filter_expression()).all()
+def get_all_people(request: HttpRequest, name_like: str | None = None):
+    qs = Person.objects.all()
+    if name_like is not None:
+        qs = qs.filter(name__icontains=name_like)
+
+    return qs
 
 
 @router.get(

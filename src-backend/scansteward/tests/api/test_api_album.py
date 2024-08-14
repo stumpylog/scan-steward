@@ -29,10 +29,7 @@ class TestApiAlbumRead:
 
         assert resp.status_code == HTTPStatus.OK
 
-        data = resp.json()
-
-        assert data["count"] == 0
-        assert len(data["items"]) == 0
+        assert resp.json() == {"count": 0, "items": []}
 
     def test_read_albums(self, client: Client, faker: Faker):
         """
@@ -55,11 +52,10 @@ class TestApiAlbumRead:
 
         assert resp.status_code == HTTPStatus.OK
 
-        data = resp.json()
-
-        assert data["count"] == count
-        assert len(data["items"]) == count
-        assert names == [x["name"] for x in data["items"]]
+        assert resp.json() == {
+            "count": count,
+            "items": [{"description": None, "id": idx + 1, "name": name} for idx, name in enumerate(names)],
+        }
 
     def test_get_single_album(self, client: Client, faker: Faker):
         instance = Album.objects.create(name=faker.unique.name())
@@ -68,6 +64,34 @@ class TestApiAlbumRead:
 
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["name"] == instance.name
+
+    @pytest.mark.parametrize(
+        ("last_idx",),  # noqa: PT006
+        [
+            (-1,),
+            (-2,),
+            (-3,),
+            (-8,),
+        ],
+    )
+    def test_get_filtered_albums(self, client: Client, faker: Faker, last_idx: int):
+        name = faker.unique.name()
+
+        Album.objects.create(name=name)
+
+        resp = client.get("/api/album/", data={"name_like": name[:last_idx]})
+
+        assert resp.status_code == HTTPStatus.OK
+        assert resp.json() == {
+            "count": 1,
+            "items": [
+                {
+                    "description": None,
+                    "id": 1,
+                    "name": "Norma Fisher",
+                },
+            ],
+        }
 
 
 @pytest.mark.django_db()

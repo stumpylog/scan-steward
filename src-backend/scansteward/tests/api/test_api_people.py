@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from random import choice
 
 import pytest
 from django.test.client import Client
@@ -88,6 +89,25 @@ class TestApiPeopleRead:
 
         assert data["count"] == count
         assert len(data["items"]) == 0
+
+    def test_list_people_name_like(self, client: Client, person_db_factory: PersonGeneratorProtocol):
+        count = 5
+        ids = []
+        for _ in range(count):
+            ids.append(person_db_factory())  # noqa: PERF401
+
+        check_id = choice(ids)  # noqa: S311
+        name = Person.objects.get(pk=check_id).name
+
+        resp = client.get(
+            "/api/person/",
+            data={"name_like": name},
+        )
+
+        data = resp.json()
+
+        assert data["count"] == 1
+        assert data["items"][0]["name"] == name
 
 
 @pytest.mark.django_db()

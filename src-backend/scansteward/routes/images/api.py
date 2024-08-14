@@ -8,8 +8,9 @@ from django.shortcuts import aget_object_or_404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import condition
 from ninja import Router
-from ninja import Schema
 from ninja.decorators import decorate_view
+from ninja.pagination import PageNumberPagination
+from ninja.pagination import paginate
 
 from scansteward.common.constants import WEBP_CONTENT_TYPE
 from scansteward.models import Image
@@ -38,11 +39,8 @@ router = Router(tags=["images"])
 logger = logging.getLogger(__name__)
 
 
-class PeopleQueryParams(Schema):
-    ids: list[int] | None = None
-
-
-@router.get("", operation_id="get_image_thumbnail")
+@router.get("", response=list[int], operation_id="get_all_images")
+@paginate(PageNumberPagination)
 def get_all_images(
     request: HttpRequest,
     includes_people: CommaSepIntList | None = None,
@@ -70,7 +68,7 @@ def get_all_images(
     if excludes_locations:
         qs = qs.exclude(location__id__in=excludes_locations)
 
-    return list(qs.values_list("id", flat=True))
+    return qs.only("pk").all().values_list("pk", flat=True)
 
 
 @router.get(

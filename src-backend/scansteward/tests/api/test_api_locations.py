@@ -161,6 +161,71 @@ class TestReadLocation:
         assert data["items"][1]["id"] == id1
         assert data["items"][0]["id"] == id2
 
+    def test_read_locations_filtered(self, client: Client, location_db_factory: LocationGeneratorProtocol):
+        id1 = location_db_factory(
+            "US",
+            "US-CA",
+            "San Francisco",
+            "Golden Gate Bridge",
+        )
+        id2 = location_db_factory(
+            "US",
+            "US-CA",
+            "Los Angeles",
+            "Grand Central Market",
+        )
+
+        resp = client.get("/api/location/", data={"country_code": "US"})
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == 2
+        # Checks ordering as well
+        assert data["items"][1]["id"] == id1
+        assert data["items"][0]["id"] == id2
+
+        # TODO: Parameterize this or split it
+
+        resp = client.get("/api/location/", data={"subdivision_code": "US-CA"})
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == 2
+        assert data["items"][1]["id"] == id1
+        assert data["items"][0]["id"] == id2
+
+        resp = client.get("/api/location/", data={"city": "US-CA"})
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == 2
+        assert data["items"][1]["id"] == id1
+        assert data["items"][0]["id"] == id2
+
+        resp = client.get("/api/location/", data={"city_like": "San Fran"})
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == 1
+        assert data["items"][0]["id"] == id1
+
+        resp = client.get("/api/location/", data={"shown_location_like": "grand"})
+
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data["count"] == 1
+        assert data["items"][0]["id"] == id2
+
 
 @pytest.mark.django_db()
 class TestUpdateLocation:
