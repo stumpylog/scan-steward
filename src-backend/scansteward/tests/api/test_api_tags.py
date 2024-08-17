@@ -9,7 +9,7 @@ from scansteward.tests.api.types import ChildTagGeneratorProtocol
 from scansteward.tests.api.types import TagGeneratorProtocol
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiTagRead:
     def test_get_single_tag_not_found(self, client: Client):
         resp = client.get("/api/tag/1/")
@@ -98,7 +98,7 @@ class TestApiTagRead:
                     assert len(child["children"]) == 1
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiTagCreate:
     def test_create_tag_no_parent(self, client: Client, faker: Faker):
         tag_name = faker.country()
@@ -157,7 +157,7 @@ class TestApiTagCreate:
         assert resp.status_code == HTTPStatus.BAD_REQUEST
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiTagUpdate:
     def test_update_tag_name(self, client: Client, faker: Faker, root_tag_db_factory: TagGeneratorProtocol):
         instance: Tag = Tag.objects.get(pk=root_tag_db_factory())
@@ -216,7 +216,7 @@ class TestApiTagUpdate:
         assert root.description is not None
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiTagDelete:
     def test_delete_single_tag(self, client: Client, root_tag_db_factory: TagGeneratorProtocol):
         root: Tag = Tag.objects.get(pk=root_tag_db_factory())

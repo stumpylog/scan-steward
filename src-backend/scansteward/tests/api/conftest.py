@@ -186,4 +186,4 @@ def child_tag_db_factory(faker: Faker) -> ChildTagGeneratorProtocol:
 
 @pytest.fixture(scope="session")
 def date_today_utc() -> datetime.date:
-    return datetime.datetime.now(tz=datetime.timezone.utc).date()
+    return datetime.datetime.now(tz=datetime.UTC).date()

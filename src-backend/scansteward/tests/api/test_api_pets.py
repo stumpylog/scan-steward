@@ -9,7 +9,7 @@ from scansteward.tests.api.types import PetApiGeneratorProtocol
 from scansteward.tests.api.types import PetGeneratorProtocol
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPetsRead:
     def test_get_pets_with_no_pets(self, client: Client):
         resp = client.get(
@@ -86,7 +86,7 @@ class TestApiPetsRead:
         assert len(data["items"]) == 0
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPetsCreate:
     def test_create_pet(self, faker: Faker, pet_api_create_factory: PetApiGeneratorProtocol):
         pet_name = faker.name()
@@ -142,7 +142,7 @@ class TestApiPetsCreate:
         assert Pet.objects.count() == 1
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPetsUpdate:
     def test_update_pet_name(self, client: Client, faker: Faker, pet_db_factory: PetGeneratorProtocol):
         instance: Pet = Pet.objects.get(pk=pet_db_factory())
@@ -196,7 +196,7 @@ class TestApiPetsUpdate:
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPetsDelete:
     def test_delete_pet(self, client: Client, pet_db_factory: PetGeneratorProtocol):
         instance: Pet = Pet.objects.get(pk=pet_db_factory())

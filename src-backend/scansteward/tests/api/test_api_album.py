@@ -12,7 +12,7 @@ from scansteward.models import Image
 from scansteward.tests.api.types import AlbumApiGeneratorProtocol
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiAlbumRead:
     def test_read_no_albums(self, client: Client) -> None:
         """
@@ -94,7 +94,7 @@ class TestApiAlbumRead:
         }
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiAlbumCreate:
     def test_create_album(self, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
@@ -123,7 +123,7 @@ class TestApiAlbumCreate:
         assert Album.objects.get(id=data["id"]).images.count() == 0
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiAlbumUpdate:
     def test_update_album(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
@@ -206,7 +206,7 @@ class TestApiAlbumUpdate:
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiAlbumDelete:
     def test_delete_album(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
@@ -228,7 +228,7 @@ class TestApiAlbumDelete:
 
 
 @pytest.mark.usefixtures("sample_image_database")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiAlbumImages:
     def test_add_single_image(self, client: Client, faker: Faker, album_api_create_factory: AlbumApiGeneratorProtocol):
         album_name = faker.unique.name()
@@ -432,7 +432,7 @@ class TestApiAlbumImages:
 
 
 @pytest.mark.usefixtures("sample_image_database")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiAlbumSorting:
     def test_update_sorting_reversed(
         self,
@@ -579,7 +579,7 @@ class TestApiAlbumSorting:
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiAlbumDownload:
     def download_test_common(
         self,

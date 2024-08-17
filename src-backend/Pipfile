@@ -10,6 +10,7 @@ django-typer = { version = "~=2.1", extras = ["rich"] }
 huey = "~=2.5"
 redis = { version = "~=5.0", extras = ["hiredis"] }
 # Settings
+pydantic = { version = "*", extras = ["email"] }
 pydantic-settings = "~=2.3"
 pydantic-extra-types = "*"
 # Other

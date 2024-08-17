@@ -13,7 +13,7 @@ from scansteward.models import Pet
 from scansteward.models import Tag
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestIndexCommand:
     def test_call_command_no_files(self, tmp_path: Path):
         call_command("index", str(tmp_path))

@@ -13,7 +13,7 @@ from scansteward.routes.locations.utils import subdivision_in_country
 if sys.version_info > (3, 11):
     from typing import Self
 else:
-    from typing_extensions import Self
+    from typing import Self
 
 
 class LocationCreateSchema(Schema):

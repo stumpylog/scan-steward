@@ -18,7 +18,7 @@ from scansteward.tests.mixins import FileSystemAssertsMixin
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestImageFileReads(FileSystemAssertsMixin):
     def test_image_generated_files_match(self, client: Client):
         img = Image.objects.first()
@@ -70,7 +70,7 @@ class TestImageFileReads(FileSystemAssertsMixin):
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestImageReadApi:
     def test_get_image_faces(self, client: Client):
         img = Image.objects.last()
@@ -138,7 +138,7 @@ class TestImageReadApi:
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestImageReadWithFiltersApi:
     def test_get_images_filter_includes_person(self, client: Client):
         """
@@ -267,7 +267,7 @@ class TestImageReadWithFiltersApi:
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestImageUpdateApi:
     def test_update_face_bounding_box(self, client: Client):
         image = Image.objects.last()
@@ -340,7 +340,7 @@ class TestImageUpdateApi:
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestImageDeleteApi(DirectoriesMixin):
     def test_delete_face_from_image(self, client: Client):
         image = Image.objects.first()

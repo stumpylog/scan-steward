@@ -50,7 +50,7 @@ class Command(KeywordNameMixin, ImageHasherMixin, TyperCommand):
                 if updated:
                     metadata_items.append(metadata)
 
-            except Exception:  # noqa: PERF203
+            except Exception:
                 # Log the error with relevant image details
                 logger.exception(f"Failed to process metadata for image {image.original_path}")
 

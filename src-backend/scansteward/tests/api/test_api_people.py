@@ -9,7 +9,7 @@ from scansteward.models import Person
 from scansteward.tests.api.types import PersonGeneratorProtocol
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPeopleRead:
     def test_get_people_with_no_people(self, client: Client):
         Person.objects.all().delete()
@@ -110,7 +110,7 @@ class TestApiPeopleRead:
         assert data["items"][0]["name"] == name
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPeopleCreate:
     def test_create_person(self, client: Client, faker: Faker):
         person_name = faker.name()
@@ -188,7 +188,7 @@ class TestApiPeopleCreate:
         assert Person.objects.count() == 1
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPeopleUpdate:
     def test_update_person_name(self, client: Client, faker: Faker, person_db_factory: PersonGeneratorProtocol):
         person_db_factory()
@@ -241,7 +241,7 @@ class TestApiPeopleUpdate:
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiPeopleDelete:
     def test_delete_person(self, client: Client, person_db_factory: PersonGeneratorProtocol):
         person_db_factory()

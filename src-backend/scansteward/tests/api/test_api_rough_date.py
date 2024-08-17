@@ -8,7 +8,7 @@ from scansteward.models import RoughDate
 from scansteward.tests.api.types import DateGeneratorProtocol
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiRoughDateCreate:
     def test_create_rough_date_all_valid(self, client: Client, date_today_utc: datetime.date):
         resp = client.post(
@@ -86,7 +86,7 @@ class TestApiRoughDateCreate:
         assert resp.status_code == HTTPStatus.CONFLICT
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiRoughDateRead:
     def test_read_no_dates(self, client: Client):
         resp = client.get(
@@ -143,7 +143,7 @@ class TestApiRoughDateRead:
         }
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiRoughDateUpdate:
     def test_update_rough_date_date(
         self,
@@ -239,7 +239,7 @@ class TestApiRoughDateUpdate:
         assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestApiRoughDateDelete:
     def test_delete_rough_date(self, client: Client, date_db_factory: DateGeneratorProtocol):
         date = RoughDate.objects.get(pk=date_db_factory())

@@ -6,7 +6,7 @@ from scansteward.models import RoughDate
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestSyncCommand:
     def test_sync_command(self):
         img = Image.objects.get(pk=1)

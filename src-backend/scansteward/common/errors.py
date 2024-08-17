@@ -28,3 +28,12 @@ class HttpUnprocessableEntityError(HttpError):
 
     def __init__(self, message: str) -> None:
         super().__init__(HTTPStatus.UNPROCESSABLE_ENTITY, message)
+
+
+class HttpNotAuthorizedError(HttpError):
+    """
+    An error with UNAUTHORIZED status code and the message "Not Authorized" or provided message.
+    """
+
+    def __init__(self, message: str = "Not Authorized") -> None:
+        super().__init__(HTTPStatus.UNAUTHORIZED, message)

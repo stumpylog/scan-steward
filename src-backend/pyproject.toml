@@ -10,8 +10,9 @@ line-length = 110
 [tool.ruff]
 fix = true
 output-format = "grouped"
-target-version = "py310"
+target-version = "py311"
 line-length = 120
+show-fixes = true
 
 [tool.ruff.lint]
 # https://docs.astral.sh/ruff/rules/
@@ -97,6 +98,9 @@ ban-relative-imports = "all"
 "**/tests/**/*" = ["PLR2004", "S101", "TID252", "ARG001"]
 # Migrations can use mutable class attributes
 "**/migrations/*" = ["RUF012"]
+
+[tool.ruff.lint.flake8-pytest-style]
+mark-parentheses = false
 
 [tool.pytest.ini_options]
 minversion = "7.0"

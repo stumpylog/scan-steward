@@ -19,7 +19,7 @@ class TestCustom404:
 
 
 @pytest.mark.usefixtures("sample_image_environment")
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestImageDelete:
     def test_image_delete(self):
         img = Image.objects.first()

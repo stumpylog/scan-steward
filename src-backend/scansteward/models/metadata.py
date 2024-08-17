@@ -163,7 +163,7 @@ class RoughDate(AbstractTimestampMixin, models.Model):
         ordering: Sequence = ["date"]
         constraints: Sequence = [
             models.CheckConstraint(
-                check=(models.Q(day_valid=False) | ~models.Q(month_valid=False)),
+                condition=(models.Q(day_valid=False) | ~models.Q(month_valid=False)),
                 name="invalid-month-day-combo",
             ),
             models.UniqueConstraint(

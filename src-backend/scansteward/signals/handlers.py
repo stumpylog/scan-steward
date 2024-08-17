@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.dispatch import receiver
 
@@ -6,6 +7,18 @@ from scansteward.models import Person
 from scansteward.models import Pet
 from scansteward.models import RoughDate
 from scansteward.models import RoughLocation
+from scansteward.models import UserProfile
+
+
+@receiver(models.signals.post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(models.signals.post_save, sender=User)
+def save_user_profile(sender, instance: User, **kwargs):
+    instance.profile.save()
 
 
 @receiver(models.signals.post_delete, sender=Image)
@@ -44,7 +57,8 @@ def mark_images_as_dirty_on_m2m_change(
     **kwargs,
 ):
     """
-    Mark the image as dirty, ie, requiring a metadata sync to the file when various m2m relationships are changed
+    Mark the image as dirty, ie, requiring a metadata sync to the file when various
+    m2m relationships are changed
     """
 
     if isinstance(instance, Person):
@@ -66,6 +80,7 @@ def mark_images_as_dirty_on_fk_change(
     **kwargs,
 ):
     """
-    Mark the image as dirty, ie, requiring a metadata sync to the file when various foreign key relationships are changed
+    Mark the image as dirty, ie, requiring a metadata sync to the file when various
+    foreign key relationships are changed
     """
     instance.images.all().update(is_dirty=True)

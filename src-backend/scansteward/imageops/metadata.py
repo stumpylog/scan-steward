@@ -2,8 +2,8 @@ import logging
 import subprocess
 import tempfile
 from collections import defaultdict
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -24,7 +24,7 @@ def now_string() -> str:
     """
     Formats the current time how exiftool likes to see it
     """
-    return datetime.now(tz=timezone.utc).strftime("%Y:%m:%d %H:%M:%S.%fZ")
+    return datetime.now(tz=UTC).strftime("%Y:%m:%d %H:%M:%S.%fZ")
 
 
 def process_separated_list(parent: KeywordStruct, remaining: list[str]):

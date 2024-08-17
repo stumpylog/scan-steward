@@ -7,7 +7,7 @@ from scansteward.models import RoughLocation
 from scansteward.tests.api.types import LocationGeneratorProtocol
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestCreateLocation:
     def test_location_create_country_only(self, client: Client):
         resp = client.post(
@@ -109,7 +109,7 @@ class TestCreateLocation:
         assert resp.status_code == HTTPStatus.CONFLICT
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestReadLocation:
     def test_read_single_location(self, client: Client, location_db_factory: LocationGeneratorProtocol):
         id_ = location_db_factory(
@@ -227,7 +227,7 @@ class TestReadLocation:
         assert data["items"][0]["id"] == id2
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestUpdateLocation:
     def test_update_city(self, client: Client, location_db_factory: LocationGeneratorProtocol):
         id_ = location_db_factory(
@@ -327,7 +327,7 @@ class TestUpdateLocation:
         assert RoughLocation.objects.get(pk=id_).subdivision_code == "FR-IDF"
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class TestDeleteLocation:
     def test_delete_location(self, client: Client, location_db_factory: LocationGeneratorProtocol):
         id_ = location_db_factory(
