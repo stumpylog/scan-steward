@@ -2,6 +2,7 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from PIL import Image
+from PIL import ImageOps
 
 from scansteward.imageops.constants import DATE_KEYWORD
 from scansteward.imageops.constants import LOCATION_KEYWORD
@@ -302,13 +303,14 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
 
     pkg.logger.info("  Creating thumbnail")
     with Image.open(pkg.image_path) as im_file:
-        img_copy = im_file.copy()
+        img_copy = ImageOps.exif_transpose(im_file)
         img_copy.thumbnail((500, 500))
         img_copy.save(new_img.thumbnail_path)
 
     pkg.logger.info("  Creating WebP version")
     with Image.open(pkg.image_path) as im_file:
-        im_file.save(new_img.full_size_path, quality=90)
+        img_copy = ImageOps.exif_transpose(im_file)
+        img_copy.save(new_img.full_size_path, quality=90)
 
     del img_copy, im_file
 
