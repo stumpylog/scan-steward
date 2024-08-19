@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[PetReadSchema], operation_id="get_pets")
 @paginate(PageNumberPagination)
-def get_all_pets(request: HttpRequest):
+def get_all_pets(
+    request: HttpRequest,  # noqa: ARG001
+):
     return Pet.objects.all()
 
 
@@ -36,7 +38,10 @@ def get_all_pets(request: HttpRequest):
     },
     operation_id="get_single_pet",
 )
-async def get_single_pet(request: HttpRequest, pet_id: int):
+async def get_single_pet(
+    request: HttpRequest,  # noqa: ARG001
+    pet_id: int,
+):
     instance: Pet = await aget_object_or_404(Pet, id=pet_id)
     return instance
 
@@ -56,7 +61,10 @@ async def get_single_pet(request: HttpRequest, pet_id: int):
     },
     operation_id="create_pet",
 )
-async def create_pet(request: HttpRequest, data: PetCreateSchema):
+async def create_pet(
+    request: HttpRequest,  # noqa: ARG001
+    data: PetCreateSchema,
+):
     pet_name_exists = await Pet.objects.filter(name__iexact=data.name).aexists()
     if pet_name_exists:
         msg = f"Pet named {data.name} already exists"
@@ -81,7 +89,11 @@ async def create_pet(request: HttpRequest, data: PetCreateSchema):
     },
     operation_id="update_pet",
 )
-async def update_pet(request: HttpRequest, pet_id: int, data: PetUpdateSchema):
+async def update_pet(
+    request: HttpRequest,  # noqa: ARG001
+    pet_id: int,
+    data: PetUpdateSchema,
+):
     instance: Pet = await aget_object_or_404(Pet, id=pet_id)
     if data.name is not None:
         instance.name = data.name
@@ -104,7 +116,10 @@ async def update_pet(request: HttpRequest, pet_id: int, data: PetUpdateSchema):
     },
     operation_id="delete_pet",
 )
-async def delete_pet(request: HttpRequest, pet_id: int):
+async def delete_pet(
+    request: HttpRequest,  # noqa: ARG001
+    pet_id: int,
+):
     instance: Pet = await aget_object_or_404(Pet, id=pet_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None

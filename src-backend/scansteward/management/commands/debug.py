@@ -30,7 +30,7 @@ def merge_tree(data):
 class Command(BaseCommand):
     help = "Debug command to do stuff"
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args, **options) -> None:  # noqa: ARG002
         data = {
             "Children": [
                 {"Children": [], "Keyword": "Outdoors"},
@@ -43,4 +43,4 @@ class Command(BaseCommand):
         }
 
         result = merge_tree(data)
-        print(result)
+        print(result)  # noqa: T201

@@ -26,8 +26,8 @@ tasks:
 
   cleanstart:
     cmds:
-      - rm -r media || true
-      - rm -r data || true
+      - rm -rf media
+      - rm -rf data
       - mkdir media/
       - mkdir media/fullsize
       - mkdir media/thumbnails
@@ -39,7 +39,6 @@ tasks:
     cmds:
       - ruff format .
   check:
-    ignore_error: true
     cmds:
       - ruff check .
   lint:

@@ -7,7 +7,11 @@ from scansteward.models import Token
 class AuthApiKey(APIKeyHeader):
     param_name = "X-API-Key"
 
-    def authenticate(self, request: HttpRequest, key: str):
+    def authenticate(
+        self,
+        request: HttpRequest,  # noqa: ARG002
+        key: str,
+    ):
         try:
             token_obj = Token.objects.get(key=key)
             if token_obj.is_valid():

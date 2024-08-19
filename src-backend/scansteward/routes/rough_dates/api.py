@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[RoughDateReadSchema], operation_id="get_rough_dates")
 @paginate(PageNumberPagination)
-def get_all_dates(request: HttpRequest):
+def get_all_dates(
+    request: HttpRequest,  # noqa: ARG001
+):
     return RoughDate.objects.all()
 
 
@@ -37,7 +39,10 @@ def get_all_dates(request: HttpRequest):
     },
     operation_id="get_single_rough_date",
 )
-async def get_single_rough_date(request: HttpRequest, date_id: int):
+async def get_single_rough_date(
+    request: HttpRequest,  # noqa: ARG001
+    date_id: int,
+):
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)
     return instance
 
@@ -54,7 +59,10 @@ async def get_single_rough_date(request: HttpRequest, date_id: int):
     },
     operation_id="create_rough_date",
 )
-async def create_rough_date(request: HttpRequest, data: RoughDateCreateSchema):
+async def create_rough_date(
+    request: HttpRequest,  # noqa: ARG001
+    data: RoughDateCreateSchema,
+):
     rough_date_exists = await RoughDate.objects.filter(
         date=data.date,
         month_valid=data.month_valid,
@@ -84,7 +92,11 @@ async def create_rough_date(request: HttpRequest, data: RoughDateCreateSchema):
     },
     operation_id="update_rough_date",
 )
-async def update_rough_date(request: HttpRequest, date_id: int, data: RoughDateUpdateSchema):
+async def update_rough_date(
+    request: HttpRequest,  # noqa: ARG001
+    date_id: int,
+    data: RoughDateUpdateSchema,
+):
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)
     if data.date is not None:
         instance.date = data.date
@@ -113,7 +125,10 @@ async def update_rough_date(request: HttpRequest, date_id: int, data: RoughDateU
     },
     operation_id="delete_rough_date",
 )
-async def delete_rough_date(request: HttpRequest, date_id: int):
+async def delete_rough_date(
+    request: HttpRequest,  # noqa: ARG001
+    date_id: int,
+):
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None

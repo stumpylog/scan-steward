@@ -19,7 +19,10 @@ router = Router(tags=["tags"])
 
 
 @router.get("/tree/", response=list[TagTree], operation_id="get_tag_tree")
-def get_tag_tree(request: HttpRequest, filter_name_query: Query[TagNameFilter]):
+def get_tag_tree(
+    request: HttpRequest,  # noqa: ARG001
+    filter_name_query: Query[TagNameFilter],
+):
     items = []
     for root_node in (
         Tag.objects.filter(parent__isnull=True)
@@ -35,7 +38,7 @@ def get_tag_tree(request: HttpRequest, filter_name_query: Query[TagNameFilter]):
 @router.get("/", response=list[TagRead], operation_id="get_all_tags")
 @paginate(PageNumberPagination)
 def get_tags(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
 ):
     return Tag.objects.all()
 
@@ -52,7 +55,10 @@ def get_tags(
     },
     operation_id="get_single_tag",
 )
-async def get_single_tag(request: HttpRequest, tag_id: int):
+async def get_single_tag(
+    request: HttpRequest,  # noqa: ARG001
+    tag_id: int,
+):
     instance: Tag = await aget_object_or_404(Tag, id=tag_id)
     return instance
 
@@ -72,7 +78,10 @@ async def get_single_tag(request: HttpRequest, tag_id: int):
     },
     operation_id="create_tag",
 )
-async def create_tag(request: HttpRequest, data: TagCreate):
+async def create_tag(
+    request: HttpRequest,  # noqa: ARG001
+    data: TagCreate,
+):
     tag_name_exists = await Tag.objects.filter(name=data.name).aexists()
     if tag_name_exists:
         raise HttpError(
@@ -102,7 +111,11 @@ async def create_tag(request: HttpRequest, data: TagCreate):
     },
     operation_id="update_tag",
 )
-async def update_tag(request: HttpRequest, tag_id: int, data: TagUpdate):
+async def update_tag(
+    request: HttpRequest,  # noqa: ARG001
+    tag_id: int,
+    data: TagUpdate,
+):
     instance: Tag = await aget_object_or_404(Tag, id=tag_id)
     if data.name is not None:
         instance.name = data.name
@@ -128,7 +141,10 @@ async def update_tag(request: HttpRequest, tag_id: int, data: TagUpdate):
     },
     operation_id="delete_tag",
 )
-async def delete_tag(request: HttpRequest, tag_id: int):
+async def delete_tag(
+    request: HttpRequest,  # noqa: ARG001
+    tag_id: int,
+):
     instance: Tag = await aget_object_or_404(Tag, id=tag_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None

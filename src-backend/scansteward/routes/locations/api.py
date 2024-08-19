@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 @router.get("/", response=list[LocationReadSchema], operation_id="get_locations")
 @paginate(PageNumberPagination)
 def get_all_locations(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     country_code: CountryCodeAlpha2Type | None = None,
     subdivision_code: SubdivisionCodeType | None = None,
     city_like: str | None = None,
@@ -55,7 +55,10 @@ def get_all_locations(
     },
     operation_id="get_location",
 )
-async def get_single_location(request: HttpRequest, location_id: int):
+async def get_single_location(
+    request: HttpRequest,  # noqa: ARG001
+    location_id: int,
+):
     instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)
     return instance
 
@@ -78,7 +81,10 @@ async def get_single_location(request: HttpRequest, location_id: int):
     },
     operation_id="create_location",
 )
-async def create_location(request: HttpRequest, data: LocationCreateSchema):
+async def create_location(
+    request: HttpRequest,  # noqa: ARG001
+    data: LocationCreateSchema,
+):
     if data.subdivision_code and not subdivision_in_country(
         data.country_code,
         data.subdivision_code,
@@ -113,7 +119,11 @@ async def create_location(request: HttpRequest, data: LocationCreateSchema):
     },
     operation_id="update_location",
 )
-async def update_location(request: HttpRequest, location_id: int, data: LocationUpdateSchema):
+async def update_location(
+    request: HttpRequest,  # noqa: ARG001
+    location_id: int,
+    data: LocationUpdateSchema,
+):
     # Validate that at least one field is provided to be updated
     if not any([data.country_code, data.subdivision_code, data.city, data.sub_location]):
         msg = "At least one of the fields must be provided"
@@ -151,7 +161,10 @@ async def update_location(request: HttpRequest, location_id: int, data: Location
     },
     operation_id="delete_location",
 )
-async def delete_location(request: HttpRequest, location_id: int):
+async def delete_location(
+    request: HttpRequest,  # noqa: ARG001
+    location_id: int,
+):
     instance: RoughLocation = await aget_object_or_404(RoughLocation, id=location_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None

@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[ImageSourceRead], operation_id="get_scan_sources")
 @paginate(PageNumberPagination)
-def get_all_sources(request: HttpRequest):
+def get_all_sources(
+    request: HttpRequest,  # noqa: ARG001
+):
     return ImageSource.objects.all()
 
 
@@ -36,7 +38,10 @@ def get_all_sources(request: HttpRequest):
     },
     operation_id="get_single_scan_source",
 )
-async def get_single_source(request: HttpRequest, source_id: int):
+async def get_single_source(
+    request: HttpRequest,  # noqa: ARG001
+    source_id: int,
+):
     instance: ImageSource = await aget_object_or_404(ImageSource, id=source_id)
     return instance
 
@@ -53,7 +58,10 @@ async def get_single_source(request: HttpRequest, source_id: int):
     },
     operation_id="create_scan_source",
 )
-async def create_source(request: HttpRequest, data: ImageSourceCreate):
+async def create_source(
+    request: HttpRequest,  # noqa: ARG001
+    data: ImageSourceCreate,
+):
     source_name_exists = await ImageSource.objects.filter(name__iexact=data.name).aexists()
     if source_name_exists:
         msg = f"Image source named {data.name} already exists"
@@ -79,7 +87,11 @@ async def create_source(request: HttpRequest, data: ImageSourceCreate):
     },
     operation_id="update_scan_source",
 )
-async def update_source(request: HttpRequest, source_id: int, data: ImageSourceUpdate):
+async def update_source(
+    request: HttpRequest,  # noqa: ARG001
+    source_id: int,
+    data: ImageSourceUpdate,
+):
     # Retrieve the location object from the database
     instance: ImageSource = await aget_object_or_404(ImageSource, id=source_id)
 

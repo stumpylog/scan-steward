@@ -20,7 +20,10 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[PersonReadSchema], operation_id="get_people")
 @paginate(PageNumberPagination)
-def get_all_people(request: HttpRequest, name_like: str | None = None):
+def get_all_people(
+    request: HttpRequest,  # noqa: ARG001
+    name_like: str | None = None,
+):
     qs = Person.objects.all()
     if name_like is not None:
         qs = qs.filter(name__icontains=name_like)
@@ -40,7 +43,10 @@ def get_all_people(request: HttpRequest, name_like: str | None = None):
     },
     operation_id="get_person",
 )
-async def get_single_person(request: HttpRequest, person_id: int):
+async def get_single_person(
+    request: HttpRequest,  # noqa: ARG001
+    person_id: int,
+):
     instance: Person = await aget_object_or_404(Person, id=person_id)
     return instance
 
@@ -60,7 +66,10 @@ async def get_single_person(request: HttpRequest, person_id: int):
     },
     operation_id="create_person",
 )
-async def create_person(request: HttpRequest, data: PersonCreateSchema):
+async def create_person(
+    request: HttpRequest,  # noqa: ARG001
+    data: PersonCreateSchema,
+):
     person_name_exists = await Person.objects.filter(name__iexact=data.name).aexists()
     if person_name_exists:
         msg = f"Person named {data.name} already exists"
@@ -85,7 +94,11 @@ async def create_person(request: HttpRequest, data: PersonCreateSchema):
     },
     operation_id="update_person",
 )
-async def update_person(request: HttpRequest, person_id: int, data: PersonUpdateSchema):
+async def update_person(
+    request: HttpRequest,  # noqa: ARG001
+    person_id: int,
+    data: PersonUpdateSchema,
+):
     instance: Person = await aget_object_or_404(Person, id=person_id)
     if data.name is not None:
         instance.name = data.name
@@ -108,7 +121,10 @@ async def update_person(request: HttpRequest, person_id: int, data: PersonUpdate
     },
     operation_id="delete_person",
 )
-async def delete_person(request: HttpRequest, person_id: int):
+async def delete_person(
+    request: HttpRequest,  # noqa: ARG001
+    person_id: int,
+):
     instance: Person = await aget_object_or_404(Person, id=person_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None

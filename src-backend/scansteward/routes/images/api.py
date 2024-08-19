@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 @router.get("", response=list[int], operation_id="get_all_images")
 @paginate(PageNumberPagination)
 def get_all_images(
-    request: HttpRequest,
+    request: HttpRequest,  # noqa: ARG001
     includes_people: CommaSepIntList | None = None,
     excludes_people: CommaSepIntList | None = None,
     includes_pets: CommaSepIntList | None = None,
@@ -98,7 +98,10 @@ def get_all_images(
 @decorate_view(
     condition(last_modified_func=image_last_modified, etag_func=thumbnail_etag),
 )
-def get_image_thumbnail(request: HttpRequest, image_id: int):
+def get_image_thumbnail(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     img: Image = get_object_or_404(Image, id=image_id)
 
     return FileResponse(img.thumbnail_path.open(mode="rb"), content_type=WEBP_CONTENT_TYPE)
@@ -121,7 +124,10 @@ def get_image_thumbnail(request: HttpRequest, image_id: int):
 @decorate_view(
     condition(last_modified_func=image_last_modified, etag_func=full_size_etag),
 )
-def get_image_full_size(request: HttpRequest, image_id: int):
+def get_image_full_size(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     img: Image = get_object_or_404(Image, id=image_id)
 
     return FileResponse(img.full_size_path.open(mode="rb"), content_type=WEBP_CONTENT_TYPE)
@@ -142,7 +148,10 @@ def get_image_full_size(request: HttpRequest, image_id: int):
 @decorate_view(
     condition(last_modified_func=image_last_modified, etag_func=original_image_etag),
 )
-def get_image_original(request: HttpRequest, image_id: int):
+def get_image_original(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     img: Image = get_object_or_404(Image, id=image_id)
 
     mimetype, _ = guess_type(img.original_path)
@@ -164,7 +173,10 @@ def get_image_original(request: HttpRequest, image_id: int):
     },
     operation_id="delete_image",
 )
-async def delete_image(request: HttpRequest, image_id: int):
+async def delete_image(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     img: Image = await aget_object_or_404(Image, id=image_id)
 
     img.deleted_at = timezone.now()
@@ -189,11 +201,16 @@ async def delete_image(request: HttpRequest, image_id: int):
     },
     operation_id="restore_image",
 )
-async def restore_image(request: HttpRequest, image_id: int):
+async def restore_image(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     img: Image = await aget_object_or_404(Image, id=image_id)
 
     if img.deleted_at is None:
-        raise HttpConflictError(f"Image {image_id} was not previously deleted")
+        msg = f"Image {image_id} was not previously deleted"
+        logger.warn(msg)
+        raise HttpConflictError(msg)
 
     img.deleted_at = None
 
@@ -214,7 +231,10 @@ async def restore_image(request: HttpRequest, image_id: int):
     },
     operation_id="get_faces_in_images",
 )
-async def get_faces_in_images(request: HttpRequest, image_id: int):
+async def get_faces_in_images(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     # TODO: I bet there's some clever SQL to grab this more efficiently
 
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("people"), id=image_id)
@@ -234,7 +254,11 @@ async def get_faces_in_images(request: HttpRequest, image_id: int):
     },
     operation_id="update_faces_in_image",
 )
-async def update_faces_in_image(request: HttpRequest, image_id: int, data: list[PersonWithBoxSchema]):
+async def update_faces_in_image(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+    data: list[PersonWithBoxSchema],
+):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("people"), id=image_id)
 
     for update_item in data:
@@ -261,7 +285,11 @@ async def update_faces_in_image(request: HttpRequest, image_id: int, data: list[
     },
     operation_id="delete_faces_in_image",
 )
-async def delete_faces_in_image(request: HttpRequest, image_id: int, data: PersonFaceDeleteSchema):
+async def delete_faces_in_image(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+    data: PersonFaceDeleteSchema,
+):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("people"), id=image_id)
 
     # TODO: transaction
@@ -284,7 +312,10 @@ async def delete_faces_in_image(request: HttpRequest, image_id: int, data: Perso
     },
     operation_id="get_pets_in_images",
 )
-async def get_pets_in_images(request: HttpRequest, image_id: int):
+async def get_pets_in_images(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     # TODO: I bet there's some clever SQL to grab this more efficiently
 
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("pets"), id=image_id)
@@ -304,7 +335,11 @@ async def get_pets_in_images(request: HttpRequest, image_id: int):
     },
     operation_id="update_pet_boxes_in_image",
 )
-async def update_pet_boxes_in_image(request: HttpRequest, image_id: int, data: list[PetWithBoxSchema]):
+async def update_pet_boxes_in_image(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+    data: list[PetWithBoxSchema],
+):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("pets"), id=image_id)
 
     for update_item in data:
@@ -331,7 +366,11 @@ async def update_pet_boxes_in_image(request: HttpRequest, image_id: int, data: l
     },
     operation_id="delete_pets_from_image",
 )
-async def delete_pets_from_image(request: HttpRequest, image_id: int, data: PetBoxDeleteSchema):
+async def delete_pets_from_image(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+    data: PetBoxDeleteSchema,
+):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("pets"), id=image_id)
 
     # TODO: transaction
@@ -354,7 +393,10 @@ async def delete_pets_from_image(request: HttpRequest, image_id: int, data: PetB
     },
     operation_id="get_image_metadata",
 )
-async def get_image_metadata(request: HttpRequest, image_id: int):
+async def get_image_metadata(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     # TODO: I bet there's some clever SQL to grab this more efficiently
 
     img: Image = await aget_object_or_404(
@@ -377,7 +419,11 @@ async def get_image_metadata(request: HttpRequest, image_id: int):
     },
     operation_id="update_image_metadata",
 )
-async def update_image_metadata(request: HttpRequest, image_id: int, data: ImageMetadataUpdateSchema):
+async def update_image_metadata(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+    data: ImageMetadataUpdateSchema,
+):
     img: Image = await aget_object_or_404(
         Image.objects.select_related("location").select_related("date"),
         id=image_id,
@@ -409,7 +455,10 @@ async def update_image_metadata(request: HttpRequest, image_id: int, data: Image
     },
     operation_id="get_image_albums",
 )
-async def get_image_albums(request: HttpRequest, image_id: int):
+async def get_image_albums(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("albums"), id=image_id)
     return [pk async for pk in img.albums.all().only("pk").values_list("pk", flat=True)]
 
@@ -426,7 +475,10 @@ async def get_image_albums(request: HttpRequest, image_id: int):
     },
     operation_id="get_image_tags",
 )
-async def get_image_tags(request: HttpRequest, image_id: int):
+async def get_image_tags(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("tags"), id=image_id)
     return [
         pk
@@ -448,7 +500,11 @@ async def get_image_tags(request: HttpRequest, image_id: int):
     },
     operation_id="update_image_tags",
 )
-def update_image_tags(request: HttpRequest, image_id: int, new_tag_ids: list[int]):
+def update_image_tags(
+    request: HttpRequest,  # noqa: ARG001
+    image_id: int,
+    new_tag_ids: list[int],
+):
     img: Image = get_object_or_404(Image.objects.prefetch_related("tags"), id=image_id)
 
     with transaction.atomic():

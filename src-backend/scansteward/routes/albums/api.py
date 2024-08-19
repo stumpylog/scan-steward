@@ -35,7 +35,10 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_albums")
 @paginate(PageNumberPagination)
-def get_albums(request: HttpRequest, name_like: str | None = None):
+def get_albums(
+    request: HttpRequest,  # noqa: ARG001
+    name_like: str | None = None,
+):
     qs = Album.objects.all()
     if name_like is not None:
         qs = qs.filter(name__icontains=name_like)
@@ -55,14 +58,20 @@ def get_albums(request: HttpRequest, name_like: str | None = None):
     },
     operation_id="get_single_album_info",
 )
-def get_album(request: HttpRequest, album_id: int):
+def get_album(
+    request: HttpRequest,  # noqa: ARG001
+    album_id: int,
+):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     return album_instance
 
 
 @router.post("/", response={HTTPStatus.CREATED: AlbumBasicReadSchema}, operation_id="create_album")
-async def create_album(request: HttpRequest, data: AlbumCreateSchema):
+async def create_album(
+    request: HttpRequest,  # noqa: ARG001
+    data: AlbumCreateSchema,
+):
     instance: Album = await Album.objects.acreate(
         name=data.name,
         description=data.description,
@@ -82,7 +91,11 @@ async def create_album(request: HttpRequest, data: AlbumCreateSchema):
     },
     operation_id="update_album_info",
 )
-async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSchema):
+async def update_album(
+    request: HttpRequest,  # noqa: ARG001
+    album_id: int,
+    data: AlbumUpdateSchema,
+):
     instance: Album = await aget_object_or_404(Album, id=album_id)
     if data.name is not None:
         instance.name = data.name
@@ -104,7 +117,11 @@ async def update_album(request: HttpRequest, album_id: int, data: AlbumUpdateSch
     },
     operation_id="add_image_to_album",
 )
-def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageSchema):
+def add_image_to_album(
+    request: HttpRequest,  # noqa: ARG001
+    album_id: int,
+    data: AlbumAddImageSchema,
+):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     sort_order = (
@@ -135,7 +152,11 @@ def add_image_to_album(request: HttpRequest, album_id: int, data: AlbumAddImageS
     },
     operation_id="delete_image_from_album",
 )
-def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemoveImageSchema):
+def remove_image_from_album(
+    request: HttpRequest,  # noqa: ARG001
+    album_id: int,
+    data: AlbumRemoveImageSchema,
+):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     for image in Image.objects.filter(id__in=data.image_ids).all():
@@ -164,7 +185,11 @@ def remove_image_from_album(request: HttpRequest, album_id: int, data: AlbumRemo
     },
     operation_id="update_album_sorting",
 )
-def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpdate):
+def update_album_sorting(
+    request: HttpRequest,  # noqa: ARG001
+    album_id: int,
+    data: AlbumSortUpdate,
+):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     if album_instance.images.count() != len(data.sorting):
@@ -211,7 +236,10 @@ def update_album_sorting(request: HttpRequest, album_id: int, data: AlbumSortUpd
     },
     operation_id="delete_album",
 )
-async def delete_album(request: HttpRequest, album_id: int):
+async def delete_album(
+    request: HttpRequest,  # noqa: ARG001
+    album_id: int,
+):
     instance: Album = await aget_object_or_404(Album, id=album_id)
     await instance.adelete()
     return HTTPStatus.NO_CONTENT, None
@@ -234,7 +262,12 @@ async def delete_album(request: HttpRequest, album_id: int):
     },
     operation_id="download_album",
 )
-def download_album(request: HttpRequest, album_id: int, zip_originals: bool = False):  # noqa: FBT001, FBT002
+def download_album(
+    request: HttpRequest,  # noqa: ARG001
+    album_id: int,
+    *,
+    zip_originals: bool = False,
+):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
     if album_instance.images.count() == 0:

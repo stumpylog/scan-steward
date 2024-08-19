@@ -27,7 +27,11 @@ logger = logging.getLogger(__name__)
     "/login/",
     response={HTTPStatus.OK: TokenOutResponse},
 )
-def login_user(request: HttpRequest, username: Form[str], password: Form[str]):
+def login_user(
+    request: HttpRequest,
+    username: Form[str],
+    password: Form[str],
+):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
@@ -39,7 +43,9 @@ def login_user(request: HttpRequest, username: Form[str], password: Form[str]):
 
 
 @router.post("/logout", response={HTTPStatus.OK: dict}, auth=AuthApiKey())
-def logout_user(request):
+def logout_user(
+    request: HttpRequest,
+):
     # Invalidate the current token
     request.auth.delete()
     # Logout the user from the session
@@ -48,8 +54,10 @@ def logout_user(request):
 
 
 @router.get("/profile/", response=UserOutProfileResponse, auth=AuthApiKey())
-def get_profile(request):
-    user = request.auth.userW
+def get_profile(
+    request: HttpRequest,
+):
+    user = request.auth.user
     return UserOutProfileResponse(
         username=user.username,
         last_login=user.profile.last_login if user.profile.last_login else None,
@@ -57,7 +65,10 @@ def get_profile(request):
 
 
 @router.post("/create/", response={HTTPStatus.OK: UserOutCreateResponse}, auth=AuthApiKey())
-def create_user(request: HttpRequest, data: UserInCreateSchema):
+def create_user(
+    request: HttpRequest,
+    data: UserInCreateSchema,
+):
     match data.user_type:
         case UserType.Regular:
             instance = User.objects.create_user(

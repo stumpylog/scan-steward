@@ -11,18 +11,13 @@ from scansteward.models import UserProfile
 
 
 @receiver(models.signals.post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_user_profile(sender, instance: User, created, **kwargs):  # noqa: ARG001
     if created:
         UserProfile.objects.create(user=instance)
 
 
-@receiver(models.signals.post_save, sender=User)
-def save_user_profile(sender, instance: User, **kwargs):
-    instance.profile.save()
-
-
 @receiver(models.signals.post_delete, sender=Image)
-def cleanup_files_on_delete(sender, instance: Image, using, **kwargs):
+def cleanup_files_on_delete(sender, instance: Image, using, **kwargs):  # noqa: ARG001
     """
     Removes files associated with the image when it is deleted.
     """
@@ -35,7 +30,7 @@ def cleanup_files_on_delete(sender, instance: Image, using, **kwargs):
 
 
 @receiver(models.signals.post_save, sender=Image)
-def mark_image_as_dirty(sender, instance: Image, **kwargs):
+def mark_image_as_dirty(sender, instance: Image, **kwargs):  # noqa: ARG001
     """
     Mark the image as dirty, ie, requiring a metadata sync to the file
     """
@@ -51,10 +46,10 @@ def mark_image_as_dirty(sender, instance: Image, **kwargs):
 @receiver(models.signals.pre_delete, sender=Pet)
 @receiver(models.signals.pre_delete, sender=Person)
 def mark_images_as_dirty_on_m2m_change(
-    sender: type[Pet | Person],
+    sender: type[Pet | Person],  # noqa: ARG001
     instance: Pet | Person,
-    *args,
-    **kwargs,
+    *args,  # noqa: ARG001
+    **kwargs,  # noqa: ARG001
 ):
     """
     Mark the image as dirty, ie, requiring a metadata sync to the file when various
@@ -74,10 +69,10 @@ def mark_images_as_dirty_on_m2m_change(
 @receiver(models.signals.pre_delete, sender=RoughLocation)
 @receiver(models.signals.pre_delete, sender=RoughDate)
 def mark_images_as_dirty_on_fk_change(
-    sender: type[RoughLocation | RoughDate],
+    sender: type[RoughLocation | RoughDate],  # noqa: ARG001
     instance: RoughLocation | RoughDate,
-    *args,
-    **kwargs,
+    *args,  # noqa: ARG001
+    **kwargs,  # noqa: ARG001
 ):
     """
     Mark the image as dirty, ie, requiring a metadata sync to the file when various
