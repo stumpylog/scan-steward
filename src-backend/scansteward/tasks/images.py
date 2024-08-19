@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from django.utils import timezone
 from huey import crontab
@@ -39,6 +40,11 @@ def sync_metadata_to_files(images: list[ImageModel]) -> None:
         for image in images:
             image.update_hashes()
             image.mark_as_clean()
+
+
+@db_task
+def index_images(images: list[Path]) -> None:
+    pass
 
 
 @db_periodic_task(crontab(minute="0", hour="*"))

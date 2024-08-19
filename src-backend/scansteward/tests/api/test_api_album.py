@@ -14,7 +14,7 @@ from scansteward.tests.api.types import AlbumApiGeneratorProtocol
 
 @pytest.mark.django_db
 class TestApiAlbumRead:
-    def test_read_no_albums(self, client: Client) -> None:
+    def test_read_no_albums(self, client: Client, album_base_url: str) -> None:
         """
         GIVEN:
             - No albums in the database
@@ -23,15 +23,13 @@ class TestApiAlbumRead:
         THEN:
             - Return an empty list of albums
         """
-        resp = client.get(
-            "/api/album/",
-        )
+        resp = client.get(album_base_url)
 
         assert resp.status_code == HTTPStatus.OK
 
         assert resp.json() == {"count": 0, "items": []}
 
-    def test_read_albums(self, client: Client, faker: Faker):
+    def test_read_albums(self, client: Client, faker: Faker, album_base_url: str):
         """
         GIVEN:
             - Albums in the database
@@ -46,9 +44,7 @@ class TestApiAlbumRead:
             name = faker.unique.name()
             Album.objects.create(name=name)
             names.append(name)
-        resp = client.get(
-            "/api/album/",
-        )
+        resp = client.get(album_base_url)
 
         assert resp.status_code == HTTPStatus.OK
 
@@ -57,10 +53,10 @@ class TestApiAlbumRead:
             "items": [{"description": None, "id": idx + 1, "name": name} for idx, name in enumerate(names)],
         }
 
-    def test_get_single_album(self, client: Client, faker: Faker):
+    def test_get_single_album(self, client: Client, faker: Faker, album_base_url: str):
         instance = Album.objects.create(name=faker.unique.name())
 
-        resp = client.get(f"/api/album/{instance.pk}/")
+        resp = client.get(f"{album_base_url}{instance.pk}/")
 
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()["name"] == instance.name
