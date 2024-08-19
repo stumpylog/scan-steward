@@ -209,7 +209,7 @@ async def restore_image(
 
     if img.deleted_at is None:
         msg = f"Image {image_id} was not previously deleted"
-        logger.warn(msg)
+        logger.warning(msg)
         raise HttpConflictError(msg)
 
     img.deleted_at = None

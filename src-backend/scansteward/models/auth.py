@@ -15,7 +15,7 @@ class Token(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
-    name = models.CharField(max_length=100, null=True, blank=True)
+    name = models.CharField(max_length=100, null=True, blank=True)  # noqa: DJ001
 
     def __str__(self):
         return f"{self.user.username} - {self.name or self.key[:10]}"

@@ -92,9 +92,9 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
                         width=region.Area.W,
                     )
                 elif not region.Name:  # pragma: no cover
-                    pkg.logger.warn("  Skipping region with empty Name")
+                    pkg.logger.warning("  Skipping region with empty Name")
                 elif region.Type not in {"Face", "Pet"}:  # pragma: no cover
-                    pkg.logger.warn(f"  Skipping region of type {region.Type}")
+                    pkg.logger.warning(f"  Skipping region of type {region.Type}")
 
     def parse_keywords(new_image: ImageModel, metadata: ImageMetadata):
         """
@@ -169,7 +169,7 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
                         metadata.State,
                     )
                     if not subdivision_code:
-                        pkg.logger.warn(f"  No subdivision code found from {metadata.State}")
+                        pkg.logger.warning(f"  No subdivision code found from {metadata.State}")
                     else:
                         pkg.logger.info(f"  Got subdivision code {subdivision_code} from {metadata.State}")
                 location, _ = RoughLocation.objects.get_or_create(
@@ -182,7 +182,7 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
                 new_image.save()
                 pkg.logger.info(f"  Location is {location}")
             else:
-                pkg.logger.warn(f"  No country code found from {metadata.Country}")
+                pkg.logger.warning(f"  No country code found from {metadata.Country}")
         else:  # pragma: no cover
             pkg.logger.info("  No country set, will try keywords")
 

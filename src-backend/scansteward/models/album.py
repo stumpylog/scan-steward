@@ -25,6 +25,9 @@ class Album(AbstractSimpleNamedModel, AbstractTimestampMixin, models.Model):
         related_name="albums",
     )
 
+    def __str__(self) -> str:
+        return f"Album: {self.name}"
+
     def image_ids(self) -> list[int]:
         return list(
             self.images.order_by("imageinalbum__sort_order").values_list(
@@ -61,3 +64,6 @@ class ImageInAlbum(AbstractTimestampMixin, models.Model):
                 name="sorting-to-album",
             ),
         ]
+
+    def __str__(self) -> str:
+        return f"Image {self.image} in album {self.album}"

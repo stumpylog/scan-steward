@@ -119,6 +119,4 @@ def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata
     updated = _update_region_info() or updated
     updated = _update_location() or updated
     updated = _update_date() or updated
-    updated = _update_tags() or updated
-
-    return updated
+    return _update_tags() or updated

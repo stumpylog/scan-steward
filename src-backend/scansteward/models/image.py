@@ -40,9 +40,6 @@ class Image(AbstractTimestampMixin, models.Model):
         MIRROR_HORIZONTAL_AND_ROTATE_90_CW = RotationEnum.MIRROR_HORIZONTAL_AND_ROTATE_90_CW.value
         ROTATE_270_CW = RotationEnum.ROTATE_270_CW.value
 
-    class Meta:
-        ordering: Sequence[str] = ["pk"]
-
     original_checksum = models.CharField(
         max_length=64,
         unique=True,
@@ -88,7 +85,7 @@ class Image(AbstractTimestampMixin, models.Model):
         help_text="MWG Orientation flag",
     )
 
-    description = models.TextField(
+    description = models.TextField(  # noqa: DJ001
         null=True,
         blank=True,
         help_text="MWG Description tag",
@@ -160,6 +157,12 @@ class Image(AbstractTimestampMixin, models.Model):
         through=TagOnImage,
         help_text="These tags apply to the image",
     )
+
+    class Meta:
+        ordering: Sequence[str] = ["pk"]
+
+    def __str__(self) -> str:
+        return f"Image {self.original_path.name}"
 
     @property
     def original_path(self) -> Path:

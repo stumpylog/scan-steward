@@ -27,7 +27,7 @@ class AbstractSimpleNamedModel(models.Model):
 
     name = models.CharField(max_length=100, unique=True, db_index=True)
 
-    description = models.CharField(
+    description = models.CharField(  # noqa: DJ001
         max_length=1024,
         null=True,
         blank=True,
@@ -65,7 +65,7 @@ class AbstractBoxInImage(AbstractTimestampMixin, models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
 
-    description = models.CharField(
+    description = models.CharField(  # noqa: DJ001
         verbose_name="Optional description of the region",
         max_length=2048,
         null=True,

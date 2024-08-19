@@ -24,7 +24,7 @@ class Tag(AbstractTimestampMixin, models.Model):
 
     name = models.CharField(max_length=100, db_index=True)
 
-    description = models.CharField(
+    description = models.CharField(  # noqa: DJ001
         max_length=1024,
         null=True,
         blank=True,
@@ -39,19 +39,19 @@ class Tag(AbstractTimestampMixin, models.Model):
         null=True,
     )
 
-    def __str__(self) -> str:
-        return f"{self.name} ({self.applied})"
-
-    def __repr__(self) -> str:
-        return f"Tag: {self!s}"
-
     class Meta:
         constraints: Sequence = [
             models.UniqueConstraint(fields=["name", "parent"], name="name-to-parent"),
         ]
 
+    def __str__(self) -> str:
+        return f"Tag {self.name}"
 
-class TagOnImage(models.Model):
+    def __repr__(self) -> str:
+        return f"Tag: {self!s}"
+
+
+class TagOnImage(models.Model):  # noqa: DJ008
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE, help_text="Tag is on this Image")
 
     image = models.ForeignKey(
@@ -67,6 +67,9 @@ class Person(AbstractSimpleNamedModel, AbstractTimestampMixin, models.Model):
     """
     Holds the information about a single person
     """
+
+    def __str__(self) -> str:
+        return f"Person {self.name}"
 
 
 class PersonInImage(AbstractBoxInImage):
@@ -100,13 +103,16 @@ class Pet(AbstractSimpleNamedModel, AbstractTimestampMixin, models.Model):
         DOG = "dog"
         HORSE = "horse"
 
-    pet_type = models.CharField(
+    pet_type = models.CharField(  # noqa: DJ001
         max_length=10,
         choices=PetTypeChoices.choices,
         null=True,
         blank=True,
         help_text="The type of pet this is",
     )
+
+    def __str__(self) -> str:
+        return f"Pet {self.name}"
 
 
 class PetInImage(AbstractBoxInImage):
@@ -132,12 +138,15 @@ class ImageSource(AbstractTimestampMixin, models.Model):
 
     name = models.CharField(max_length=100, unique=True, db_index=True)
 
-    description = models.TextField(
+    description = models.TextField(  # noqa: DJ001
         null=True,
         blank=True,
         default=None,
         help_text="A description of this source, rendered as markdown",
     )
+
+    def __str__(self) -> str:
+        return f"Source {self.name}"
 
 
 class RoughDate(AbstractTimestampMixin, models.Model):
@@ -159,15 +168,6 @@ class RoughDate(AbstractTimestampMixin, models.Model):
         help_text="Is the day of this date valid?",
     )
 
-    def __str__(self) -> str:
-        year = self.date.year
-        month = self.date.month if self.month_valid else "MM"
-        day = self.date.day if self.day_valid else "DD"
-        return f"{year}-{month}-{day}"
-
-    def __repr__(self) -> str:
-        return f"RoughDate: {self!s}"
-
     class Meta:
         ordering: Sequence = ["date"]
         constraints: Sequence = [
@@ -180,6 +180,15 @@ class RoughDate(AbstractTimestampMixin, models.Model):
                 name="unique-date",
             ),
         ]
+
+    def __str__(self) -> str:
+        year = self.date.year
+        month = self.date.month if self.month_valid else "MM"
+        day = self.date.day if self.day_valid else "DD"
+        return f"{year}-{month}-{day}"
+
+    def __repr__(self) -> str:
+        return f"RoughDate: {self!s}"
 
 
 class RoughLocation(AbstractTimestampMixin, models.Model):
@@ -194,21 +203,21 @@ class RoughLocation(AbstractTimestampMixin, models.Model):
         db_index=True,
         help_text="Country code in ISO 3166-1 alpha 2 format",
     )
-    subdivision_code = models.CharField(
+    subdivision_code = models.CharField(  # noqa: DJ001
         max_length=12,  # Longest subdivision in the world is 6 characters, double that
         db_index=True,
         null=True,
         blank=True,
         help_text="State, province or subdivision ISO 3166-2 alpha 2 format",
     )
-    city = models.CharField(
+    city = models.CharField(  # noqa: DJ001
         max_length=255,
         db_index=True,
         null=True,
         blank=True,
         help_text="City or town",
     )
-    sub_location = models.CharField(
+    sub_location = models.CharField(  # noqa: DJ001
         max_length=255,
         db_index=True,
         null=True,

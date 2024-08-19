@@ -43,7 +43,7 @@ def process_separated_list(parent: KeywordStruct, remaining: list[str]):
           OtherChild
     """
     if not remaining:
-        # TODO: Should this set Applied?  Leaf nodes are assumed to be applied
+        # TODO(trenton): Should this set Applied?  Leaf nodes are assumed to be applied
         return
     new_parent = KeywordStruct(Keyword=remaining[0])
 
@@ -135,7 +135,7 @@ def combine_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
     # Assign the parsed flat keywords in as well
     if not keywords:
         return metadata
-    elif not metadata.KeywordInfo:
+    if not metadata.KeywordInfo:
         metadata.KeywordInfo = KeywordInfoModel(Hierarchy=keywords)
     else:
         metadata.KeywordInfo.Hierarchy = keywords
@@ -239,7 +239,7 @@ def bulk_read_image_metadata(
             msg = f"{image_path} does not exist"
             logger.error(msg)
             raise FileNotFoundError(image_path)
-        elif not image_path.is_file():
+        if not image_path.is_file():
             msg = f"{image_path} is not a file"
             logger.error(msg)
             raise ImagePathNotFileError(msg)

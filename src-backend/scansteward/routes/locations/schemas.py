@@ -67,7 +67,7 @@ class LocationUpdateSchema(Schema):
         if self.subdivision_code and not self.country_code:
             msg = "Subdivision must also include country code"
             raise ValueError(msg)
-        elif (
+        if (
             self.country_code
             and self.subdivision_code
             and not subdivision_in_country(self.country_code, self.subdivision_code)
