@@ -18,6 +18,7 @@ from scansteward.models import PetInImage
 from scansteward.models import RoughDate
 from scansteward.models import RoughLocation
 from scansteward.models import Tag
+from scansteward.models import TagOnImage
 from scansteward.routes.locations.utils import get_country_code_from_name
 from scansteward.routes.locations.utils import get_subdivision_code_from_name
 from scansteward.tasks.models import ImageIndexTaskModel
@@ -99,28 +100,33 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         """
         Creates database Tags from the MWG keyword struct
         """
-        # TODO: I think this needs a Through model to manage applied _per image_
+
+        def maybe_create_tag_tree(
+            image_instance: ImageModel,
+            parent: Tag,
+            tree_node: KeywordStruct,
+        ):
+            existing_node, _ = Tag.objects.get_or_create(
+                name=tree_node.Keyword,
+                parent=parent,
+            )
+
+            applied_value = False
+            # If the keyword is applied, then it is applied
+            if tree_node.Applied is not None and tree_node.Applied:
+                applied_value = True
+            # If the keyword is not applied, but this is a leaf, it is applied
+            if not applied_value and not len(tree_node.Children):
+                applied_value = True
+
+            TagOnImage.objects.create(tag=existing_node, image=new_image, applied=applied_value)
+
+            # Process children
+            for node_child in tree_node.Children:
+                maybe_create_tag_tree(image_instance, existing_node, node_child)
+
         pkg.logger.info("  Parsing keywords")
         if metadata.KeywordInfo:
-
-            def maybe_create_tag_tree(
-                image_instance: ImageModel,
-                parent: Tag,
-                tree_node: KeywordStruct,
-            ):
-                existing_node, _ = Tag.objects.get_or_create(
-                    name=tree_node.Keyword,
-                    parent=parent,
-                )
-                # This may change if a tag is applied
-                existing_node.applied = tree_node.Applied or not tree_node.Children
-                existing_node.save()
-                # If this is applied or there are no children, tag it
-                if existing_node.applied or not tree_node.Children:
-                    image_instance.tags.add(existing_node)
-                for node_child in tree_node.Children:
-                    maybe_create_tag_tree(image_instance, existing_node, node_child)
-
             for keyword in metadata.KeywordInfo.Hierarchy:
                 # Skip keywords with dedicated processing
                 if keyword.Keyword.lower() in {
@@ -133,11 +139,16 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
                     name=keyword.Keyword,
                     parent=None,
                 )
-                existing_root_tag.applied = False if keyword.Applied is None else keyword.Applied
-                existing_root_tag.save()
+                applied_value = False
+                # If the keyword is applied, then it is applied
+                if keyword.Applied is not None and keyword.Applied:
+                    applied_value = True
+                # If the keyword is not applied, but this is a leaf, it is applied
+                if not applied_value and not len(keyword.Children):
+                    applied_value = True
+                TagOnImage.objects.create(tag=existing_root_tag, image=new_image, applied=applied_value)
 
-                if keyword.Applied or not keyword.Children:
-                    new_image.tags.add(existing_root_tag)
+                # Process any children
                 for child in keyword.Children:
                     maybe_create_tag_tree(new_image, existing_root_tag, child)
         else:  # pragma: no cover

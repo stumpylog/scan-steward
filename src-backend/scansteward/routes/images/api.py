@@ -2,6 +2,7 @@ import logging
 from http import HTTPStatus
 from mimetypes import guess_type
 
+from django.db import transaction
 from django.http import FileResponse
 from django.http import HttpRequest
 from django.shortcuts import aget_object_or_404
@@ -22,6 +23,8 @@ from scansteward.models import Pet
 from scansteward.models import PetInImage
 from scansteward.models import RoughDate
 from scansteward.models import RoughLocation
+from scansteward.models import Tag
+from scansteward.models import TagOnImage
 from scansteward.routes.images.common import get_faces_from_image
 from scansteward.routes.images.common import get_image_metadata_common
 from scansteward.routes.images.common import get_pet_boxes_from_image
@@ -392,3 +395,79 @@ async def update_image_metadata(request: HttpRequest, image_id: int, data: Image
     await img.asave()
 
     return await get_image_metadata_common(img)
+
+
+@router.get(
+    "/{image_id}/albums/",
+    response={HTTPStatus.OK: list[int]},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+    operation_id="get_image_albums",
+)
+async def get_image_albums(request: HttpRequest, image_id: int):
+    img: Image = await aget_object_or_404(Image.objects.prefetch_related("albums"), id=image_id)
+    return [pk async for pk in img.albums.all().only("pk").values_list("pk", flat=True)]
+
+
+@router.get(
+    "/{image_id}/tags/",
+    response={HTTPStatus.OK: list[int]},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+    operation_id="get_image_tags",
+)
+async def get_image_tags(request: HttpRequest, image_id: int):
+    img: Image = await aget_object_or_404(Image.objects.prefetch_related("tags"), id=image_id)
+    return [
+        pk
+        async for pk in Tag.objects.filter(tagonimage__image=img, tagonimage__applied=True)
+        .only("pk")
+        .values_list("pk", flat=True)
+    ]
+
+
+@router.patch(
+    "/{image_id}/tags/",
+    response={HTTPStatus.OK: list[int]},
+    openapi_extra={
+        "responses": {
+            HTTPStatus.NOT_FOUND: {
+                "description": "Not Found Response",
+            },
+        },
+    },
+    operation_id="update_image_tags",
+)
+def update_image_tags(request: HttpRequest, image_id: int, new_tag_ids: list[int]):
+    img: Image = get_object_or_404(Image.objects.prefetch_related("tags"), id=image_id)
+
+    with transaction.atomic():
+        # 1. Remove existing TagOnImage entries not in the new list
+        TagOnImage.objects.filter(image=img).exclude(tag_id__in=new_tag_ids).delete()
+
+        # 2. Update existing TagOnImage entries or create new ones
+        existing_links = TagOnImage.objects.filter(image=img, tag_id__in=new_tag_ids)
+
+        existing_tag_ids = set(existing_links.values_list("tag_id", flat=True))
+
+        for tag_id in new_tag_ids:
+            if tag_id in existing_tag_ids:
+                # If the link exists, update the applied field to True
+                existing_links.filter(tag_id=tag_id).update(applied=True)
+            else:
+                # If the link does not exist, create it with applied=True
+                TagOnImage.objects.create(image=img, tag_id=tag_id, applied=True)
+
+    return list(
+        Tag.objects.filter(tagonimage__image=img, tagonimage__applied=True).only("pk").values_list("pk", flat=True),
+    )

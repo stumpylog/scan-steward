@@ -1019,6 +1019,129 @@
         }
       }
     },
+    "/api/image/{image_id}/albums/": {
+      "get": {
+        "operationId": "get_image_albums",
+        "summary": "Get Image Albums",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["images"]
+      }
+    },
+    "/api/image/{image_id}/tags/": {
+      "get": {
+        "operationId": "get_image_tags",
+        "summary": "Get Image Tags",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["images"]
+      },
+      "patch": {
+        "operationId": "update_image_tags",
+        "summary": "Update Image Tags",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Response"
+          }
+        },
+        "tags": ["images"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "type": "integer"
+                },
+                "title": "New Tag Ids",
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/api/album/": {
       "get": {
         "operationId": "get_albums",
@@ -7260,7 +7383,7 @@
             "SessionAuth": []
           },
           {
-            "AuthBearer": []
+            "AuthApiKey": []
           }
         ]
       }
@@ -7289,7 +7412,7 @@
         "tags": ["auth"],
         "security": [
           {
-            "AuthBearer": []
+            "AuthApiKey": []
           }
         ]
       }
@@ -7383,7 +7506,7 @@
         "tags": ["users"],
         "security": [
           {
-            "AuthBearer": []
+            "AuthApiKey": []
           }
         ]
       }
@@ -7408,7 +7531,7 @@
         "tags": ["users"],
         "security": [
           {
-            "AuthBearer": []
+            "AuthApiKey": []
           }
         ]
       }
@@ -7443,7 +7566,7 @@
         },
         "security": [
           {
-            "AuthBearer": []
+            "AuthApiKey": []
           }
         ]
       }
@@ -7587,10 +7710,6 @@
             "title": "Name",
             "type": "string"
           },
-          "applied": {
-            "title": "Applied",
-            "type": "boolean"
-          },
           "description": {
             "anyOf": [
               {
@@ -7628,7 +7747,7 @@
             "title": "Children"
           }
         },
-        "required": ["id", "name", "applied"],
+        "required": ["id", "name"],
         "title": "TagTree",
         "type": "object"
       },
@@ -7660,10 +7779,6 @@
             "title": "Name",
             "type": "string"
           },
-          "applied": {
-            "title": "Applied",
-            "type": "boolean"
-          },
           "description": {
             "anyOf": [
               {
@@ -7687,7 +7802,7 @@
             "title": "Parent Id"
           }
         },
-        "required": ["id", "name", "applied"],
+        "required": ["id", "name"],
         "title": "TagRead",
         "type": "object"
       },
@@ -7923,34 +8038,6 @@
               }
             ],
             "title": "Date Id"
-          },
-          "tag_ids": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "integer"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tag Ids"
-          },
-          "album_ids": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "integer"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Album Ids"
           }
         },
         "required": ["orientation"],
@@ -24626,9 +24713,10 @@
         "in": "cookie",
         "name": "sessionid"
       },
-      "AuthBearer": {
-        "type": "http",
-        "scheme": "bearer"
+      "AuthApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
       }
     }
   },

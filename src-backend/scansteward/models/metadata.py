@@ -32,8 +32,6 @@ class Tag(AbstractTimestampMixin, models.Model):
         db_index=True,
     )
 
-    applied = models.BooleanField(default=False)
-
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -53,6 +51,18 @@ class Tag(AbstractTimestampMixin, models.Model):
         ]
 
 
+class TagOnImage(models.Model):
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, help_text="Tag is on this Image")
+
+    image = models.ForeignKey(
+        "Image",
+        on_delete=models.CASCADE,
+        help_text="A Tag is on this Image at the given location",
+    )
+
+    applied = models.BooleanField(default=False, help_text="This tag is applied to this image")
+
+
 class Person(AbstractSimpleNamedModel, AbstractTimestampMixin, models.Model):
     """
     Holds the information about a single person
@@ -66,7 +76,6 @@ class PersonInImage(AbstractBoxInImage):
         on_delete=models.CASCADE,
         related_name="images",
         help_text="Person is in this Image at the given location",
-        null=True,
     )
 
     exclude_from_training = models.BooleanField(

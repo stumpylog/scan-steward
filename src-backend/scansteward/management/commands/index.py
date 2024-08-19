@@ -50,9 +50,11 @@ class Command(TyperCommand):
         self.image_paths: list[Path] = []
 
         for path in paths:
-            for file_generator in [path.glob(f"**/*{x}") for x in self.IMAGE_EXTENSIONS]:
-                for filename in file_generator:
+            for extension in self.IMAGE_EXTENSIONS:
+                for filename in path.glob(f"**/*{extension}"):
                     self.image_paths.append(filename.resolve())
+
+        logger.info(f"Found {len(self.image_paths)} images to index")
 
         for image_path in sorted(self.image_paths):
             pkg = ImageIndexTaskModel(image_path, hash_threads, img_src, logger)

@@ -21,7 +21,6 @@ class TagCreate(Schema):
 class TagRead(Schema):
     id: int
     name: str
-    applied: bool
     description: str | None = None
     parent_id: int | None = None
 
@@ -29,7 +28,6 @@ class TagRead(Schema):
 class TagTree(Schema):
     id: int
     name: str
-    applied: bool
     description: str | None = None
     parent_id: int | None = None
     children: list[TagTree] | None = None

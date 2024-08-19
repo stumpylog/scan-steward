@@ -11,6 +11,7 @@ from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
 from scansteward.models import Tag
+from scansteward.models import TagOnImage
 
 
 @pytest.mark.django_db
@@ -59,15 +60,30 @@ class TestIndexCommand:
         assert face_box.height == pytest.approx(0.0585652)
         assert face_box.width == pytest.approx(0.0292969)
 
-        assert img.tags.count() == 1
+        assert img.tags.count() == 3
         assert Tag.objects.count() == 3
         # Check tag structure\
         # Pet tag tree
-        assert Tag.objects.filter(name="Pets").exists()
-        assert Tag.objects.filter(name="Dogs").exists()
-        assert Tag.objects.filter(name="Dogs").first().parent == Tag.objects.filter(name="Pets").first()
-        assert img.tags.filter(name="Bo").exists()
-        assert img.tags.filter(name="Bo").first().parent == Tag.objects.filter(name="Dogs").first()
+        pet_root = Tag.objects.filter(name="Pets").get()
+        assert pet_root is not None
+        dog_node = Tag.objects.filter(name="Dogs").get()
+        assert dog_node is not None
+        bo_node = Tag.objects.filter(name="Bo").get()
+        assert bo_node is not None
+
+        assert pet_root.parent is None
+        assert dog_node.parent == pet_root
+        assert bo_node.parent == dog_node
+
+        pet_root_through = TagOnImage.objects.filter(image=img, tag=pet_root).get()
+        dog_node_through = TagOnImage.objects.filter(image=img, tag=pet_root).get()
+        bo_node_through = TagOnImage.objects.filter(image=img, tag=bo_node).get()
+        assert pet_root_through is not None
+        assert not pet_root_through.applied
+        assert dog_node_through is not None
+        assert not dog_node_through.applied
+        assert bo_node_through is not None
+        assert bo_node_through.applied
 
     def test_index_command_file_moved(self, sample_one_original_copy: Path, tmp_path_factory: pytest.TempPathFactory):
         call_command("index", str(sample_one_original_copy.parent))

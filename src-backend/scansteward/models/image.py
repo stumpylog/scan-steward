@@ -19,6 +19,7 @@ from scansteward.models.metadata import PetInImage
 from scansteward.models.metadata import RoughDate
 from scansteward.models.metadata import RoughLocation
 from scansteward.models.metadata import Tag
+from scansteward.models.metadata import TagOnImage
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -156,7 +157,7 @@ class Image(AbstractTimestampMixin, models.Model):
 
     tags = models.ManyToManyField(
         Tag,
-        related_name="images",
+        through=TagOnImage,
         help_text="These tags apply to the image",
     )
 

@@ -10,6 +10,7 @@ from scansteward.models.metadata import PetInImage
 from scansteward.models.metadata import RoughDate
 from scansteward.models.metadata import RoughLocation
 from scansteward.models.metadata import Tag
+from scansteward.models.metadata import TagOnImage
 from scansteward.models.user import UserProfile
 
 __all__ = [
@@ -24,6 +25,7 @@ __all__ = [
     "RoughDate",
     "RoughLocation",
     "Tag",
+    "TagOnImage",
     "UserProfile",
     "Token",
 ]

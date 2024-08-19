@@ -6,7 +6,9 @@ from django.test.client import Client
 from django.utils import timezone
 
 from scansteward.imageops.models import RotationEnum
+from scansteward.models import Album
 from scansteward.models import Image
+from scansteward.models import ImageInAlbum
 from scansteward.models import Person
 from scansteward.models import PersonInImage
 from scansteward.models import Pet
@@ -123,7 +125,6 @@ class TestImageReadApi:
         data = resp.json()
 
         assert data == {
-            "album_ids": None,
             "date_id": 1,
             "description": (
                 "President Barack Obama throws a ball for Bo, the family dog, "
@@ -132,8 +133,47 @@ class TestImageReadApi:
             ),
             "location_id": 1,
             "orientation": RotationEnum.HORIZONTAL,
-            "tag_ids": [3],
         }
+
+    def test_get_image_tags(self, client: Client):
+        img = Image.objects.first()
+        assert img is not None
+
+        resp = client.get(f"/api/image/{img.pk}/tags/")
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data == [3]
+
+    def test_get_image_albums(self, client: Client):
+        img = Image.objects.first()
+        assert img is not None
+
+        resp = client.get(f"/api/image/{img.pk}/albums/")
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data == []
+
+        instance = Album.objects.create(
+            name="test name",
+            description="test desc",
+        )
+
+        ImageInAlbum.objects.get_or_create(
+            album=instance,
+            image=img,
+            sort_order=1,
+        )
+
+        resp = client.get(f"/api/image/{img.pk}/albums/")
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data == [instance.pk]
 
 
 @pytest.mark.usefixtures("sample_image_environment")
@@ -336,6 +376,24 @@ class TestImageUpdateApi:
 
         resp = client.patch(f"/api/image/{image.pk}/metadata/", content_type="application/json", data=existing)
         assert resp.status_code == HTTPStatus.OK
+
+    def test_update_image_tags(self, client: Client):
+        image = Image.objects.first()
+        assert image is not None
+
+        resp = client.patch(f"/api/image/{image.pk}/tags/", content_type="application/json", data=[1, 2])
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data == [1, 2]
+
+        resp = client.patch(f"/api/image/{image.pk}/tags/", content_type="application/json", data=[2, 3])
+        assert resp.status_code == HTTPStatus.OK
+
+        data = resp.json()
+
+        assert data == [2, 3]
 
 
 @pytest.mark.usefixtures("sample_image_environment")

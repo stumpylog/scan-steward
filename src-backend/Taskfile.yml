@@ -1,18 +1,52 @@
-version: '3'
+# https://github.com/go-task/task
+
+version: "3"
 
 tasks:
   dev-virtualenv:
     cmds:
       - pipenv sync --dev
-
   typing:
     deps:
       - dev-virtualenv
     cmds:
-      - pipenv run mypy .
-
+      - mypy .
   run-server:
     deps:
       - dev-virtualenv
     cmds:
-      - pipenv run python manage.py runserver
+      - python manage.py runserver
+  migrate:
+    cmds:
+      - python manage.py migrate
+
+  makemigrations:
+    cmds:
+      - python manage.py makemigrations
+
+  cleanstart:
+    cmds:
+      - rm -r media || true
+      - rm -r data || true
+      - mkdir media/
+      - mkdir media/fullsize
+      - mkdir media/thumbnails
+      - mkdir data
+      - mkdir data/logs
+      - task: migrate
+
+  format:
+    cmds:
+      - ruff format .
+  check:
+    ignore_error: true
+    cmds:
+      - ruff check .
+  lint:
+    cmds:
+      - task: format
+      - task: check
+      - task: format
+  schema:
+    cmds:
+      - python manage.py export_openapi_schema --output schema.json --indent 2

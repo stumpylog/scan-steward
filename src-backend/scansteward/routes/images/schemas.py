@@ -40,8 +40,6 @@ class ImageMetadataReadSchema(Schema):
     description: str | None = None
     location_id: int | None = None
     date_id: int | None = None
-    tag_ids: list[int] | None = None
-    album_ids: list[int] | None = None
 
 
 class ImageMetadataUpdateSchema(Schema):

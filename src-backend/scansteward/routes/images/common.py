@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from scansteward.models import Image
 from scansteward.models import PersonInImage
 from scansteward.models import PetInImage
+from scansteward.models import Tag
 from scansteward.routes.images.schemas import BoundingBoxSchema
 from scansteward.routes.images.schemas import ImageMetadataReadSchema
 from scansteward.routes.images.schemas import PersonWithBoxSchema
@@ -62,7 +63,13 @@ async def get_pet_boxes_from_image(image: Image) -> list[PetWithBoxSchema]:
 
 
 async def get_image_metadata_common(image: Image) -> ImageMetadataReadSchema:
-    tags = [pk async for pk in image.tags.all().only("pk").values_list("pk", flat=True)]
+    tags = [
+        pk
+        async for pk in Tag.objects.filter(tagonimage__image=image, tagonimage__applied=True)
+        .only("pk")
+        .values_list("pk", flat=True)
+    ]
+    # tags = [pk async for pk in image.tags.all().only("pk").values_list("pk", flat=True)]
     albums = [pk async for pk in image.albums.all().only("pk").values_list("pk", flat=True)]
 
     return ImageMetadataReadSchema(
