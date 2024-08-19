@@ -13,7 +13,6 @@ from scansteward.models import Pet
 from scansteward.models import PetInImage
 from scansteward.models import RoughDate
 from scansteward.models import RoughLocation
-from scansteward.tests.mixins import DirectoriesMixin
 from scansteward.tests.mixins import FileSystemAssertsMixin
 
 
@@ -341,7 +340,7 @@ class TestImageUpdateApi:
 
 @pytest.mark.usefixtures("sample_image_environment")
 @pytest.mark.django_db
-class TestImageDeleteApi(DirectoriesMixin):
+class TestImageDeleteApi:
     def test_delete_face_from_image(self, client: Client):
         image = Image.objects.first()
         assert image is not None

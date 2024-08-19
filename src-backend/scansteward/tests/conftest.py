@@ -30,6 +30,16 @@ def _seed_random():
 
 
 @pytest.fixture(scope="session")
+def api_base_url() -> str:
+    return "/api/"
+
+
+@pytest.fixture(scope="session")
+def album_base_url(api_base_url: str) -> str:
+    return api_base_url + "album/"
+
+
+@pytest.fixture(scope="session")
 def fixture_directory() -> Path:
     return Path(__file__).parent / "fixtures"
 

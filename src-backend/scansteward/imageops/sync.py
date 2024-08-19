@@ -1,3 +1,4 @@
+from scansteward.imageops.constants import DATE_KEYWORD
 from scansteward.imageops.models import DimensionsStruct
 from scansteward.imageops.models import ImageMetadata
 from scansteward.imageops.models import KeywordInfoModel
@@ -6,7 +7,6 @@ from scansteward.imageops.models import RegionInfoStruct
 from scansteward.imageops.models import RegionStruct
 from scansteward.imageops.models import RotationEnum
 from scansteward.imageops.models import XmpAreaStruct
-from scansteward.management.commands.mixins import KeywordNameMixin
 from scansteward.models import Image as ImageModel
 from scansteward.models import PersonInImage
 from scansteward.models import PetInImage
@@ -101,7 +101,7 @@ def fill_image_metadata_from_db(image: ImageModel, image_metadata: ImageMetadata
             image_metadata.KeywordInfo = KeywordInfoModel(
                 Hierarchy=[
                     KeywordStruct(
-                        Keyword=KeywordNameMixin.DATE_KEYWORD,
+                        Keyword=DATE_KEYWORD,
                         Applied=False,
                         Children=[year_keyword],
                     ),

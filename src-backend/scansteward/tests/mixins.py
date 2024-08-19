@@ -1,71 +1,7 @@
 import collections
-import tempfile
-from contextlib import ExitStack
 from pathlib import Path
 
-from django.test import override_settings
-
 from scansteward.imageops.models import ImageMetadata
-
-
-class TemporaryDirectoryMixin:
-    """
-    Provides a helper which will generate new temporary directories as needed,
-    which will all be removed when the class is torn down
-
-    Test functions can also use the tmp_path fixture, but this is
-    not accessible in the setup/teardown methods or other utility type functions.
-
-    It also does not work with Django's TestCase
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        cls._dir_stack = ExitStack()  # type: ignore[attr-defined]
-        super().setUpClass()  # type: ignore[misc]
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls._dir_stack.close()  # type: ignore[attr-defined]
-        super().tearDownClass()  # type: ignore[misc]
-
-    def get_new_temporary_dir(self) -> Path:
-        """
-        Generates a new temporary directory which will be cleaned up on tearDown
-        """
-        tmp_dir = self._dir_stack.enter_context(tempfile.TemporaryDirectory(ignore_cleanup_errors=True))  # type: ignore[attr-defined]
-        return Path(tmp_dir)
-
-
-class DirectoriesMixin(TemporaryDirectoryMixin):
-    """
-    Creates and overrides settings for all folders and paths defined, then ensures
-    they are cleaned up on exit
-    """
-
-    def setUp(self) -> None:
-        super().setUp()  # type: ignore[misc] - This is defined for TestCase
-        self.BASE_DIR = self.get_new_temporary_dir()
-        self.DATA_DIR = self.BASE_DIR / "data"
-        self.LOGS_DIR = self.DATA_DIR / "logs"
-        self.MEDIA_DIR = self.BASE_DIR / "media"
-        self.THUMBNAIL_DIR = self.MEDIA_DIR / "thumbnails"
-        self.FULL_SIZE_DIR = self.MEDIA_DIR / "fullsize"
-        for x in [self.DATA_DIR, self.LOGS_DIR, self.MEDIA_DIR, self.THUMBNAIL_DIR, self.FULL_SIZE_DIR]:
-            x.mkdir(parents=True)
-        self._overrides = override_settings(
-            BASE_DIR=self.BASE_DIR,
-            DATA_DIR=self.DATA_DIR,
-            LOGGING_DIR=self.LOGS_DIR,
-            MEDIA_ROOT=self.MEDIA_DIR,
-            THUMBNAIL_DIR=self.THUMBNAIL_DIR,
-            FULL_SIZE_DIR=self.FULL_SIZE_DIR,
-        )
-        self._overrides.enable()
-
-    def tearDown(self) -> None:
-        super().tearDown()  # type: ignore[misc] - This is defined for TestCase
-        self._overrides.disable()
 
 
 class FileSystemAssertsMixin:
