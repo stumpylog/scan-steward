@@ -10,8 +10,10 @@ class AuthApiKey(APIKeyHeader):
     def authenticate(
         self,
         request: HttpRequest,  # noqa: ARG002
-        key: str,
+        key: str | None,
     ):
+        if key is None:
+            return None
         try:
             token_obj = Token.objects.get(key=key)
             if token_obj.is_valid():

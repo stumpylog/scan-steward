@@ -33,6 +33,8 @@ def handle_existing_image(
     """
     Handles an image that has already been indexed, either updating its source or changing the location
     """
+    if TYPE_CHECKING:
+        assert pkg.logger is not None
     pkg.logger.info("  Image already indexed")
     # Set the source if requested
     if pkg.source is not None and (existing_image.source is None or existing_image.source != pkg.source):
@@ -59,6 +61,10 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         """
         Parses the MWG regions into people and pets
         """
+
+        if TYPE_CHECKING:
+            assert pkg.logger is not None
+
         pkg.logger.info("  Parsing regions")
         if metadata.RegionInfo:
             for region in metadata.RegionInfo.RegionList:
@@ -100,6 +106,8 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         """
         Creates database Tags from the MWG keyword struct
         """
+        if TYPE_CHECKING:
+            assert pkg.logger is not None
 
         def maybe_create_tag_tree(
             image_instance: ImageModel,
@@ -158,6 +166,8 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         """
         Creates a RoughLocation from a given ImageMetadata object and adds it to the given image.
         """
+        if TYPE_CHECKING:
+            assert pkg.logger is not None
         if metadata.Country:
             country_alpha_2 = get_country_code_from_name(metadata.Country)
             if country_alpha_2:
@@ -200,6 +210,8 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         If the subdivison doesn't match anything within the country, it is assumed to be a city instead
 
         """
+        if TYPE_CHECKING:
+            assert pkg.logger is not None
         if (
             metadata.KeywordInfo
             and (location_tree := metadata.KeywordInfo.get_root_by_name(LOCATION_KEYWORD))
@@ -251,7 +263,8 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
         If no month is found, no day will be looked for.  It is possible to have a rough date of just a year,
         just a month and year or a year, month, day fully built
         """
-
+        if TYPE_CHECKING:
+            assert pkg.logger is not None
         if (
             metadata.KeywordInfo
             and metadata.KeywordInfo
@@ -315,12 +328,16 @@ def handle_new_image(pkg: ImageIndexTaskModel) -> None:
     pkg.logger.info("  Creating thumbnail")
     with Image.open(pkg.image_path) as im_file:
         img_copy = ImageOps.exif_transpose(im_file)
+        if TYPE_CHECKING:
+            assert img_copy is not None
         img_copy.thumbnail((500, 500))
         img_copy.save(new_img.thumbnail_path)
 
     pkg.logger.info("  Creating WebP version")
     with Image.open(pkg.image_path) as im_file:
         img_copy = ImageOps.exif_transpose(im_file)
+        if TYPE_CHECKING:
+            assert img_copy is not None
         img_copy.save(new_img.full_size_path, quality=90)
 
     del img_copy, im_file

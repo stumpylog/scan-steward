@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 from http import HTTPStatus
 
 from django.http import HttpRequest
@@ -25,9 +26,7 @@ def create_token(request: HttpRequest, token_data: TokenInCreateSchema):
     token = Token.objects.create(
         user=request.user,
         name=token_data.name,
-        expires_at=timezone.now() + timezone.timedelta(days=token_data.expires_in_days)
-        if token_data.expires_in_days
-        else None,
+        expires_at=timezone.now() + timedelta(days=token_data.expires_in_days) if token_data.expires_in_days else None,
     )
     return TokenOutResponse(
         key=token.key,

@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
@@ -75,6 +76,6 @@ def index_single_image(pkg: ImageIndexTaskModel) -> None:
 def remove_trashed_images() -> None:
     # Filter images based on deleted_at being less than now - some set period of time and call .delete on the queryset
     # TODO: Set the days from settings
-    qs = ImageModel.objects.filter(deleted_at__lte=timezone.now() - timezone.timedelta(days=30))
+    qs = ImageModel.objects.filter(deleted_at__lte=timezone.now() - timedelta(days=30))
 
     qs.delete()

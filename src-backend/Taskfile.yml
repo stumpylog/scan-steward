@@ -3,27 +3,15 @@
 version: "3"
 
 tasks:
-  dev-virtualenv:
-    cmds:
-      - pipenv sync --dev
-  typing:
-    deps:
-      - dev-virtualenv
-    cmds:
-      - mypy .
   run-server:
-    deps:
-      - dev-virtualenv
     cmds:
-      - python manage.py runserver
+      - uv run --no-dev --frozen manage.py runserver
   migrate:
     cmds:
-      - python manage.py migrate
-
+      - uv run --no-dev --frozen manage.py migrate
   makemigrations:
     cmds:
-      - python manage.py makemigrations
-
+      - uv run --no-dev --frozen manage.py makemigrations
   cleanstart:
     cmds:
       - rm -rf media
@@ -34,7 +22,6 @@ tasks:
       - mkdir data
       - mkdir data/logs
       - task: migrate
-
   format:
     cmds:
       - ruff format .
@@ -48,4 +35,7 @@ tasks:
       - task: format
   schema:
     cmds:
-      - python manage.py export_openapi_schema --output schema.json --indent 2
+      - uv run --frozen manage.py export_openapi_schema --output schema.json --indent 2
+  test:
+    cmds:
+      - uv run --frozen pytest

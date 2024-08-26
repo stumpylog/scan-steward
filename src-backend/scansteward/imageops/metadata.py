@@ -155,7 +155,7 @@ def expand_keyword_structures(metadata: ImageMetadata) -> ImageMetadata:
     for keyword in metadata.KeywordInfo.Hierarchy:
         remove_duplicate_children(keyword)
 
-    def flatten_children(internal_root: KeywordStruct, current_words: list):
+    def flatten_children(internal_root: KeywordStruct, current_words: list[str]):
         if not internal_root.Children:
             current_words.append(internal_root.Keyword)
         this_child_words = [internal_root.Keyword]

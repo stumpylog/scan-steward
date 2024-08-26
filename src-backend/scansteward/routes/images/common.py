@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from scansteward.imageops.models import RotationEnum
 from scansteward.models import Image
 from scansteward.models import PersonInImage
 from scansteward.models import PetInImage
@@ -63,7 +64,7 @@ async def get_pet_boxes_from_image(image: Image) -> list[PetWithBoxSchema]:
 
 async def get_image_metadata_common(image: Image) -> ImageMetadataReadSchema:
     return ImageMetadataReadSchema(
-        orientation=image.orientation,
+        orientation=RotationEnum(image.orientation),
         description=image.description,
         location_id=image.location.pk if image.location else None,
         date_id=image.date.pk if image.date else None,
