@@ -10,9 +10,9 @@ else:
     from typing import Self
 
 
-class RoughDateCreateSchema(Schema):
+class RoughDateCreateInSchema(Schema):
     """
-    Schema to create a Person
+    Schema to create a rough date
     """
 
     date: datetime.date
@@ -26,17 +26,17 @@ class RoughDateCreateSchema(Schema):
         return self
 
 
-class RoughDateReadSchema(RoughDateCreateSchema):
+class RoughDateReadOutSchema(RoughDateCreateInSchema):
     """
-    Schema when reading a person
+    Schema when reading a rough date
     """
 
     id: int
 
 
-class RoughDateUpdateSchema(Schema):
+class RoughDateUpdateInSchema(Schema):
     """
-    Schema to update a person
+    Schema to update a rough date
     """
 
     date: datetime.date | None = None

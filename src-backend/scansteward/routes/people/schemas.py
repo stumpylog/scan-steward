@@ -9,7 +9,7 @@ else:
     from typing import Self
 
 
-class PersonCreateSchema(Schema):
+class PersonCreateInSchema(Schema):
     """
     Schema to create a Person
     """
@@ -18,7 +18,7 @@ class PersonCreateSchema(Schema):
     description: str | None = None
 
 
-class PersonReadSchema(PersonCreateSchema):
+class PersonReadOutSchema(PersonCreateInSchema):
     """
     Schema when reading a person
     """
@@ -26,7 +26,7 @@ class PersonReadSchema(PersonCreateSchema):
     id: int
 
 
-class PersonUpdateSchema(Schema):
+class PersonUpdateInSchema(Schema):
     """
     Schema to update a person
     """

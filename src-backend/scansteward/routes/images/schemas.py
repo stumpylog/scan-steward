@@ -31,18 +31,18 @@ class PetWithBoxSchema(Schema):
     box: BoundingBoxSchema = Field(description="Bounding box of the pet")
 
 
-class PetBoxDeleteSchema(Schema):
+class PetBoxDeleteInSchema(Schema):
     pet_ids: list[int] = Field(description="List of pets to delete from the image")
 
 
-class ImageMetadataReadSchema(Schema):
+class ImageMetadataOutSchema(Schema):
     orientation: RotationEnum
     description: str | None = None
     location_id: int | None = None
     date_id: int | None = None
 
 
-class ImageMetadataUpdateSchema(Schema):
+class ImageMetadataUpdateInSchema(Schema):
     description: str | None = None
 
     orientation: RotationEnum | None = None

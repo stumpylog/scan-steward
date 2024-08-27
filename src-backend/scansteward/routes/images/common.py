@@ -5,7 +5,7 @@ from scansteward.models import Image
 from scansteward.models import PersonInImage
 from scansteward.models import PetInImage
 from scansteward.routes.images.schemas import BoundingBoxSchema
-from scansteward.routes.images.schemas import ImageMetadataReadSchema
+from scansteward.routes.images.schemas import ImageMetadataOutSchema
 from scansteward.routes.images.schemas import PersonWithBoxSchema
 from scansteward.routes.images.schemas import PetWithBoxSchema
 
@@ -62,8 +62,8 @@ async def get_pet_boxes_from_image(image: Image) -> list[PetWithBoxSchema]:
     return boxes
 
 
-async def get_image_metadata_common(image: Image) -> ImageMetadataReadSchema:
-    return ImageMetadataReadSchema(
+async def get_image_metadata_common(image: Image) -> ImageMetadataOutSchema:
+    return ImageMetadataOutSchema(
         orientation=RotationEnum(image.orientation),
         description=image.description,
         location_id=image.location.pk if image.location else None,

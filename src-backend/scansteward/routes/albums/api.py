@@ -20,20 +20,20 @@ from scansteward.common.errors import HttpBadRequestError
 from scansteward.models import Album
 from scansteward.models import Image
 from scansteward.models import ImageInAlbum
-from scansteward.routes.albums.schemas import AlbumAddImageSchema
-from scansteward.routes.albums.schemas import AlbumBasicReadSchema
-from scansteward.routes.albums.schemas import AlbumCreateSchema
-from scansteward.routes.albums.schemas import AlbumRemoveImageSchema
-from scansteward.routes.albums.schemas import AlbumSortUpdate
-from scansteward.routes.albums.schemas import AlbumUpdateSchema
-from scansteward.routes.albums.schemas import AlbumWithImagesReadSchema
+from scansteward.routes.albums.schemas import AlbumAddImageInSchema
+from scansteward.routes.albums.schemas import AlbumBasicReadOutSchema
+from scansteward.routes.albums.schemas import AlbumCreateInSchema
+from scansteward.routes.albums.schemas import AlbumRemoveImageInSchema
+from scansteward.routes.albums.schemas import AlbumSortUpdateInSchema
+from scansteward.routes.albums.schemas import AlbumUpdateInSchema
+from scansteward.routes.albums.schemas import AlbumWithImagesReadInSchema
 
 router = Router(tags=["albums"])
 
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[AlbumBasicReadSchema], operation_id="get_albums")
+@router.get("/", response=list[AlbumBasicReadOutSchema], operation_id="get_albums")
 @paginate(PageNumberPagination)
 def get_albums(
     request: HttpRequest,  # noqa: ARG001
@@ -48,7 +48,7 @@ def get_albums(
 
 @router.get(
     "/{album_id}/",
-    response=AlbumWithImagesReadSchema,
+    response=AlbumWithImagesReadInSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -67,10 +67,10 @@ def get_album(
     return album_instance
 
 
-@router.post("/", response={HTTPStatus.CREATED: AlbumBasicReadSchema}, operation_id="create_album")
+@router.post("/", response={HTTPStatus.CREATED: AlbumBasicReadOutSchema}, operation_id="create_album")
 async def create_album(
     request: HttpRequest,  # noqa: ARG001
-    data: AlbumCreateSchema,
+    data: AlbumCreateInSchema,
 ):
     instance: Album = await Album.objects.acreate(
         name=data.name,
@@ -81,7 +81,7 @@ async def create_album(
 
 @router.patch(
     "/{album_id}/",
-    response=AlbumBasicReadSchema,
+    response=AlbumBasicReadOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -94,7 +94,7 @@ async def create_album(
 async def update_album(
     request: HttpRequest,  # noqa: ARG001
     album_id: int,
-    data: AlbumUpdateSchema,
+    data: AlbumUpdateInSchema,
 ):
     instance: Album = await aget_object_or_404(Album, id=album_id)
     if data.name is not None:
@@ -107,7 +107,7 @@ async def update_album(
 
 @router.patch(
     "/{album_id}/add/",
-    response=AlbumWithImagesReadSchema,
+    response=AlbumWithImagesReadInSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -120,7 +120,7 @@ async def update_album(
 def add_image_to_album(
     request: HttpRequest,  # noqa: ARG001
     album_id: int,
-    data: AlbumAddImageSchema,
+    data: AlbumAddImageInSchema,
 ):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
@@ -142,7 +142,7 @@ def add_image_to_album(
 
 @router.patch(
     "/{album_id}/remove/",
-    response=AlbumWithImagesReadSchema,
+    response=AlbumWithImagesReadInSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -155,7 +155,7 @@ def add_image_to_album(
 def remove_image_from_album(
     request: HttpRequest,  # noqa: ARG001
     album_id: int,
-    data: AlbumRemoveImageSchema,
+    data: AlbumRemoveImageInSchema,
 ):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 
@@ -172,7 +172,7 @@ def remove_image_from_album(
 
 @router.patch(
     "/{album_id}/sort/",
-    response=AlbumWithImagesReadSchema,
+    response=AlbumWithImagesReadInSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -188,7 +188,7 @@ def remove_image_from_album(
 def update_album_sorting(
     request: HttpRequest,  # noqa: ARG001
     album_id: int,
-    data: AlbumSortUpdate,
+    data: AlbumSortUpdateInSchema,
 ):
     album_instance: Album = get_object_or_404(Album.objects.prefetch_related("images"), id=album_id)
 

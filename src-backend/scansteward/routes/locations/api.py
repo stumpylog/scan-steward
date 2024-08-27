@@ -12,9 +12,9 @@ from simpleiso3166.subdivisions.types import SubdivisionCodeType
 from scansteward.common.errors import HttpBadRequestError
 from scansteward.common.errors import HttpConflictError
 from scansteward.models import RoughLocation
-from scansteward.routes.locations.schemas import LocationCreateSchema
-from scansteward.routes.locations.schemas import LocationReadSchema
-from scansteward.routes.locations.schemas import LocationUpdateSchema
+from scansteward.routes.locations.schemas import LocationCreateInSchema
+from scansteward.routes.locations.schemas import LocationReadOutSchema
+from scansteward.routes.locations.schemas import LocationUpdateInSchema
 from scansteward.routes.locations.utils import subdivision_in_country
 
 router = Router(tags=["locations"])
@@ -22,7 +22,7 @@ router = Router(tags=["locations"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[LocationReadSchema], operation_id="get_locations")
+@router.get("/", response=list[LocationReadOutSchema], operation_id="get_locations")
 @paginate(PageNumberPagination)
 def get_all_locations(
     request: HttpRequest,  # noqa: ARG001
@@ -45,7 +45,7 @@ def get_all_locations(
 
 @router.get(
     "/{location_id}/",
-    response=LocationReadSchema,
+    response=LocationReadOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -65,7 +65,7 @@ async def get_single_location(
 
 @router.post(
     "/",
-    response={HTTPStatus.CREATED: LocationReadSchema},
+    response={HTTPStatus.CREATED: LocationReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -83,7 +83,7 @@ async def get_single_location(
 )
 async def create_location(
     request: HttpRequest,  # noqa: ARG001
-    data: LocationCreateSchema,
+    data: LocationCreateInSchema,
 ):
     if data.subdivision_code and not subdivision_in_country(
         data.country_code,
@@ -109,7 +109,7 @@ async def create_location(
 
 @router.patch(
     "/{location_id}/",
-    response={HTTPStatus.OK: LocationReadSchema},
+    response={HTTPStatus.OK: LocationReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -122,7 +122,7 @@ async def create_location(
 async def update_location(
     request: HttpRequest,  # noqa: ARG001
     location_id: int,
-    data: LocationUpdateSchema,
+    data: LocationUpdateInSchema,
 ):
     # Validate that at least one field is provided to be updated
     if not any([data.country_code, data.subdivision_code, data.city, data.sub_location]):

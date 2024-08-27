@@ -9,16 +9,16 @@ from ninja.pagination import paginate
 
 from scansteward.common.errors import HttpConflictError
 from scansteward.models import Person
-from scansteward.routes.people.schemas import PersonCreateSchema
-from scansteward.routes.people.schemas import PersonReadSchema
-from scansteward.routes.people.schemas import PersonUpdateSchema
+from scansteward.routes.people.schemas import PersonCreateInSchema
+from scansteward.routes.people.schemas import PersonReadOutSchema
+from scansteward.routes.people.schemas import PersonUpdateInSchema
 
 router = Router(tags=["people"])
 
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[PersonReadSchema], operation_id="get_people")
+@router.get("/", response=list[PersonReadOutSchema], operation_id="get_people")
 @paginate(PageNumberPagination)
 def get_all_people(
     request: HttpRequest,  # noqa: ARG001
@@ -33,7 +33,7 @@ def get_all_people(
 
 @router.get(
     "/{person_id}/",
-    response=PersonReadSchema,
+    response=PersonReadOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -53,7 +53,7 @@ async def get_single_person(
 
 @router.post(
     "/",
-    response={HTTPStatus.CREATED: PersonReadSchema},
+    response={HTTPStatus.CREATED: PersonReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -68,7 +68,7 @@ async def get_single_person(
 )
 async def create_person(
     request: HttpRequest,  # noqa: ARG001
-    data: PersonCreateSchema,
+    data: PersonCreateInSchema,
 ):
     person_name_exists = await Person.objects.filter(name__iexact=data.name).aexists()
     if person_name_exists:
@@ -84,7 +84,7 @@ async def create_person(
 
 @router.patch(
     "/{person_id}/",
-    response={HTTPStatus.OK: PersonReadSchema},
+    response={HTTPStatus.OK: PersonReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -97,7 +97,7 @@ async def create_person(
 async def update_person(
     request: HttpRequest,  # noqa: ARG001
     person_id: int,
-    data: PersonUpdateSchema,
+    data: PersonUpdateInSchema,
 ):
     instance: Person = await aget_object_or_404(Person, id=person_id)
     if data.name is not None:

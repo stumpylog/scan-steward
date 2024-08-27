@@ -13,7 +13,7 @@ from ninja import Router
 from scansteward.common.authentication import AuthApiKey
 from scansteward.common.errors import HttpNotAuthorizedError
 from scansteward.models import Token
-from scansteward.routes.authentication.schemas import TokenOutResponse
+from scansteward.routes.authentication.schemas import TokenReadOutSchema
 from scansteward.routes.users.schemas import UserInCreateSchema
 from scansteward.routes.users.schemas import UserOutCreateResponse
 from scansteward.routes.users.schemas import UserOutProfileResponse
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 @router.post(
     "/login/",
-    response={HTTPStatus.OK: TokenOutResponse},
+    response={HTTPStatus.OK: TokenReadOutSchema},
 )
 def login_user(
     request: HttpRequest,

@@ -9,16 +9,16 @@ else:
     from typing import Self
 
 
-class ImageSourceCreate(Schema):
+class ImageSourceCreateInSchema(Schema):
     name: str
     description: str | None = None
 
 
-class ImageSourceRead(ImageSourceCreate):
+class ImageSourceReadOutSchema(ImageSourceCreateInSchema):
     id: int
 
 
-class ImageSourceUpdate(Schema):
+class ImageSourceUpdateInSchema(Schema):
     name: str | None = None
     description: str | None = None
 

@@ -9,16 +9,16 @@ from ninja.pagination import PageNumberPagination
 from ninja.pagination import paginate
 
 from scansteward.models import Tag
-from scansteward.routes.tags.schemas import TagCreate
+from scansteward.routes.tags.schemas import TagCreateInSchema
 from scansteward.routes.tags.schemas import TagNameFilter
-from scansteward.routes.tags.schemas import TagRead
-from scansteward.routes.tags.schemas import TagTree
-from scansteward.routes.tags.schemas import TagUpdate
+from scansteward.routes.tags.schemas import TagReadOutSchema
+from scansteward.routes.tags.schemas import TagTreeOutSchema
+from scansteward.routes.tags.schemas import TagUpdateInSchema
 
 router = Router(tags=["tags"])
 
 
-@router.get("/tree/", response=list[TagTree], operation_id="get_tag_tree")
+@router.get("/tree/", response=list[TagTreeOutSchema], operation_id="get_tag_tree")
 def get_tag_tree(
     request: HttpRequest,  # noqa: ARG001
     filter_name_query: Query[TagNameFilter],
@@ -30,12 +30,12 @@ def get_tag_tree(
         .order_by("name")
         .prefetch_related("children")
     ):
-        tree_root = TagTree.from_orm(root_node)
+        tree_root = TagTreeOutSchema.from_orm(root_node)
         items.append(tree_root)
     return items
 
 
-@router.get("/", response=list[TagRead], operation_id="get_all_tags")
+@router.get("/", response=list[TagReadOutSchema], operation_id="get_all_tags")
 @paginate(PageNumberPagination)
 def get_tags(
     request: HttpRequest,  # noqa: ARG001
@@ -45,7 +45,7 @@ def get_tags(
 
 @router.get(
     "/{tag_id}/",
-    response=TagRead,
+    response=TagReadOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -65,7 +65,7 @@ async def get_single_tag(
 
 @router.post(
     "/",
-    response={HTTPStatus.CREATED: TagRead},
+    response={HTTPStatus.CREATED: TagReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -80,7 +80,7 @@ async def get_single_tag(
 )
 async def create_tag(
     request: HttpRequest,  # noqa: ARG001
-    data: TagCreate,
+    data: TagCreateInSchema,
 ):
     tag_name_exists = await Tag.objects.filter(name=data.name).aexists()
     if tag_name_exists:
@@ -101,7 +101,7 @@ async def create_tag(
 
 @router.patch(
     "/{tag_id}/",
-    response={HTTPStatus.OK: TagRead},
+    response={HTTPStatus.OK: TagReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -114,7 +114,7 @@ async def create_tag(
 async def update_tag(
     request: HttpRequest,  # noqa: ARG001
     tag_id: int,
-    data: TagUpdate,
+    data: TagUpdateInSchema,
 ):
     instance: Tag = await aget_object_or_404(Tag, id=tag_id)
     if data.name is not None:

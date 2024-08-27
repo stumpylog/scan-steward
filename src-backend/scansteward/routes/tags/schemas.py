@@ -12,31 +12,31 @@ else:
     from typing import Self
 
 
-class TagCreate(Schema):
+class TagCreateInSchema(Schema):
     name: str
     description: str | None = None
     parent_id: int | None = None
 
 
-class TagRead(Schema):
+class TagReadOutSchema(Schema):
     id: int
     name: str
     description: str | None = None
     parent_id: int | None = None
 
 
-class TagTree(Schema):
+class TagTreeOutSchema(Schema):
     id: int
     name: str
     description: str | None = None
     parent_id: int | None = None
-    children: list[TagTree] | None = None
+    children: list[TagTreeOutSchema] | None = None
 
 
-TagTree.model_rebuild()
+TagTreeOutSchema.model_rebuild()
 
 
-class TagUpdate(Schema):
+class TagUpdateInSchema(Schema):
     name: str | None = None
     description: str | None = None
     parent_id: int | None = None

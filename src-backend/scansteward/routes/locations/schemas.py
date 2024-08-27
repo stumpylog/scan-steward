@@ -16,7 +16,7 @@ else:
     from typing import Self
 
 
-class LocationCreateSchema(Schema):
+class LocationCreateInSchema(Schema):
     """
     Schema to create a Location
     """
@@ -35,7 +35,7 @@ class LocationCreateSchema(Schema):
     )
 
 
-class LocationReadSchema(LocationCreateSchema):
+class LocationReadOutSchema(LocationCreateInSchema):
     """
     Schema to create a Location
     """
@@ -43,7 +43,7 @@ class LocationReadSchema(LocationCreateSchema):
     id: int = Field(description="The id of the location")
 
 
-class LocationUpdateSchema(Schema):
+class LocationUpdateInSchema(Schema):
     """
     Schema to create a Location
     """

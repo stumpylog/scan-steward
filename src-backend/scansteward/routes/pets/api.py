@@ -9,16 +9,16 @@ from ninja.pagination import paginate
 
 from scansteward.common.errors import HttpConflictError
 from scansteward.models import Pet
-from scansteward.routes.pets.schemas import PetCreateSchema
-from scansteward.routes.pets.schemas import PetReadSchema
-from scansteward.routes.pets.schemas import PetUpdateSchema
+from scansteward.routes.pets.schemas import PetCreateInSchema
+from scansteward.routes.pets.schemas import PetReadOutSchema
+from scansteward.routes.pets.schemas import PetUpdateInSchema
 
 router = Router(tags=["pets"])
 
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[PetReadSchema], operation_id="get_pets")
+@router.get("/", response=list[PetReadOutSchema], operation_id="get_pets")
 @paginate(PageNumberPagination)
 def get_all_pets(
     request: HttpRequest,  # noqa: ARG001
@@ -28,7 +28,7 @@ def get_all_pets(
 
 @router.get(
     "/{pet_id}/",
-    response=PetReadSchema,
+    response=PetReadOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -48,7 +48,7 @@ async def get_single_pet(
 
 @router.post(
     "/",
-    response={HTTPStatus.CREATED: PetReadSchema},
+    response={HTTPStatus.CREATED: PetReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -63,7 +63,7 @@ async def get_single_pet(
 )
 async def create_pet(
     request: HttpRequest,  # noqa: ARG001
-    data: PetCreateSchema,
+    data: PetCreateInSchema,
 ):
     pet_name_exists = await Pet.objects.filter(name__iexact=data.name).aexists()
     if pet_name_exists:
@@ -79,7 +79,7 @@ async def create_pet(
 
 @router.patch(
     "/{pet_id}/",
-    response={HTTPStatus.OK: PetReadSchema},
+    response={HTTPStatus.OK: PetReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -92,7 +92,7 @@ async def create_pet(
 async def update_pet(
     request: HttpRequest,  # noqa: ARG001
     pet_id: int,
-    data: PetUpdateSchema,
+    data: PetUpdateInSchema,
 ):
     instance: Pet = await aget_object_or_404(Pet, id=pet_id)
     if data.name is not None:

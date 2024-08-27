@@ -33,11 +33,11 @@ from scansteward.routes.images.conditionals import image_last_modified
 from scansteward.routes.images.conditionals import original_image_etag
 from scansteward.routes.images.conditionals import thumbnail_etag
 from scansteward.routes.images.filters import CommaSepIntList
-from scansteward.routes.images.schemas import ImageMetadataReadSchema
-from scansteward.routes.images.schemas import ImageMetadataUpdateSchema
+from scansteward.routes.images.schemas import ImageMetadataOutSchema
+from scansteward.routes.images.schemas import ImageMetadataUpdateInSchema
 from scansteward.routes.images.schemas import PersonFaceDeleteSchema
 from scansteward.routes.images.schemas import PersonWithBoxSchema
-from scansteward.routes.images.schemas import PetBoxDeleteSchema
+from scansteward.routes.images.schemas import PetBoxDeleteInSchema
 from scansteward.routes.images.schemas import PetWithBoxSchema
 
 router = Router(tags=["images"])
@@ -369,7 +369,7 @@ async def update_pet_boxes_in_image(
 async def delete_pets_from_image(
     request: HttpRequest,  # noqa: ARG001
     image_id: int,
-    data: PetBoxDeleteSchema,
+    data: PetBoxDeleteInSchema,
 ):
     img: Image = await aget_object_or_404(Image.objects.prefetch_related("pets"), id=image_id)
 
@@ -383,7 +383,7 @@ async def delete_pets_from_image(
 
 @router.get(
     "/{image_id}/metadata/",
-    response={HTTPStatus.OK: ImageMetadataReadSchema},
+    response={HTTPStatus.OK: ImageMetadataOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -409,7 +409,7 @@ async def get_image_metadata(
 
 @router.patch(
     "/{image_id}/metadata/",
-    response={HTTPStatus.OK: ImageMetadataReadSchema},
+    response={HTTPStatus.OK: ImageMetadataOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -422,7 +422,7 @@ async def get_image_metadata(
 async def update_image_metadata(
     request: HttpRequest,  # noqa: ARG001
     image_id: int,
-    data: ImageMetadataUpdateSchema,
+    data: ImageMetadataUpdateInSchema,
 ):
     img: Image = await aget_object_or_404(
         Image.objects.select_related("location").select_related("date"),

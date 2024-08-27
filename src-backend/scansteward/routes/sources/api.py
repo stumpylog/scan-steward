@@ -9,16 +9,16 @@ from ninja.pagination import paginate
 
 from scansteward.common.errors import HttpConflictError
 from scansteward.models import ImageSource
-from scansteward.routes.sources.schema import ImageSourceCreate
-from scansteward.routes.sources.schema import ImageSourceRead
-from scansteward.routes.sources.schema import ImageSourceUpdate
+from scansteward.routes.sources.schema import ImageSourceCreateInSchema
+from scansteward.routes.sources.schema import ImageSourceReadOutSchema
+from scansteward.routes.sources.schema import ImageSourceUpdateInSchema
 
 router = Router(tags=["sources"])
 
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[ImageSourceRead], operation_id="get_scan_sources")
+@router.get("/", response=list[ImageSourceReadOutSchema], operation_id="get_scan_sources")
 @paginate(PageNumberPagination)
 def get_all_sources(
     request: HttpRequest,  # noqa: ARG001
@@ -28,7 +28,7 @@ def get_all_sources(
 
 @router.get(
     "/{source_id}/",
-    response=ImageSourceRead,
+    response=ImageSourceReadOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -48,7 +48,7 @@ async def get_single_source(
 
 @router.post(
     "/",
-    response={HTTPStatus.CREATED: ImageSourceRead},
+    response={HTTPStatus.CREATED: ImageSourceReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.CONFLICT: {
@@ -60,7 +60,7 @@ async def get_single_source(
 )
 async def create_source(
     request: HttpRequest,  # noqa: ARG001
-    data: ImageSourceCreate,
+    data: ImageSourceCreateInSchema,
 ):
     source_name_exists = await ImageSource.objects.filter(name__iexact=data.name).aexists()
     if source_name_exists:
@@ -77,7 +77,7 @@ async def create_source(
 
 @router.patch(
     "/{source_id}/",
-    response={HTTPStatus.OK: ImageSourceRead},
+    response={HTTPStatus.OK: ImageSourceReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -90,7 +90,7 @@ async def create_source(
 async def update_source(
     request: HttpRequest,  # noqa: ARG001
     source_id: int,
-    data: ImageSourceUpdate,
+    data: ImageSourceUpdateInSchema,
 ):
     # Retrieve the location object from the database
     instance: ImageSource = await aget_object_or_404(ImageSource, id=source_id)

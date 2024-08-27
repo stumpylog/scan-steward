@@ -10,20 +10,20 @@ else:
     from typing import Self
 
 
-class AlbumCreateSchema(Schema):
+class AlbumCreateInSchema(Schema):
     name: str = Field(description="The name of the album")
     description: str | None = Field(default=None, description="The description of the album")
 
 
-class AlbumBasicReadSchema(AlbumCreateSchema):
+class AlbumBasicReadOutSchema(AlbumCreateInSchema):
     id: int = Field(description="The id of the album")
 
 
-class AlbumWithImagesReadSchema(AlbumBasicReadSchema):
+class AlbumWithImagesReadInSchema(AlbumBasicReadOutSchema):
     image_ids: list[int] = Field(description="The ids of the images in this album in sorted order")
 
 
-class AlbumUpdateSchema(Schema):
+class AlbumUpdateInSchema(Schema):
     name: str | None = Field(default=None, description="The new name of the album")
     description: str | None = Field(default=None, description="The new description of the album")
 
@@ -34,7 +34,7 @@ class AlbumUpdateSchema(Schema):
         return self
 
 
-class AlbumSortUpdate(Schema):
+class AlbumSortUpdateInSchema(Schema):
     sorting: list[int] = Field(
         description="The new order of the images, with the index being the new position in the album",
     )
@@ -46,7 +46,7 @@ class AlbumSortUpdate(Schema):
         return self
 
 
-class AlbumAddImageSchema(Schema):
+class AlbumAddImageInSchema(Schema):
     image_ids: list[int] = Field(
         default=None,
         description="The id of the image to add to the album",
@@ -59,7 +59,7 @@ class AlbumAddImageSchema(Schema):
         return self
 
 
-class AlbumRemoveImageSchema(Schema):
+class AlbumRemoveImageInSchema(Schema):
     image_ids: list[int] = Field(
         default=None,
         description="The id of the image to remove from the album",

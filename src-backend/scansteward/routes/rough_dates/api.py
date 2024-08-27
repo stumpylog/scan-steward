@@ -10,16 +10,16 @@ from ninja.pagination import paginate
 from scansteward.common.errors import HttpConflictError
 from scansteward.common.errors import HttpUnprocessableEntityError
 from scansteward.models import RoughDate
-from scansteward.routes.rough_dates.schema import RoughDateCreateSchema
-from scansteward.routes.rough_dates.schema import RoughDateReadSchema
-from scansteward.routes.rough_dates.schema import RoughDateUpdateSchema
+from scansteward.routes.rough_dates.schema import RoughDateCreateInSchema
+from scansteward.routes.rough_dates.schema import RoughDateReadOutSchema
+from scansteward.routes.rough_dates.schema import RoughDateUpdateInSchema
 
 router = Router(tags=["dates"])
 
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response=list[RoughDateReadSchema], operation_id="get_rough_dates")
+@router.get("/", response=list[RoughDateReadOutSchema], operation_id="get_rough_dates")
 @paginate(PageNumberPagination)
 def get_all_dates(
     request: HttpRequest,  # noqa: ARG001
@@ -29,7 +29,7 @@ def get_all_dates(
 
 @router.get(
     "/{date_id}/",
-    response=RoughDateReadSchema,
+    response=RoughDateReadOutSchema,
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -49,7 +49,7 @@ async def get_single_rough_date(
 
 @router.post(
     "/",
-    response={HTTPStatus.CREATED: RoughDateReadSchema},
+    response={HTTPStatus.CREATED: RoughDateReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.BAD_REQUEST: {
@@ -61,7 +61,7 @@ async def get_single_rough_date(
 )
 async def create_rough_date(
     request: HttpRequest,  # noqa: ARG001
-    data: RoughDateCreateSchema,
+    data: RoughDateCreateInSchema,
 ):
     rough_date_exists = await RoughDate.objects.filter(
         date=data.date,
@@ -82,7 +82,7 @@ async def create_rough_date(
 
 @router.patch(
     "/{date_id}/",
-    response={HTTPStatus.OK: RoughDateReadSchema},
+    response={HTTPStatus.OK: RoughDateReadOutSchema},
     openapi_extra={
         "responses": {
             HTTPStatus.NOT_FOUND: {
@@ -95,7 +95,7 @@ async def create_rough_date(
 async def update_rough_date(
     request: HttpRequest,  # noqa: ARG001
     date_id: int,
-    data: RoughDateUpdateSchema,
+    data: RoughDateUpdateInSchema,
 ):
     instance: RoughDate = await aget_object_or_404(RoughDate, id=date_id)
     if data.date is not None:

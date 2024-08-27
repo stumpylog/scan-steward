@@ -9,7 +9,7 @@ else:
     from typing import Self
 
 
-class PetCreateSchema(Schema):
+class PetCreateInSchema(Schema):
     """
     Schema to create a Pet
     """
@@ -18,7 +18,7 @@ class PetCreateSchema(Schema):
     description: str | None = None
 
 
-class PetReadSchema(PetCreateSchema):
+class PetReadOutSchema(PetCreateInSchema):
     """
     Schema when reading a pet
     """
@@ -26,7 +26,7 @@ class PetReadSchema(PetCreateSchema):
     id: int
 
 
-class PetUpdateSchema(Schema):
+class PetUpdateInSchema(Schema):
     """
     Schema to update a pet
     """
